@@ -12,7 +12,7 @@
   `wikiRepositoryNote`, `addWikiPageAliases`, `WikiPageView.repository`); routes `apps/server/src/routes/app/wiki.ts`
   (`/organizations/{orgId}/wiki/repository`), the webhook in `apps/server/src/routes/github-app.ts`, the periodic look
   in `apps/server/src/workers.ts`; web `apps/web/src/components/wiki/WikiRepository.tsx`; tables
-  `wiki_repositories`, `wiki_repository_files` (migration 0274); tests `packages/engine/test/wiki-repository.test.ts`
+  `wiki_repositories`, `wiki_repository_files` (migration 0275); tests `packages/engine/test/wiki-repository.test.ts`
 
 ## Context
 
