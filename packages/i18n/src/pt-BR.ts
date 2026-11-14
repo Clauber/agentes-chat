@@ -11634,7 +11634,8 @@ export const ptBR = {
       },
       connect: {
         title: "Manter a wiki no GitHub",
-        description: "As páginas viram notas em Markdown num repositório do GitHub, e o GitHub passa a ser a fonte delas.",
+        description:
+          "As páginas viram notas em Markdown num repositório do GitHub, e o GitHub passa a ser a fonte delas.",
         repository: "Repositório",
         repositoryPlaceholder: "Escolha um repositório",
         repositoryHelp: "Os repositórios que o app do GitHub alcança, ou o endereço de qualquer repositório público.",
