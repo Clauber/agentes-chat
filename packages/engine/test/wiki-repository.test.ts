@@ -31,6 +31,7 @@ import {
   type WikiRepositoryDeps,
 } from "../src";
 import { zip } from "../src/docx";
+import { publicBranch } from "../src/wiki-repository/public";
 import { addMember, type Fixture, setup } from "./fixtures";
 
 let f: Fixture;
@@ -123,7 +124,12 @@ function fakeGitHub(initial: Record<string, string> = {}, open = false) {
       if (!open || !path.startsWith("/acme/notes")) return new Response("", { status: 401 });
       if (path === "/acme/notes.git/git-upload-pack" && method === "POST") {
         const line = (text: string) => `${(Buffer.byteLength(text) + 4).toString(16).padStart(4, "0")}${text}`;
-        const refs = `${line(`${head} HEAD symref-target:refs/heads/main\n`)}${line(`${head} refs/heads/main\n`)}0000`;
+        // Only the refs asked for, as GitHub answers `ls-refs`.
+        const asked = [...String(init?.body ?? "").matchAll(/ref-prefix (\S+)\n/g)].map((m) => m[1] as string);
+        const wants = (name: string) => asked.some((prefix) => name.startsWith(prefix));
+        const refs = `${wants("HEAD") ? line(`${head} HEAD symref-target:refs/heads/main\n`) : ""}${
+          wants("refs/heads/main") ? line(`${head} refs/heads/main\n`) : ""
+        }0000`;
         return new Response(refs, { status: 200, headers: { "content-type": "application/x-git-upload-pack-result" } });
       }
       const archive = /^\/acme\/notes\/archive\/(\w+)\.zip$/.exec(path);
@@ -694,6 +700,18 @@ describe("syncing", () => {
       { "Notas/Guia.md": "um\n", "README.md": "# Notas\n" },
       { installed: false, open: true },
     );
+    // Without credentials: the default branch and its head, through git's own refs.
+    const access = {
+      db: f.db,
+      orgId: f.org.id,
+      owner: "acme",
+      repo: "notes",
+      fetch: gh.fetch,
+      resolveHost: deps.resolveHost,
+    };
+    expect(await publicBranch(access, null)).toEqual({ defaultBranch: "main", branch: "main", head: gh.head() });
+    expect(await publicBranch(access, "gone")).toMatchObject({ head: "missing" });
+    expect(await publicBranch({ ...access, repo: "private" }, null)).toBeNull();
     // An address with its branch and folder.
     const view = await connectWikiRepository(deps, f.owner.id, f.org.id, {
       repository: "https://github.com/acme/notes/tree/main/Notas",

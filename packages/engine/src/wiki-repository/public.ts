@@ -104,8 +104,9 @@ export async function publicBranch(access: PublicRepoAccess, branch: string | nu
   const target = refs.get("HEAD")?.target;
   const defaultBranch = target?.startsWith("refs/heads/") ? target.slice("refs/heads/".length) : null;
   const name = branch ?? defaultBranch;
-  const head: string | "missing" | "empty" =
-    refs.size === 0 ? "empty" : ((name ? refs.get(`refs/heads/${name}`)?.oid : undefined) ?? "missing");
+  // No branch named: HEAD is the default branch's tip.
+  const tip = branch ? refs.get(`refs/heads/${branch}`)?.oid : refs.get("HEAD")?.oid;
+  const head: string | "missing" | "empty" = refs.size === 0 ? "empty" : (tip ?? "missing");
   return { defaultBranch, branch: name, head };
 }
 
