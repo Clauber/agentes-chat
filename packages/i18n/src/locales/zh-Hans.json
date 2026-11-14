@@ -10873,6 +10873,88 @@
       "sent": "已在与{{name}}的对话中发送请求。",
       "message": "关于页面 [[{{title}}]]："
     },
+    "repo": {
+      "stopped": "已停止与 GitHub 同步更新",
+      "menu": {
+        "name": "GitHub",
+        "connect": "保存在 GitHub",
+        "connectDesc": "将页面作为笔记保存在你的仓库中"
+      },
+      "state": {
+        "upToDate": "{{repo}} · 已更新（{{when}}）",
+        "syncing": "{{repo}} · 正在更新…",
+        "retrying": "{{repo}} · GitHub 没有响应，正在重试",
+        "stopped": "已停止与 {{repo}} 同步更新"
+      },
+      "connect": {
+        "title": "把 Wiki 保存在 GitHub",
+        "description": "页面会成为你仓库中的 Markdown 笔记。GitHub 是源头：那边的改动会出现在这里，这里的改动也会同步过去。",
+        "repository": "仓库",
+        "repositoryPlaceholder": "选择仓库",
+        "repositoryHelp": "只显示安装了 GitHub 应用的仓库。",
+        "noRepositories": "GitHub 应用还无法访问任何仓库。",
+        "openConnectors": "在连接器中安装",
+        "search": "搜索仓库",
+        "noResults": "没有这个名称的仓库。",
+        "folder": "文件夹",
+        "folderPlaceholder": "整个仓库",
+        "folderHelp": "可选。只有这个文件夹里的笔记会成为页面。",
+        "branch": "分支",
+        "branchPlaceholder": "默认分支",
+        "branchHelp": "可选。笔记从这个分支读取并写入这个分支。",
+        "noteBoth": "这里的页面会进入仓库，那边的笔记会成为页面。",
+        "noteConflict": "如果一条笔记两边都改了，保留仓库中的版本。这里的版本会进入页面历史。",
+        "noteRestricted": "仅部分人可见的页面永远不会离开这里。",
+        "submit": "连接"
+      },
+      "manage": {
+        "title": "GitHub 上的 Wiki",
+        "notes": "笔记",
+        "updated": "更新时间",
+        "updating": "正在更新…",
+        "never": "尚未",
+        "pending_other": "还有 {{count}} 个页面要同步到 GitHub。",
+        "held_other": "{{count}} 条笔记没有成为页面",
+        "retrying": "上次 GitHub 没有响应。Wiki 会自动重试。",
+        "noteDisconnect": "断开连接后，页面留在这里，笔记留在那边，保持原样。",
+        "noteStopped": "在此期间，这里写的内容会留在这里，仓库恢复后再同步过去。",
+        "disconnect": "断开连接",
+        "open": "在 GitHub 上打开",
+        "syncNow": "立即更新",
+        "retry": "重试"
+      },
+      "held": {
+        "tooLong": "超过了页面的长度上限",
+        "title": "它的名称不能用作标题",
+        "depth": "文件夹嵌套太多",
+        "other": "无法成为页面"
+      },
+      "why": {
+        "not_installed": "GitHub 应用已无法访问 {{repo}}。管理员在 GitHub 上把这个仓库添加到应用后，Wiki 会重新同步。",
+        "refused": "GitHub 应用无权写入 {{repo}}。管理员在 GitHub 上接受应用的权限后，Wiki 会重新同步。",
+        "branch_missing": "存放 Wiki 的分支已从 {{repo}} 中消失。请重新连接仓库。",
+        "empty": "{{repo}} 还没有任何文件。添加第一个文件后再试一次。",
+        "missing": "{{repo}} 已不存在，或者 GitHub 应用已看不到它。",
+        "too_large": "{{repo}} 的笔记太多，无法同步。请改为连接它的某个文件夹。",
+        "owner_gone": "连接 {{repo}} 的人已不再是这里的管理员。请管理员在这里重新开始。",
+        "folder_missing": "Wiki 的文件夹已从 {{repo}} 中消失，或者是空的。这里没有删除任何内容：请用正确的文件夹重新连接仓库。",
+        "no_app": "原本可以访问 {{repo}} 的 GitHub 应用已不存在。管理员在连接器中重新设置后，Wiki 会重新同步。",
+        "protected": "{{repo}} 不接受直接提交到这个分支（它受保护）。请允许 GitHub 应用推送到该分支，或连接另一个分支。",
+        "other": "Wiki 已停止同步 {{repo}}。请重试。"
+      },
+      "page": {
+        "synced": "已在 GitHub",
+        "syncedHint": "在 GitHub 上打开这个页面的笔记",
+        "sending": "正在同步到 GitHub…",
+        "sendingHint": "这个版本马上会进入仓库。",
+        "notSent": "尚未同步到 GitHub",
+        "notSentHint": "Wiki 已停止与 GitHub 同步更新。恢复后这个版本会同步过去。",
+        "local": "仅在这里",
+        "localHint": "仅部分人可见的页面永远不会同步到 GitHub。",
+        "held": "GitHub 上未更新",
+        "heldHint": "无法在这里读取它在 GitHub 上的笔记，所以这个页面不会覆盖它。"
+      }
+    },
     "import": {
       "cta": "导入",
       "short": "导入",
@@ -11002,7 +11084,8 @@
       "moved_root": "移到了根目录",
       "saved_message": "保存了一条消息",
       "created_from_message": "从一条消息创建",
-      "imported": "从“{{source}}”导入"
+      "imported": "从“{{source}}”导入",
+      "repository": "来自仓库（{{commit}}）"
     }
   },
   "run": {
@@ -14030,6 +14113,13 @@
     "wiki": {
       "githubNoNotes": "此链接中没有 Markdown 笔记。",
       "githubTooLarge": "笔记太多，无法通过链接读取。请将代码库下载为 .zip，然后在“文件”中导入。",
+      "repoInvalid": "请按 所有者/名称 的格式填写仓库。",
+      "repoNoApp": "还没有设置可以访问仓库的 GitHub 应用。",
+      "repoNotInstalled": "这个仓库没有安装 GitHub 应用。",
+      "repoRefused": "GitHub 应用无权写入这个仓库。",
+      "repoBranchMissing": "仓库中没有这个分支。",
+      "repoEmpty": "这个仓库还没有任何文件。添加第一个文件后再试一次。",
+      "repoPathInvalid": "这个文件夹不能存放 Wiki。",
       "noAccess": "你无权访问此页面。",
       "audienceForbidden": "只有能编辑 Wiki 并管理角色的成员才能选择谁可以看到页面。",
       "audienceExcludesYou": "请把你自己（你的某个角色或你的名字）包括在内，才能继续看到此页面。",

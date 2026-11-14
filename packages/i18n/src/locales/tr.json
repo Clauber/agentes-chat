@@ -11190,6 +11190,90 @@
       "sent": "İstek {{name}} ile konuşmanda gönderildi.",
       "message": "[[{{title}}]] sayfası hakkında:"
     },
+    "repo": {
+      "stopped": "GitHub ile güncellemeyi bıraktı",
+      "menu": {
+        "name": "GitHub",
+        "connect": "GitHub'da tut",
+        "connectDesc": "Sayfalar, deponuzda notlar olarak"
+      },
+      "state": {
+        "upToDate": "{{repo}} · güncel {{when}}",
+        "syncing": "{{repo}} · güncelleniyor…",
+        "retrying": "{{repo}} · GitHub yanıt vermedi, yeniden deneniyor",
+        "stopped": "{{repo}} ile güncellemeyi bıraktı"
+      },
+      "connect": {
+        "title": "Wiki'yi GitHub'da tutun",
+        "description": "Sayfalar, deponuzda Markdown notlarına dönüşür. Kaynak GitHub'dır: orada değişen burada görünür, burada değişen oraya gider.",
+        "repository": "Depo",
+        "repositoryPlaceholder": "Bir depo seçin",
+        "repositoryHelp": "Yalnızca GitHub uygulamasının yüklü olduğu depolar görünür.",
+        "noRepositories": "GitHub uygulaması henüz hiçbir depoya ulaşmıyor.",
+        "openConnectors": "Bağlayıcılar'dan yükleyin",
+        "search": "Depolarda ara",
+        "noResults": "Bu adda depo yok.",
+        "folder": "Klasör",
+        "folderPlaceholder": "Deponun tamamı",
+        "folderHelp": "İsteğe bağlı. Yalnızca bu klasördeki notlar sayfa olur.",
+        "branch": "Dal",
+        "branchPlaceholder": "Varsayılan dal",
+        "branchHelp": "İsteğe bağlı. Notlar bu daldan okunur ve bu dala yazılır.",
+        "noteBoth": "Buradaki sayfalar depoya gider, oradaki notlar sayfa olur.",
+        "noteConflict": "Bir not iki tarafta da değiştiyse deponunki kalır. Buradaki, sayfanın geçmişine gider.",
+        "noteRestricted": "Bazı kişilerle sınırlı sayfalar buradan hiç çıkmaz.",
+        "submit": "Bağla"
+      },
+      "manage": {
+        "title": "GitHub'da Wiki",
+        "notes": "Notlar",
+        "updated": "Güncellendi",
+        "updating": "güncelleniyor…",
+        "never": "henüz değil",
+        "pending_one": "{{count}} sayfa henüz GitHub'a gidecek.",
+        "pending_other": "{{count}} sayfa henüz GitHub'a gidecek.",
+        "held_one": "{{count}} not sayfa olmadı",
+        "held_other": "{{count}} not sayfa olmadı",
+        "retrying": "GitHub son seferde yanıt vermedi. Wiki kendiliğinden yeniden deniyor.",
+        "noteDisconnect": "Bağlantıyı kesmek sayfaları burada, notları orada olduğu gibi bırakır.",
+        "noteStopped": "Bu arada burada yazılanlar burada kalır ve depo geri geldiğinde oraya gider.",
+        "disconnect": "Bağlantıyı kes",
+        "open": "GitHub'da aç",
+        "syncNow": "Şimdi güncelle",
+        "retry": "Yeniden dene"
+      },
+      "held": {
+        "tooLong": "Bir sayfanın olabileceğinden uzun",
+        "title": "Adı başlık olamıyor",
+        "depth": "İç içe çok fazla klasör",
+        "other": "Sayfa olamadı"
+      },
+      "why": {
+        "not_installed": "GitHub uygulaması artık {{repo}} deposuna ulaşmıyor. Bir Yönetici depoyu GitHub'da uygulamaya ekler ve wiki onu yeniden takip eder.",
+        "refused": "GitHub uygulaması {{repo}} deposuna yazamıyor. Bir Yönetici GitHub'da uygulamanın izinlerini kabul eder ve wiki onu yeniden takip eder.",
+        "branch_missing": "Wiki'nin tutulduğu dal {{repo}} deposunda artık yok. Depoyu yeniden bağlayın.",
+        "empty": "{{repo}} deposunda henüz hiç dosya yok. İlk dosyayı ekleyip yeniden deneyin.",
+        "missing": "{{repo}} artık yok ya da GitHub uygulaması onu artık görmüyor.",
+        "too_large": "{{repo}} takip edilemeyecek kadar çok not içeriyor. Bunun yerine klasörlerinden birini bağlayın.",
+        "owner_gone": "{{repo}} deposunu bağlayan kişi artık burada Yönetici değil. Bir Yönetici buradan yeniden başlatır.",
+        "folder_missing": "Wiki'nin klasörü {{repo}} deposunda yok ya da boş. Burada hiçbir şey silinmedi: depoyu doğru klasörle yeniden bağlayın.",
+        "no_app": "{{repo}} deposuna ulaşan GitHub uygulaması artık yok. Bir Yönetici Bağlayıcılar'da yeni bir tane kurar ve wiki onu yeniden takip eder.",
+        "protected": "{{repo}} bu dala doğrudan commit kabul etmiyor (dal korumalı). GitHub uygulamasının bu dala push etmesine izin verin ya da başka bir dal bağlayın.",
+        "other": "Wiki {{repo}} deposunu takip etmeyi bıraktı. Yeniden deneyin."
+      },
+      "page": {
+        "synced": "GitHub'da",
+        "syncedHint": "Bu sayfanın notunu GitHub'da açın",
+        "sending": "GitHub'a gidiyor…",
+        "sendingHint": "Bu sürüm birazdan depoya gider.",
+        "notSent": "Henüz GitHub'da değil",
+        "notSentHint": "Wiki GitHub ile güncellemeyi bıraktı. Bu sürüm, yeniden başladığında oraya gider.",
+        "local": "Yalnızca burada",
+        "localHint": "Bazı kişilerle sınırlı sayfalar asla GitHub'a gitmez.",
+        "held": "GitHub'da güncellenmedi",
+        "heldHint": "GitHub'daki notu burada okunamadı, bu yüzden bu sayfa onun üzerine yazılmaz."
+      }
+    },
     "import": {
       "cta": "İçe aktar",
       "short": "İçe aktar",
@@ -11343,7 +11427,8 @@
       "moved_root": "köke taşıdı",
       "saved_message": "bir mesajı kaydetti",
       "created_from_message": "bir mesajdan oluşturuldu",
-      "imported": "\"{{source}}\" kaynağından içe aktardı"
+      "imported": "\"{{source}}\" kaynağından içe aktardı",
+      "repository": "depodan geldi ({{commit}})"
     }
   },
   "run": {
@@ -14438,6 +14523,13 @@
     "wiki": {
       "githubNoNotes": "Bu bağlantıda Markdown notu yok.",
       "githubTooLarge": "Bağlantıdan okunamayacak kadar çok not var. Depoyu .zip olarak indirip Dosyalar'dan içe aktarın.",
+      "repoInvalid": "Depoyu sahip/ad biçiminde yazın.",
+      "repoNoApp": "Depolara ulaşmak için henüz bir GitHub uygulaması kurulmadı.",
+      "repoNotInstalled": "GitHub uygulaması bu depoda yüklü değil.",
+      "repoRefused": "GitHub uygulaması bu depoya yazamıyor.",
+      "repoBranchMissing": "Bu dal depoda yok.",
+      "repoEmpty": "Bu depoda henüz hiç dosya yok. İlk dosyayı ekleyip yeniden deneyin.",
+      "repoPathInvalid": "Bu klasör wiki'yi tutamaz.",
       "noAccess": "Bu sayfaya erişiminiz yok.",
       "audienceForbidden": "Bir sayfayı kimin göreceğini yalnızca wiki'yi düzenleyen ve rolleri yöneten kişiler seçer.",
       "audienceExcludesYou": "Sayfayı görmeye devam etmek için kendinizi de ekleyin (rollerinizden biri ya da adınız).",

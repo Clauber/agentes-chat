@@ -10859,6 +10859,88 @@
       "sent": "Permintaan terkirim di percakapanmu dengan {{name}}.",
       "message": "Tentang halaman [[{{title}}]]:"
     },
+    "repo": {
+      "stopped": "Berhenti memperbarui dengan GitHub",
+      "menu": {
+        "name": "GitHub",
+        "connect": "Simpan di GitHub",
+        "connectDesc": "Halaman sebagai catatan di repositorimu"
+      },
+      "state": {
+        "upToDate": "{{repo}} · terbaru {{when}}",
+        "syncing": "{{repo}} · memperbarui…",
+        "retrying": "{{repo}} · GitHub tidak menjawab, mencoba lagi",
+        "stopped": "Berhenti memperbarui dengan {{repo}}"
+      },
+      "connect": {
+        "title": "Simpan wiki di GitHub",
+        "description": "Halaman menjadi catatan Markdown di repositorimu. GitHub adalah sumbernya: yang berubah di sana muncul di sini, dan yang berubah di sini dikirim ke sana.",
+        "repository": "Repositori",
+        "repositoryPlaceholder": "Pilih repositori",
+        "repositoryHelp": "Hanya repositori yang memasang aplikasi GitHub yang muncul.",
+        "noRepositories": "Aplikasi GitHub belum menjangkau repositori mana pun.",
+        "openConnectors": "Pasang di Konektor",
+        "search": "Cari repositori",
+        "noResults": "Tidak ada repositori dengan nama itu.",
+        "folder": "Folder",
+        "folderPlaceholder": "Seluruh repositori",
+        "folderHelp": "Opsional. Hanya catatan di folder ini yang menjadi halaman.",
+        "branch": "Branch",
+        "branchPlaceholder": "Branch bawaan",
+        "branchHelp": "Opsional. Catatan dibaca dari dan ditulis ke branch ini.",
+        "noteBoth": "Halaman di sini masuk ke repositori, dan catatan di sana menjadi halaman.",
+        "noteConflict": "Jika catatan berubah di kedua sisi, yang dari repositori tetap dipakai. Yang dari sini masuk ke riwayat halaman.",
+        "noteRestricted": "Halaman yang dibatasi untuk beberapa orang tidak pernah keluar dari sini.",
+        "submit": "Hubungkan"
+      },
+      "manage": {
+        "title": "Wiki di GitHub",
+        "notes": "Catatan",
+        "updated": "Diperbarui",
+        "updating": "memperbarui…",
+        "never": "belum",
+        "pending_other": "{{count}} halaman masih akan dikirim ke GitHub.",
+        "held_other": "{{count}} catatan tidak menjadi halaman",
+        "retrying": "GitHub tidak menjawab terakhir kali. Wiki mencoba lagi dengan sendirinya.",
+        "noteDisconnect": "Memutus sambungan membiarkan halaman di sini dan catatan di sana apa adanya.",
+        "noteStopped": "Sementara itu, yang ditulis di sini tetap di sini dan dikirim ke repositori saat kembali.",
+        "disconnect": "Putuskan",
+        "open": "Buka di GitHub",
+        "syncNow": "Perbarui sekarang",
+        "retry": "Coba lagi"
+      },
+      "held": {
+        "tooLong": "Lebih panjang dari batas halaman",
+        "title": "Namanya tidak bisa menjadi judul",
+        "depth": "Terlalu banyak folder bertingkat",
+        "other": "Tidak bisa menjadi halaman"
+      },
+      "why": {
+        "not_installed": "Aplikasi GitHub tidak lagi menjangkau {{repo}}. Admin menambahkan repositori ke aplikasi di GitHub, lalu wiki mengikutinya lagi.",
+        "refused": "Aplikasi GitHub tidak boleh menulis ke {{repo}}. Admin menerima izin aplikasi di GitHub, lalu wiki mengikutinya lagi.",
+        "branch_missing": "Branch tempat wiki disimpan sudah hilang dari {{repo}}. Hubungkan repositori lagi.",
+        "empty": "{{repo}} belum punya file. Tambahkan file pertama lalu coba lagi.",
+        "missing": "{{repo}} sudah hilang, atau aplikasi GitHub tidak lagi melihatnya.",
+        "too_large": "{{repo}} punya terlalu banyak catatan untuk diikuti. Hubungkan salah satu foldernya saja.",
+        "owner_gone": "Orang yang menghubungkan {{repo}} bukan Admin di sini lagi. Admin memulainya lagi dari sini.",
+        "folder_missing": "Folder wiki sudah hilang dari {{repo}}, atau kosong. Tidak ada yang dihapus di sini: hubungkan repositori lagi dengan folder yang benar.",
+        "no_app": "Aplikasi GitHub yang menjangkau {{repo}} sudah tidak ada. Admin menyiapkan yang baru di Konektor, lalu wiki mengikutinya lagi.",
+        "protected": "{{repo}} tidak menerima commit langsung di branch itu (branch dilindungi). Izinkan aplikasi GitHub melakukan push ke sana, atau hubungkan branch lain.",
+        "other": "Wiki berhenti mengikuti {{repo}}. Coba lagi."
+      },
+      "page": {
+        "synced": "Di GitHub",
+        "syncedHint": "Buka catatan halaman ini di GitHub",
+        "sending": "Dikirim ke GitHub…",
+        "sendingHint": "Versi ini akan masuk ke repositori sebentar lagi.",
+        "notSent": "Belum di GitHub",
+        "notSentHint": "Wiki berhenti memperbarui dengan GitHub. Versi ini dikirim ke sana saat berjalan lagi.",
+        "local": "Hanya di sini",
+        "localHint": "Halaman yang dibatasi untuk beberapa orang tidak pernah dikirim ke GitHub.",
+        "held": "Belum diperbarui di GitHub",
+        "heldHint": "Catatannya di GitHub tidak bisa dibaca di sini, jadi halaman ini tidak menimpanya."
+      }
+    },
     "import": {
       "cta": "Impor",
       "short": "Impor",
@@ -10988,7 +11070,8 @@
       "moved_root": "dipindahkan ke akar",
       "saved_message": "menyimpan pesan",
       "created_from_message": "dibuat dari pesan",
-      "imported": "diimpor dari \"{{source}}\""
+      "imported": "diimpor dari \"{{source}}\"",
+      "repository": "datang dari repositori ({{commit}})"
     }
   },
   "run": {
@@ -14020,6 +14103,13 @@
     "wiki": {
       "githubNoNotes": "Tidak ada catatan Markdown di tautan ini.",
       "githubTooLarge": "Catatannya terlalu banyak untuk dibaca dari tautan. Unduh repositori sebagai .zip lalu impor di File.",
+      "repoInvalid": "Tulis repositori sebagai pemilik/nama.",
+      "repoNoApp": "Belum ada aplikasi GitHub yang disiapkan untuk menjangkau repositori.",
+      "repoNotInstalled": "Aplikasi GitHub tidak terpasang di repositori itu.",
+      "repoRefused": "Aplikasi GitHub tidak boleh menulis ke repositori itu.",
+      "repoBranchMissing": "Branch itu tidak ada di repositori.",
+      "repoEmpty": "Repositori itu belum punya file. Tambahkan file pertama lalu coba lagi.",
+      "repoPathInvalid": "Folder itu tidak bisa menyimpan wiki.",
       "noAccess": "Kamu tidak punya akses ke halaman ini.",
       "audienceForbidden": "Hanya orang yang mengedit Wiki dan mengelola peran yang bisa memilih siapa yang melihat halaman.",
       "audienceExcludesYou": "Sertakan dirimu (salah satu peranmu, atau namamu) supaya tetap bisa melihat halaman ini.",

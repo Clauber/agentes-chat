@@ -292,7 +292,8 @@
       "invites.links",
       "invites.linkLabel",
       "appsDownload.appStore",
-      "appsDownload.googlePlay"
+      "appsDownload.googlePlay",
+      "wiki.repo.connect.branch"
     ],
     "es": [
       "devices.iphone.path.general",
@@ -965,7 +966,8 @@
       "invites.type",
       "invites.typesCount",
       "appsDownload.appStore",
-      "appsDownload.googlePlay"
+      "appsDownload.googlePlay",
+      "wiki.repo.manage.notes"
     ],
     "de": [
       "devices.iphone.steps.account",
@@ -1411,7 +1413,9 @@
       "invites.links",
       "invites.linkLabel",
       "appsDownload.appStore",
-      "appsDownload.googlePlay"
+      "appsDownload.googlePlay",
+      "wiki.repo.connect.repository",
+      "wiki.repo.connect.branch"
     ],
     "it": [
       "shell.email.label",
@@ -1778,7 +1782,9 @@
       "invites.linkLabel",
       "appsDownload.appStore",
       "appsDownload.googlePlay",
-      "appsDownload.computer"
+      "appsDownload.computer",
+      "wiki.repo.connect.repository",
+      "wiki.repo.connect.branch"
     ],
     "nl": [
       "calendar.moreRuns",
@@ -2373,7 +2379,9 @@
       "invites.linkLabel",
       "appsDownload.appStore",
       "appsDownload.googlePlay",
-      "appsDownload.computer"
+      "appsDownload.computer",
+      "wiki.repo.connect.repository",
+      "wiki.repo.connect.branch"
     ],
     "ja": [
       "channel.tooLong.fileName",
@@ -3156,7 +3164,9 @@
       "invites.byEmail",
       "invites.edit",
       "appsDownload.appStore",
-      "appsDownload.googlePlay"
+      "appsDownload.googlePlay",
+      "wiki.repo.connect.folder",
+      "wiki.repo.connect.branch"
     ],
     "tr": [
       "devices.cpus",
@@ -3637,7 +3647,8 @@
       "invites.link",
       "invites.linkLabel",
       "appsDownload.appStore",
-      "appsDownload.googlePlay"
+      "appsDownload.googlePlay",
+      "wiki.repo.connect.folder"
     ],
     "ru": [
       "channel.tooLong.fileName",
@@ -3793,18 +3804,55 @@
     ]
   },
   "mobile-base": {
-    "pt-BR": ["push.ask.minutes"],
-    "es": ["push.ask.minutes"],
-    "fr": ["a11y.agent", "a11y.agentPlain", "push.ask.minutes"],
-    "de": ["a11y.agentPlain", "auth.connect.on", "auth.server.line"],
-    "it": ["auth.connect.on", "auth.server.line", "push.ask.minutes"],
-    "nl": ["a11y.agent", "a11y.agentPlain", "auth.connect.on", "auth.server.line", "push.ask.minutes"],
-    "ja": ["auth.server.placeholder"],
-    "ko": ["auth.server.placeholder"],
-    "zh-Hans": ["auth.server.placeholder"],
-    "id": ["auth.connect.on", "auth.server.line"],
-    "pl": ["a11y.agent", "a11y.agentPlain", "push.ask.minutes"],
-    "ru": ["auth.server.placeholder"]
+    "pt-BR": [
+      "push.ask.minutes"
+    ],
+    "es": [
+      "push.ask.minutes"
+    ],
+    "fr": [
+      "a11y.agent",
+      "a11y.agentPlain",
+      "push.ask.minutes"
+    ],
+    "de": [
+      "a11y.agentPlain",
+      "auth.connect.on",
+      "auth.server.line"
+    ],
+    "it": [
+      "auth.connect.on",
+      "auth.server.line",
+      "push.ask.minutes"
+    ],
+    "nl": [
+      "a11y.agent",
+      "a11y.agentPlain",
+      "auth.connect.on",
+      "auth.server.line",
+      "push.ask.minutes"
+    ],
+    "ja": [
+      "auth.server.placeholder"
+    ],
+    "ko": [
+      "auth.server.placeholder"
+    ],
+    "zh-Hans": [
+      "auth.server.placeholder"
+    ],
+    "id": [
+      "auth.connect.on",
+      "auth.server.line"
+    ],
+    "pl": [
+      "a11y.agent",
+      "a11y.agentPlain",
+      "push.ask.minutes"
+    ],
+    "ru": [
+      "auth.server.placeholder"
+    ]
   },
   "mobile-features": {
     "pt-BR": [

@@ -11247,6 +11247,90 @@
       "sent": "Bitte in deiner Unterhaltung mit {{name}} gesendet.",
       "message": "Zur Seite [[{{title}}]]:"
     },
+    "repo": {
+      "stopped": "Aktualisiert sich nicht mehr mit GitHub",
+      "menu": {
+        "name": "GitHub",
+        "connect": "Auf GitHub pflegen",
+        "connectDesc": "Die Seiten als Notizen in einem deiner Repositorys"
+      },
+      "state": {
+        "upToDate": "{{repo}} · aktuell {{when}}",
+        "syncing": "{{repo}} · wird aktualisiert…",
+        "retrying": "{{repo}} · GitHub hat nicht geantwortet, neuer Versuch",
+        "stopped": "Aktualisiert sich nicht mehr mit {{repo}}"
+      },
+      "connect": {
+        "title": "Das Wiki auf GitHub pflegen",
+        "description": "Die Seiten werden zu Markdown-Notizen in einem deiner Repositorys. GitHub ist die Quelle: Was sich dort ändert, erscheint hier, und was sich hier ändert, geht dorthin.",
+        "repository": "Repository",
+        "repositoryPlaceholder": "Repository wählen",
+        "repositoryHelp": "Nur die Repositorys, in denen die GitHub-App installiert ist, werden angezeigt.",
+        "noRepositories": "Die GitHub-App erreicht noch kein Repository.",
+        "openConnectors": "In Konnektoren installieren",
+        "search": "Repositorys durchsuchen",
+        "noResults": "Kein Repository mit diesem Namen.",
+        "folder": "Ordner",
+        "folderPlaceholder": "Das ganze Repository",
+        "folderHelp": "Optional. Nur die Notizen in diesem Ordner werden zu Seiten.",
+        "branch": "Branch",
+        "branchPlaceholder": "Der Standard-Branch",
+        "branchHelp": "Optional. Die Notizen werden aus diesem Branch gelesen und in ihn geschrieben.",
+        "noteBoth": "Die Seiten hier gehen ins Repository, und die Notizen dort werden zu Seiten.",
+        "noteConflict": "Wenn sich eine Notiz auf beiden Seiten geändert hat, bleibt die aus dem Repository. Die von hier kommt in den Verlauf der Seite.",
+        "noteRestricted": "Seiten, die nur für einige Personen sichtbar sind, bleiben immer hier.",
+        "submit": "Verbinden"
+      },
+      "manage": {
+        "title": "Wiki auf GitHub",
+        "notes": "Notizen",
+        "updated": "Aktualisiert",
+        "updating": "wird aktualisiert…",
+        "never": "noch nicht",
+        "pending_one": "{{count}} Seite geht noch zu GitHub.",
+        "pending_other": "{{count}} Seiten gehen noch zu GitHub.",
+        "held_one": "{{count}} Notiz wurde keine Seite",
+        "held_other": "{{count}} Notizen wurden keine Seiten",
+        "retrying": "GitHub hat beim letzten Mal nicht geantwortet. Das Wiki versucht es von selbst erneut.",
+        "noteDisconnect": "Trennen lässt die Seiten hier und die Notizen dort, wie sie sind.",
+        "noteStopped": "Bis dahin bleibt, was hier geschrieben wird, hier und geht ins Repository, sobald es wieder da ist.",
+        "disconnect": "Trennen",
+        "open": "Auf GitHub öffnen",
+        "syncNow": "Jetzt aktualisieren",
+        "retry": "Erneut versuchen"
+      },
+      "held": {
+        "tooLong": "Länger, als eine Seite sein kann",
+        "title": "Ihr Name taugt nicht als Titel",
+        "depth": "Zu viele Ordner ineinander",
+        "other": "Konnte keine Seite werden"
+      },
+      "why": {
+        "not_installed": "Die GitHub-App erreicht {{repo}} nicht mehr. Ein Admin fügt das Repository auf GitHub zur App hinzu, und das Wiki folgt ihm wieder.",
+        "refused": "Die GitHub-App darf nicht in {{repo}} schreiben. Ein Admin akzeptiert die Berechtigungen der App auf GitHub, und das Wiki folgt ihm wieder.",
+        "branch_missing": "Der Branch, in dem das Wiki lag, ist aus {{repo}} verschwunden. Verbinde das Repository neu.",
+        "empty": "{{repo}} hat noch keine Datei. Füge eine erste Datei hinzu und versuche es erneut.",
+        "missing": "{{repo}} ist weg, oder die GitHub-App sieht es nicht mehr.",
+        "too_large": "{{repo}} hat zu viele Notizen, um ihnen zu folgen. Verbinde stattdessen einen seiner Ordner.",
+        "owner_gone": "Wer {{repo}} verbunden hat, ist hier kein Admin mehr. Ein Admin startet es hier wieder.",
+        "folder_missing": "Der Ordner des Wikis ist aus {{repo}} verschwunden oder leer. Hier wurde nichts gelöscht: Verbinde das Repository neu mit dem richtigen Ordner.",
+        "no_app": "Die GitHub-App, die {{repo}} erreicht hat, gibt es nicht mehr. Ein Admin richtet eine in Konnektoren ein, und das Wiki folgt ihm wieder.",
+        "protected": "{{repo}} nimmt auf diesem Branch keine direkten Commits an (er ist geschützt). Erlaube der GitHub-App, dorthin zu pushen, oder verbinde einen anderen Branch.",
+        "other": "Das Wiki folgt {{repo}} nicht mehr. Versuche es erneut."
+      },
+      "page": {
+        "synced": "Auf GitHub",
+        "syncedHint": "Die Notiz dieser Seite auf GitHub öffnen",
+        "sending": "Geht zu GitHub…",
+        "sendingHint": "Diese Version geht gleich ins Repository.",
+        "notSent": "Noch nicht auf GitHub",
+        "notSentHint": "Das Wiki aktualisiert sich nicht mehr mit GitHub. Diese Version geht dorthin, sobald es wieder läuft.",
+        "local": "Nur hier",
+        "localHint": "Seiten, die nur für einige Personen sichtbar sind, gehen nie zu GitHub.",
+        "held": "Auf GitHub nicht aktualisiert",
+        "heldHint": "Ihre Notiz auf GitHub konnte hier nicht gelesen werden, deshalb wird diese Seite nicht darüber geschrieben."
+      }
+    },
     "import": {
       "cta": "Importieren",
       "short": "Importieren",
@@ -11400,7 +11484,8 @@
       "moved_root": "auf die Hauptebene verschoben",
       "saved_message": "hat eine Nachricht gespeichert",
       "created_from_message": "aus einer Nachricht erstellt",
-      "imported": "aus „{{source}}“ importiert"
+      "imported": "aus „{{source}}“ importiert",
+      "repository": "kam aus dem Repository ({{commit}})"
     }
   },
   "run": {
@@ -14501,6 +14586,13 @@
     "wiki": {
       "githubNoNotes": "Unter diesem Link gibt es keine Markdown-Notizen.",
       "githubTooLarge": "Zu viele Notizen, um sie über einen Link zu lesen. Lade das Repository als .zip herunter und importiere es unter Dateien.",
+      "repoInvalid": "Gib das Repository als Besitzer/Name an.",
+      "repoNoApp": "Es ist noch keine GitHub-App eingerichtet, um Repositorys zu erreichen.",
+      "repoNotInstalled": "Die GitHub-App ist in diesem Repository nicht installiert.",
+      "repoRefused": "Die GitHub-App darf nicht in dieses Repository schreiben.",
+      "repoBranchMissing": "Diesen Branch gibt es im Repository nicht.",
+      "repoEmpty": "Dieses Repository hat noch keine Datei. Füge eine erste Datei hinzu und versuche es erneut.",
+      "repoPathInvalid": "Dieser Ordner kann das Wiki nicht aufnehmen.",
       "noAccess": "Du hast keinen Zugriff auf diese Seite.",
       "audienceForbidden": "Nur Personen, die das Wiki bearbeiten und Rollen verwalten, legen fest, wer eine Seite sieht.",
       "audienceExcludesYou": "Schließ dich selbst ein (eine deiner Rollen oder deinen Namen), um die Seite weiter zu sehen.",

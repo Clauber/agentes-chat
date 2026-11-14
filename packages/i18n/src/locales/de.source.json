@@ -27503,6 +27503,210 @@
   "wiki.ask.message": {
     "value": "About the page [[{{title}}]]:"
   },
+  "wiki.repo.stopped": {
+    "value": "Stopped updating with GitHub"
+  },
+  "wiki.repo.menu.name": {
+    "value": "GitHub"
+  },
+  "wiki.repo.menu.connect": {
+    "value": "Keep on GitHub"
+  },
+  "wiki.repo.menu.connectDesc": {
+    "value": "The pages as notes in a repository of yours"
+  },
+  "wiki.repo.state.upToDate": {
+    "value": "{{repo}} · up to date {{when}}"
+  },
+  "wiki.repo.state.syncing": {
+    "value": "{{repo}} · updating…"
+  },
+  "wiki.repo.state.retrying": {
+    "value": "{{repo}} · GitHub didn't answer, trying again"
+  },
+  "wiki.repo.state.stopped": {
+    "value": "Stopped updating with {{repo}}"
+  },
+  "wiki.repo.connect.title": {
+    "value": "Keep the wiki on GitHub"
+  },
+  "wiki.repo.connect.description": {
+    "value": "The pages become Markdown notes in a repository of yours. GitHub is the source: what changes there shows up here, and what changes here goes there."
+  },
+  "wiki.repo.connect.repository": {
+    "value": "Repository"
+  },
+  "wiki.repo.connect.repositoryPlaceholder": {
+    "value": "Choose a repository"
+  },
+  "wiki.repo.connect.repositoryHelp": {
+    "value": "Only the repositories the GitHub app is installed on show up."
+  },
+  "wiki.repo.connect.noRepositories": {
+    "value": "The GitHub app doesn't reach any repository yet."
+  },
+  "wiki.repo.connect.openConnectors": {
+    "value": "Install it in Connectors"
+  },
+  "wiki.repo.connect.search": {
+    "value": "Search repositories"
+  },
+  "wiki.repo.connect.noResults": {
+    "value": "No repository with that name."
+  },
+  "wiki.repo.connect.folder": {
+    "value": "Folder"
+  },
+  "wiki.repo.connect.folderPlaceholder": {
+    "value": "The whole repository"
+  },
+  "wiki.repo.connect.folderHelp": {
+    "value": "Optional. Only the notes in this folder become pages."
+  },
+  "wiki.repo.connect.branch": {
+    "value": "Branch"
+  },
+  "wiki.repo.connect.branchPlaceholder": {
+    "value": "The default branch"
+  },
+  "wiki.repo.connect.branchHelp": {
+    "value": "Optional. The notes are read from and written to this branch."
+  },
+  "wiki.repo.connect.noteBoth": {
+    "value": "The pages here go to the repository, and the notes there become pages."
+  },
+  "wiki.repo.connect.noteConflict": {
+    "value": "If a note changed on both sides, the repository's stays. The one from here goes to the page's history."
+  },
+  "wiki.repo.connect.noteRestricted": {
+    "value": "Pages limited to some people never leave here."
+  },
+  "wiki.repo.connect.submit": {
+    "value": "Connect"
+  },
+  "wiki.repo.manage.title": {
+    "value": "Wiki on GitHub"
+  },
+  "wiki.repo.manage.notes": {
+    "value": "Notes"
+  },
+  "wiki.repo.manage.updated": {
+    "value": "Updated"
+  },
+  "wiki.repo.manage.updating": {
+    "value": "updating…"
+  },
+  "wiki.repo.manage.never": {
+    "value": "not yet"
+  },
+  "wiki.repo.manage.pending": {
+    "value": {
+      "one": "{{count}} page is still to go to GitHub.",
+      "other": "{{count}} pages are still to go to GitHub."
+    }
+  },
+  "wiki.repo.manage.held": {
+    "value": {
+      "one": "{{count}} note didn't become a page",
+      "other": "{{count}} notes didn't become pages"
+    }
+  },
+  "wiki.repo.manage.retrying": {
+    "value": "GitHub didn't answer the last time. The wiki tries again by itself."
+  },
+  "wiki.repo.manage.noteDisconnect": {
+    "value": "Disconnecting leaves the pages here and the notes there, as they are."
+  },
+  "wiki.repo.manage.noteStopped": {
+    "value": "Meanwhile, what is written here stays here and goes to the repository once it is back."
+  },
+  "wiki.repo.manage.disconnect": {
+    "value": "Disconnect"
+  },
+  "wiki.repo.manage.open": {
+    "value": "Open on GitHub"
+  },
+  "wiki.repo.manage.syncNow": {
+    "value": "Update now"
+  },
+  "wiki.repo.manage.retry": {
+    "value": "Try again"
+  },
+  "wiki.repo.held.tooLong": {
+    "value": "Longer than a page can be"
+  },
+  "wiki.repo.held.title": {
+    "value": "Its name can't be a title"
+  },
+  "wiki.repo.held.depth": {
+    "value": "Too many folders inside one another"
+  },
+  "wiki.repo.held.other": {
+    "value": "It couldn't become a page"
+  },
+  "wiki.repo.why.not_installed": {
+    "value": "The GitHub app no longer reaches {{repo}}. An admin adds the repository to the app on GitHub, and the wiki follows it again."
+  },
+  "wiki.repo.why.refused": {
+    "value": "The GitHub app may not write to {{repo}}. An admin accepts the app's permissions on GitHub, and the wiki follows it again."
+  },
+  "wiki.repo.why.branch_missing": {
+    "value": "The branch the wiki was kept on is gone from {{repo}}. Connect the repository again."
+  },
+  "wiki.repo.why.empty": {
+    "value": "{{repo}} has no file yet. Add a first file to it and try again."
+  },
+  "wiki.repo.why.missing": {
+    "value": "{{repo}} is gone, or the GitHub app no longer sees it."
+  },
+  "wiki.repo.why.too_large": {
+    "value": "{{repo}} holds too many notes to follow. Connect one of its folders instead."
+  },
+  "wiki.repo.why.owner_gone": {
+    "value": "Whoever connected {{repo}} is no longer an admin here. An admin starts it again here."
+  },
+  "wiki.repo.why.folder_missing": {
+    "value": "The wiki's folder is gone from {{repo}}, or is empty. Nothing was deleted here: connect the repository again with the right folder."
+  },
+  "wiki.repo.why.no_app": {
+    "value": "The GitHub app that reached {{repo}} is gone. An admin sets one up in Connectors, and the wiki follows it again."
+  },
+  "wiki.repo.why.protected": {
+    "value": "{{repo}} takes no commits straight on that branch (it is protected). Let the GitHub app push to it, or connect another branch."
+  },
+  "wiki.repo.why.other": {
+    "value": "The wiki stopped following {{repo}}. Try again."
+  },
+  "wiki.repo.page.synced": {
+    "value": "On GitHub"
+  },
+  "wiki.repo.page.syncedHint": {
+    "value": "Open this page's note on GitHub"
+  },
+  "wiki.repo.page.sending": {
+    "value": "Going to GitHub…"
+  },
+  "wiki.repo.page.sendingHint": {
+    "value": "This version goes to the repository in a moment."
+  },
+  "wiki.repo.page.notSent": {
+    "value": "Not on GitHub yet"
+  },
+  "wiki.repo.page.notSentHint": {
+    "value": "The wiki stopped updating with GitHub. This version goes there once it starts again."
+  },
+  "wiki.repo.page.local": {
+    "value": "Only here"
+  },
+  "wiki.repo.page.localHint": {
+    "value": "Pages limited to some people never go to GitHub."
+  },
+  "wiki.repo.page.held": {
+    "value": "Not updated on GitHub"
+  },
+  "wiki.repo.page.heldHint": {
+    "value": "Its note on GitHub couldn't be read here, so this page isn't written over it."
+  },
   "wiki.import.cta": {
     "value": "Import"
   },
@@ -27895,6 +28099,9 @@
   },
   "wiki.note.imported": {
     "value": "imported from \"{{source}}\""
+  },
+  "wiki.note.repository": {
+    "value": "came from the repository ({{commit}})"
   },
   "run.steeredStep": {
     "value": "New message from {{name}}"
@@ -35629,6 +35836,27 @@
   },
   "errors.wiki.githubTooLarge": {
     "value": "Too many notes to read from a link. Download the repository as a .zip and import it in Files."
+  },
+  "errors.wiki.repoInvalid": {
+    "value": "Name the repository as owner/name."
+  },
+  "errors.wiki.repoNoApp": {
+    "value": "No GitHub app is set up to reach repositories yet."
+  },
+  "errors.wiki.repoNotInstalled": {
+    "value": "The GitHub app isn't installed on that repository."
+  },
+  "errors.wiki.repoRefused": {
+    "value": "The GitHub app may not write to that repository."
+  },
+  "errors.wiki.repoBranchMissing": {
+    "value": "That branch doesn't exist in the repository."
+  },
+  "errors.wiki.repoEmpty": {
+    "value": "That repository has no file yet. Add a first file to it and try again."
+  },
+  "errors.wiki.repoPathInvalid": {
+    "value": "That folder can't hold the wiki."
   },
   "errors.wiki.noAccess": {
     "value": "You don't have access to this page."

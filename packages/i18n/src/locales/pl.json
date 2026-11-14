@@ -12070,6 +12070,94 @@
       "sent": "Prośba wysłana w rozmowie z: {{name}}.",
       "message": "O stronie [[{{title}}]]:"
     },
+    "repo": {
+      "stopped": "Przestało się aktualizować z GitHubem",
+      "menu": {
+        "name": "GitHub",
+        "connect": "Trzymaj na GitHubie",
+        "connectDesc": "Strony jako notatki w twoim repozytorium"
+      },
+      "state": {
+        "upToDate": "{{repo}} · aktualne {{when}}",
+        "syncing": "{{repo}} · aktualizowanie…",
+        "retrying": "{{repo}} · GitHub nie odpowiedział, ponawiam",
+        "stopped": "Przestało się aktualizować z {{repo}}"
+      },
+      "connect": {
+        "title": "Trzymaj wiki na GitHubie",
+        "description": "Strony stają się notatkami Markdown w twoim repozytorium. GitHub jest źródłem: to, co zmienia się tam, pojawia się tutaj, a to, co zmienia się tutaj, trafia tam.",
+        "repository": "Repozytorium",
+        "repositoryPlaceholder": "Wybierz repozytorium",
+        "repositoryHelp": "Pokazują się tylko repozytoria, w których zainstalowana jest aplikacja GitHub.",
+        "noRepositories": "Aplikacja GitHub nie sięga jeszcze żadnego repozytorium.",
+        "openConnectors": "Zainstaluj ją w Konektorach",
+        "search": "Szukaj repozytoriów",
+        "noResults": "Brak repozytorium o tej nazwie.",
+        "folder": "Folder",
+        "folderPlaceholder": "Całe repozytorium",
+        "folderHelp": "Opcjonalnie. Stronami stają się tylko notatki z tego folderu.",
+        "branch": "Gałąź",
+        "branchPlaceholder": "Domyślna gałąź",
+        "branchHelp": "Opcjonalnie. Notatki są czytane z tej gałęzi i do niej zapisywane.",
+        "noteBoth": "Strony stąd trafiają do repozytorium, a notatki stamtąd stają się stronami.",
+        "noteConflict": "Jeśli notatka zmieniła się po obu stronach, zostaje ta z repozytorium. Ta stąd trafia do historii strony.",
+        "noteRestricted": "Strony ograniczone do kilku osób nigdy stąd nie wychodzą.",
+        "submit": "Połącz"
+      },
+      "manage": {
+        "title": "Wiki na GitHubie",
+        "notes": "Notatki",
+        "updated": "Zaktualizowano",
+        "updating": "aktualizowanie…",
+        "never": "jeszcze nie",
+        "pending_one": "{{count}} strona jeszcze trafi na GitHuba.",
+        "pending_few": "{{count}} strony jeszcze trafią na GitHuba.",
+        "pending_many": "{{count}} stron jeszcze trafi na GitHuba.",
+        "pending_other": "{{count}} strony jeszcze trafią na GitHuba.",
+        "held_one": "{{count}} notatka nie stała się stroną",
+        "held_few": "{{count}} notatki nie stały się stronami",
+        "held_many": "{{count}} notatek nie stało się stronami",
+        "held_other": "{{count}} notatki nie stały się stronami",
+        "retrying": "GitHub nie odpowiedział ostatnim razem. Wiki ponawia próbę sama.",
+        "noteDisconnect": "Rozłączenie zostawia strony tutaj, a notatki tam, takie, jakie są.",
+        "noteStopped": "W międzyczasie to, co zostanie tu napisane, zostaje tutaj i trafi do repozytorium, gdy ono wróci.",
+        "disconnect": "Rozłącz",
+        "open": "Otwórz na GitHubie",
+        "syncNow": "Aktualizuj teraz",
+        "retry": "Spróbuj ponownie"
+      },
+      "held": {
+        "tooLong": "Dłuższa, niż może być strona",
+        "title": "Jej nazwa nie może być tytułem",
+        "depth": "Za dużo folderów jeden w drugim",
+        "other": "Nie udało się jej zamienić w stronę"
+      },
+      "why": {
+        "not_installed": "Aplikacja GitHub nie sięga już {{repo}}. Administrator dodaje repozytorium do aplikacji na GitHubie, a wiki znów za nim podąża.",
+        "refused": "Aplikacja GitHub nie może pisać do {{repo}}. Administrator akceptuje uprawnienia aplikacji na GitHubie, a wiki znów za nim podąża.",
+        "branch_missing": "Gałąź, na której była wiki, zniknęła z {{repo}}. Połącz repozytorium ponownie.",
+        "empty": "{{repo}} nie ma jeszcze żadnego pliku. Dodaj pierwszy plik i spróbuj ponownie.",
+        "missing": "{{repo}} zniknęło albo aplikacja GitHub już go nie widzi.",
+        "too_large": "{{repo}} ma za dużo notatek, by za nimi podążać. Połącz zamiast tego jeden z jego folderów.",
+        "owner_gone": "Osoba, która połączyła {{repo}}, nie jest już tu Administratorem. Administrator wznawia to stąd.",
+        "folder_missing": "Folder wiki zniknął z {{repo}} albo jest pusty. Nic tu nie zostało usunięte: połącz repozytorium ponownie z właściwym folderem.",
+        "no_app": "Aplikacji GitHub, która sięgała {{repo}}, już nie ma. Administrator konfiguruje nową w Konektorach, a wiki znów za nim podąża.",
+        "protected": "{{repo}} nie przyjmuje bezpośrednich commitów na tej gałęzi (jest chroniona). Pozwól aplikacji GitHub wypychać do niej albo połącz inną gałąź.",
+        "other": "Wiki przestała podążać za {{repo}}. Spróbuj ponownie."
+      },
+      "page": {
+        "synced": "Na GitHubie",
+        "syncedHint": "Otwórz notatkę tej strony na GitHubie",
+        "sending": "Wysyłanie na GitHuba…",
+        "sendingHint": "Ta wersja za chwilę trafi do repozytorium.",
+        "notSent": "Jeszcze nie na GitHubie",
+        "notSentHint": "Wiki przestała się aktualizować z GitHubem. Ta wersja trafi tam, gdy znów ruszy.",
+        "local": "Tylko tutaj",
+        "localHint": "Strony ograniczone do kilku osób nigdy nie trafiają na GitHuba.",
+        "held": "Nieaktualna na GitHubie",
+        "heldHint": "Jej notatki na GitHubie nie udało się tu odczytać, więc ta strona jej nie nadpisuje."
+      }
+    },
     "import": {
       "cta": "Importuj",
       "short": "Importuj",
@@ -12271,7 +12359,8 @@
       "moved_root": "przeniesiono do katalogu głównego",
       "saved_message": "zapisano wiadomość",
       "created_from_message": "utworzono z wiadomości",
-      "imported": "zaimportowano z „{{source}}”"
+      "imported": "zaimportowano z „{{source}}”",
+      "repository": "przyszło z repozytorium ({{commit}})"
     }
   },
   "run": {
@@ -15508,6 +15597,13 @@
     "wiki": {
       "githubNoNotes": "Pod tym linkiem nie ma notatek Markdown.",
       "githubTooLarge": "Za dużo notatek, żeby wczytać je z linku. Pobierz repozytorium jako .zip i zaimportuj je w Plikach.",
+      "repoInvalid": "Zapisz repozytorium jako właściciel/nazwa.",
+      "repoNoApp": "Nie skonfigurowano jeszcze aplikacji GitHub, by sięgać repozytoriów.",
+      "repoNotInstalled": "Aplikacja GitHub nie jest zainstalowana w tym repozytorium.",
+      "repoRefused": "Aplikacja GitHub nie może pisać do tego repozytorium.",
+      "repoBranchMissing": "Ta gałąź nie istnieje w repozytorium.",
+      "repoEmpty": "To repozytorium nie ma jeszcze żadnego pliku. Dodaj pierwszy plik i spróbuj ponownie.",
+      "repoPathInvalid": "Ten folder nie może przechowywać wiki.",
       "noAccess": "Nie masz dostępu do tej strony.",
       "audienceForbidden": "Tylko osoby, które edytują wiki i zarządzają rolami, decydują, kto widzi stronę.",
       "audienceExcludesYou": "Uwzględnij siebie (jedną ze swoich ról albo swoje imię), żeby nadal widzieć tę stronę.",

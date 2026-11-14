@@ -10806,6 +10806,88 @@
       "sent": "{{name}}との会話で依頼を送りました。",
       "message": "ページ [[{{title}}]] について："
     },
+    "repo": {
+      "stopped": "GitHub との更新が止まりました",
+      "menu": {
+        "name": "GitHub",
+        "connect": "GitHub に置く",
+        "connectDesc": "ページをあなたのリポジトリのノートとして"
+      },
+      "state": {
+        "upToDate": "{{repo}} · 最新（{{when}}）",
+        "syncing": "{{repo}} · 更新中…",
+        "retrying": "{{repo}} · GitHub から応答がないため再試行中",
+        "stopped": "{{repo}} との更新が止まりました"
+      },
+      "connect": {
+        "title": "Wiki を GitHub に置く",
+        "description": "ページはあなたのリポジトリの Markdown ノートになります。GitHub が元になります。向こうでの変更はここに表示され、ここでの変更は向こうに送られます。",
+        "repository": "リポジトリ",
+        "repositoryPlaceholder": "リポジトリを選択",
+        "repositoryHelp": "GitHub アプリがインストールされているリポジトリだけが表示されます。",
+        "noRepositories": "GitHub アプリはまだどのリポジトリにも届いていません。",
+        "openConnectors": "コネクタでインストールしてください",
+        "search": "リポジトリを検索",
+        "noResults": "その名前のリポジトリはありません。",
+        "folder": "フォルダ",
+        "folderPlaceholder": "リポジトリ全体",
+        "folderHelp": "任意です。このフォルダのノートだけがページになります。",
+        "branch": "ブランチ",
+        "branchPlaceholder": "デフォルトのブランチ",
+        "branchHelp": "任意です。ノートはこのブランチから読み込まれ、このブランチに書き込まれます。",
+        "noteBoth": "ここのページはリポジトリに送られ、向こうのノートはページになります。",
+        "noteConflict": "ノートが両方で変更された場合は、リポジトリ側が残ります。ここでの変更はページの履歴に残ります。",
+        "noteRestricted": "一部の人に限定されたページは、ここから出ません。",
+        "submit": "接続"
+      },
+      "manage": {
+        "title": "GitHub 上の Wiki",
+        "notes": "ノート",
+        "updated": "更新",
+        "updating": "更新中…",
+        "never": "まだ",
+        "pending_other": "{{count}} ページがまだ GitHub に送られていません。",
+        "held_other": "{{count}} 件のノートがページになりませんでした",
+        "retrying": "前回 GitHub から応答がありませんでした。Wiki が自動で再試行します。",
+        "noteDisconnect": "接続を解除しても、ページはここに、ノートは向こうに、そのまま残ります。",
+        "noteStopped": "その間、ここで書いた内容はここに残り、リポジトリが戻ったら送られます。",
+        "disconnect": "接続を解除",
+        "open": "GitHub で開く",
+        "syncNow": "今すぐ更新",
+        "retry": "再試行"
+      },
+      "held": {
+        "tooLong": "ページの上限より長い",
+        "title": "名前をタイトルにできない",
+        "depth": "フォルダの入れ子が多すぎる",
+        "other": "ページにできなかった"
+      },
+      "why": {
+        "not_installed": "GitHub アプリが {{repo}} に届かなくなりました。管理者が GitHub でリポジトリをアプリに追加すると、Wiki は再び追従します。",
+        "refused": "GitHub アプリは {{repo}} に書き込めません。管理者が GitHub でアプリの権限を承認すると、Wiki は再び追従します。",
+        "branch_missing": "Wiki を置いていたブランチが {{repo}} からなくなりました。リポジトリをもう一度接続してください。",
+        "empty": "{{repo}} にはまだファイルがありません。最初のファイルを追加して、もう一度お試しください。",
+        "missing": "{{repo}} がなくなったか、GitHub アプリから見えなくなりました。",
+        "too_large": "{{repo}} はノートが多すぎて追従できません。代わりにフォルダの一つを接続してください。",
+        "owner_gone": "{{repo}} を接続した人は、もうここの管理者ではありません。管理者がここから再開します。",
+        "folder_missing": "Wiki のフォルダが {{repo}} からなくなったか、空です。ここでは何も削除されていません。正しいフォルダでリポジトリをもう一度接続してください。",
+        "no_app": "{{repo}} に届いていた GitHub アプリがなくなりました。管理者がコネクタで設定すると、Wiki は再び追従します。",
+        "protected": "{{repo}} はこのブランチへの直接のコミットを受け付けません（保護されています）。GitHub アプリにプッシュを許可するか、別のブランチを接続してください。",
+        "other": "Wiki は {{repo}} への追従を止めました。もう一度お試しください。"
+      },
+      "page": {
+        "synced": "GitHub 上",
+        "syncedHint": "このページのノートを GitHub で開く",
+        "sending": "GitHub に送信中…",
+        "sendingHint": "このバージョンはまもなくリポジトリに送られます。",
+        "notSent": "まだ GitHub にありません",
+        "notSentHint": "Wiki の GitHub との更新が止まっています。再開すると、このバージョンが送られます。",
+        "local": "ここだけ",
+        "localHint": "一部の人に限定されたページは GitHub に送られません。",
+        "held": "GitHub で未更新",
+        "heldHint": "GitHub 上のノートをここで読めなかったため、このページで上書きしません。"
+      }
+    },
     "import": {
       "cta": "インポート",
       "short": "インポート",
@@ -10935,7 +11017,8 @@
       "moved_root": "ルートに移動",
       "saved_message": "メッセージを保存",
       "created_from_message": "メッセージから作成",
-      "imported": "「{{source}}」からインポート"
+      "imported": "「{{source}}」からインポート",
+      "repository": "リポジトリから反映 ({{commit}})"
     }
   },
   "run": {
@@ -13966,6 +14049,13 @@
     "wiki": {
       "githubNoNotes": "このリンクにMarkdownノートはありません。",
       "githubTooLarge": "リンクから読み込むにはノートが多すぎます。リポジトリを.zipでダウンロードして、「ファイル」からインポートしてください。",
+      "repoInvalid": "リポジトリを「所有者/名前」の形で入力してください。",
+      "repoNoApp": "リポジトリに届く GitHub アプリがまだ設定されていません。",
+      "repoNotInstalled": "そのリポジトリには GitHub アプリがインストールされていません。",
+      "repoRefused": "GitHub アプリはそのリポジトリに書き込めません。",
+      "repoBranchMissing": "そのブランチはリポジトリにありません。",
+      "repoEmpty": "そのリポジトリにはまだファイルがありません。最初のファイルを追加して、もう一度お試しください。",
+      "repoPathInvalid": "そのフォルダには Wiki を置けません。",
       "noAccess": "このページへのアクセス権がありません。",
       "audienceForbidden": "ページの閲覧者を選べるのは、Wikiを編集でき、ロールを管理できる人だけです。",
       "audienceExcludesYou": "引き続きページを見るには、自分（自分のロールか名前）を含めてください。",
