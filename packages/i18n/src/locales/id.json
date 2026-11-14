@@ -10875,15 +10875,20 @@
       },
       "connect": {
         "title": "Simpan wiki di GitHub",
-        "description": "Halaman menjadi catatan Markdown di repositorimu. GitHub adalah sumbernya: yang berubah di sana muncul di sini, dan yang berubah di sini dikirim ke sana.",
+        "description": "Halaman menjadi catatan Markdown di repositori GitHub, dan GitHub menjadi sumbernya.",
         "repository": "Repositori",
         "repositoryPlaceholder": "Pilih repositori",
-        "repositoryHelp": "Hanya repositori yang memasang aplikasi GitHub yang muncul.",
-        "byAddress": "Repositori lain, lewat alamatnya",
+        "repositoryHelp": "Repositori yang dijangkau aplikasi GitHub, atau alamat repositori publik mana pun.",
+        "byAddress": "Tempel alamat repositori lain",
         "address": "Alamat repositori",
         "addressPlaceholder": "https://github.com/pemilik/nama",
-        "addressHelp": "Repositori publik bisa dipakai tanpa aplikasi: wiki mengikutinya, dan yang berubah di sini tetap di sini.",
-        "openConnectors": "Untuk menulis ke sana juga, atau untuk repositori privat, pasang aplikasi GitHub di Konektor.",
+        "addressHelp": "Alamat repositori di GitHub, atau folder di dalamnya.",
+        "checking": "Memeriksa repositori…",
+        "canWrite": "{{repo}}, branch {{branch}}: aplikasi GitHub membaca dan menulis di sana.",
+        "readOnly": "{{repo}}, branch {{branch}}: publik, jadi wiki mengikutinya tanpa menulis di sana.",
+        "installForWrite": "Untuk menulis ke sana juga, pasang aplikasi GitHub di repositori ini.",
+        "openConnectors": "Buka Konektor",
+        "more": "Folder dan branch",
         "search": "Cari repositori",
         "noResults": "Tidak ada repositori dengan nama itu.",
         "folder": "Folder",
@@ -10892,7 +10897,6 @@
         "branch": "Branch",
         "branchPlaceholder": "Branch bawaan",
         "branchHelp": "Opsional. Catatan dibaca dari dan ditulis ke branch ini.",
-        "noteBoth": "Halaman di sini masuk ke repositori, dan catatan di sana menjadi halaman.",
         "noteConflict": "Jika catatan berubah di kedua sisi, yang dari repositori tetap dipakai. Yang dari sini masuk ke riwayat halaman.",
         "noteRestricted": "Halaman yang dibatasi untuk beberapa orang tidak pernah keluar dari sini.",
         "submit": "Hubungkan"
@@ -10901,6 +10905,7 @@
         "title": "Wiki di GitHub",
         "notes": "Catatan",
         "updated": "Diperbarui",
+        "cadence": "Pembaruan",
         "updating": "memperbarui…",
         "never": "belum",
         "pending_other": "{{count}} halaman masih akan dikirim ke GitHub.",
@@ -10919,17 +10924,30 @@
       "writing": {
         "label": "Cara wiki menulis di sana",
         "direct": "Langsung ke branch",
-        "directDesc": "Setiap perubahan menjadi commit di branch yang diikuti wiki.",
+        "directDesc": "Setiap perubahan di sini menjadi commit di {{branch}}.",
+        "directDescAny": "Setiap perubahan di sini menjadi commit di branch yang diikuti wiki.",
         "pullRequest": "Lewat pull request",
-        "pullRequestDesc": "Perubahan masuk ke branch milik wiki sendiri, dalam satu pull request yang diterima seseorang di GitHub.",
-        "none": "Jangan menulis",
-        "noneDesc": "Wiki hanya mengikuti repositori: yang berubah di sini tetap di sini.",
+        "pullRequestDesc": "Perubahan dari sini masuk ke pull request ke {{branch}}, untuk diterima seseorang di GitHub.",
+        "pullRequestDescAny": "Perubahan dari sini masuk ke pull request, untuk diterima seseorang di GitHub.",
+        "none": "Hanya mengikuti",
+        "noneDesc": "Wiki menerima yang berubah di GitHub, dan yang berubah di sini tetap di sini.",
+        "needsApp": "Perlu aplikasi GitHub di repositori ini, dengan izin menulis.",
         "branch": "Branch pull request",
         "branchHelp": "Wiki membangun ulang branch ini setiap ada perubahan: edit wiki, bukan branch ini.",
         "now": {
           "direct": "Wiki melakukan commit langsung ke {{branch}}.",
           "pull_request": "Wiki mengusulkan perubahannya dalam pull request ke {{branch}}.",
           "none": "Wiki hanya mengikuti repositori: yang berubah di sini tetap di sini."
+        }
+      },
+      "cadence": {
+        "notified": "Yang berubah di GitHub langsung tiba: GitHub memberi tahu wiki setiap ada push.",
+        "app": "Yang berubah di GitHub tiba saat GitHub memberi tahu ada push, atau pada pemeriksaan berikutnya, setiap 5 menit.",
+        "public": "Wiki memeriksa GitHub setiap menit untuk membawa yang berubah di sana.",
+        "short": {
+          "notified": "langsung",
+          "app": "setiap 5 menit",
+          "public": "setiap menit"
         }
       },
       "held": {

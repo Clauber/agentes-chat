@@ -10816,15 +10816,20 @@
       },
       "connect": {
         "title": "위키를 GitHub에 보관",
-        "description": "페이지가 내 저장소의 Markdown 노트가 돼요. GitHub가 원본이에요. 거기서 바뀐 내용은 여기에 나타나고, 여기서 바뀐 내용은 거기로 가요.",
+        "description": "페이지가 GitHub 저장소의 Markdown 노트가 되고, GitHub가 원본이 돼요.",
         "repository": "저장소",
         "repositoryPlaceholder": "저장소 선택",
-        "repositoryHelp": "GitHub 앱이 설치된 저장소만 표시돼요.",
-        "byAddress": "다른 저장소, 주소로",
+        "repositoryHelp": "GitHub 앱이 닿는 저장소, 또는 공개 저장소의 주소.",
+        "byAddress": "다른 저장소 주소 붙여넣기",
         "address": "저장소 주소",
         "addressPlaceholder": "https://github.com/소유자/이름",
-        "addressHelp": "공개 저장소는 앱 없이도 돼요. 위키가 저장소를 따라가고, 여기서 바뀐 내용은 여기에 남아요.",
-        "openConnectors": "거기에도 쓰거나 비공개 저장소를 쓰려면 커넥터에서 GitHub 앱을 설치하세요.",
+        "addressHelp": "GitHub에 있는 저장소나 그 안의 폴더 주소.",
+        "checking": "저장소를 확인하는 중…",
+        "canWrite": "{{repo}}, {{branch}} 브랜치: GitHub 앱이 읽고 써요.",
+        "readOnly": "{{repo}}, {{branch}} 브랜치: 공개 저장소라 위키가 쓰지 않고 따라가요.",
+        "installForWrite": "거기에도 쓰려면 이 저장소에 GitHub 앱을 설치하세요.",
+        "openConnectors": "커넥터 열기",
+        "more": "폴더와 브랜치",
         "search": "저장소 검색",
         "noResults": "그 이름의 저장소가 없어요.",
         "folder": "폴더",
@@ -10833,7 +10838,6 @@
         "branch": "브랜치",
         "branchPlaceholder": "기본 브랜치",
         "branchHelp": "선택 사항이에요. 노트를 이 브랜치에서 읽고 이 브랜치에 써요.",
-        "noteBoth": "여기의 페이지는 저장소로 가고, 거기의 노트는 페이지가 돼요.",
         "noteConflict": "노트가 양쪽에서 바뀌면 저장소의 것이 남아요. 여기의 것은 페이지 기록으로 가요.",
         "noteRestricted": "일부 사람에게만 공개된 페이지는 여기를 떠나지 않아요.",
         "submit": "연결"
@@ -10842,6 +10846,7 @@
         "title": "GitHub의 Wiki",
         "notes": "노트",
         "updated": "업데이트",
+        "cadence": "업데이트",
         "updating": "업데이트 중…",
         "never": "아직 안 됨",
         "pending_other": "{{count}}개 페이지가 아직 GitHub로 가야 해요.",
@@ -10860,17 +10865,30 @@
       "writing": {
         "label": "위키가 거기에 쓰는 방법",
         "direct": "브랜치에 바로",
-        "directDesc": "바뀔 때마다 위키가 따라가는 브랜치에 커밋해요.",
+        "directDesc": "여기서 바뀔 때마다 {{branch}}에 커밋해요.",
+        "directDescAny": "여기서 바뀔 때마다 위키가 따라가는 브랜치에 커밋해요.",
         "pullRequest": "풀 리퀘스트로",
-        "pullRequestDesc": "변경 사항은 위키 전용 브랜치로 가서, 누군가 GitHub에서 수락하는 풀 리퀘스트 하나가 돼요.",
-        "none": "쓰지 않기",
-        "noneDesc": "위키는 저장소를 따라가기만 해요. 여기서 바뀐 내용은 여기에 남아요.",
+        "pullRequestDesc": "여기서 바뀐 내용은 {{branch}}로 가는 풀 리퀘스트에 담기고, 누군가 GitHub에서 수락해요.",
+        "pullRequestDescAny": "여기서 바뀐 내용은 풀 리퀘스트에 담기고, 누군가 GitHub에서 수락해요.",
+        "none": "따라가기만",
+        "noneDesc": "위키는 GitHub에서 바뀐 내용을 받아요. 여기서 바뀐 내용은 여기에 남아요.",
+        "needsApp": "이 저장소에 쓰기 권한이 있는 GitHub 앱이 필요해요.",
         "branch": "풀 리퀘스트 브랜치",
         "branchHelp": "위키가 바뀔 때마다 이 브랜치를 다시 만들어요. 이 브랜치가 아니라 위키를 편집하세요.",
         "now": {
           "direct": "위키가 {{branch}}에 바로 커밋해요.",
           "pull_request": "위키가 {{branch}}로 가는 풀 리퀘스트로 변경 사항을 제안해요.",
           "none": "위키는 저장소를 따라가기만 해요. 여기서 바뀐 내용은 여기에 남아요."
+        }
+      },
+      "cadence": {
+        "notified": "GitHub에서 바뀐 내용이 바로 와요. GitHub가 푸시할 때마다 위키에 알려요.",
+        "app": "GitHub에서 바뀐 내용은 GitHub가 푸시를 알릴 때, 또는 5분마다 하는 다음 확인 때 와요.",
+        "public": "위키가 1분마다 GitHub를 확인해서 바뀐 내용을 가져와요.",
+        "short": {
+          "notified": "바로",
+          "app": "5분마다",
+          "public": "1분마다"
         }
       },
       "held": {

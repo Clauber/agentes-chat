@@ -10889,15 +10889,20 @@
       },
       "connect": {
         "title": "把 Wiki 保存在 GitHub",
-        "description": "页面会成为你仓库中的 Markdown 笔记。GitHub 是源头：那边的改动会出现在这里，这里的改动也会同步过去。",
+        "description": "页面会成为 GitHub 仓库中的 Markdown 笔记，GitHub 成为它们的源头。",
         "repository": "仓库",
         "repositoryPlaceholder": "选择仓库",
-        "repositoryHelp": "只显示安装了 GitHub 应用的仓库。",
-        "byAddress": "其他仓库，通过地址",
+        "repositoryHelp": "GitHub 应用能访问的仓库，或任意公开仓库的地址。",
+        "byAddress": "粘贴其他仓库的地址",
         "address": "仓库地址",
         "addressPlaceholder": "https://github.com/所有者/名称",
-        "addressHelp": "公开仓库无需应用也能使用：Wiki 会跟随它，这里的改动会留在这里。",
-        "openConnectors": "如果也要写回那边，或者使用私有仓库，请在连接器中安装 GitHub 应用。",
+        "addressHelp": "GitHub 上某个仓库或其中某个文件夹的地址。",
+        "checking": "正在检查仓库…",
+        "canWrite": "{{repo}}，分支 {{branch}}：GitHub 应用可以读写那里。",
+        "readOnly": "{{repo}}，分支 {{branch}}：公开仓库，所以 Wiki 只跟随，不会写入。",
+        "installForWrite": "如果也要写回那边，请在这个仓库上安装 GitHub 应用。",
+        "openConnectors": "打开连接器",
+        "more": "文件夹和分支",
         "search": "搜索仓库",
         "noResults": "没有这个名称的仓库。",
         "folder": "文件夹",
@@ -10906,7 +10911,6 @@
         "branch": "分支",
         "branchPlaceholder": "默认分支",
         "branchHelp": "可选。笔记从这个分支读取并写入这个分支。",
-        "noteBoth": "这里的页面会进入仓库，那边的笔记会成为页面。",
         "noteConflict": "如果一条笔记两边都改了，保留仓库中的版本。这里的版本会进入页面历史。",
         "noteRestricted": "仅部分人可见的页面永远不会离开这里。",
         "submit": "连接"
@@ -10915,6 +10919,7 @@
         "title": "GitHub 上的 Wiki",
         "notes": "笔记",
         "updated": "更新时间",
+        "cadence": "更新",
         "updating": "正在更新…",
         "never": "尚未",
         "pending_other": "还有 {{count}} 个页面要同步到 GitHub。",
@@ -10933,17 +10938,30 @@
       "writing": {
         "label": "Wiki 如何写入那边",
         "direct": "直接写入分支",
-        "directDesc": "每次改动都是 Wiki 所跟随分支上的一个提交。",
+        "directDesc": "这里的每次改动都是 {{branch}} 上的一个提交。",
+        "directDescAny": "这里的每次改动都是 Wiki 所跟随分支上的一个提交。",
         "pullRequest": "通过拉取请求",
-        "pullRequestDesc": "改动进入 Wiki 自己的分支，形成一个拉取请求，由有人在 GitHub 上接受。",
-        "none": "不写入",
-        "noneDesc": "Wiki 只跟随仓库：这里的改动会留在这里。",
+        "pullRequestDesc": "这里的改动会进入合并到 {{branch}} 的拉取请求，由有人在 GitHub 上接受。",
+        "pullRequestDescAny": "这里的改动会进入一个拉取请求，由有人在 GitHub 上接受。",
+        "none": "仅跟随",
+        "noneDesc": "Wiki 会收到 GitHub 上的改动，而这里的改动会留在这里。",
+        "needsApp": "需要在这个仓库上安装有写入权限的 GitHub 应用。",
         "branch": "拉取请求的分支",
         "branchHelp": "Wiki 每次改动都会重建这个分支：请编辑 Wiki，不要编辑这个分支。",
         "now": {
           "direct": "Wiki 直接提交到 {{branch}}。",
           "pull_request": "Wiki 通过一个合并到 {{branch}} 的拉取请求提出改动。",
           "none": "Wiki 只跟随仓库：这里的改动会留在这里。"
+        }
+      },
+      "cadence": {
+        "notified": "GitHub 上的改动会立即同步：每次推送 GitHub 都会通知 Wiki。",
+        "app": "GitHub 上的改动会在 GitHub 通知推送时同步，或在每 5 分钟一次的下次检查时同步。",
+        "public": "Wiki 每分钟检查一次 GitHub，取回那边的改动。",
+        "short": {
+          "notified": "立即",
+          "app": "每 5 分钟",
+          "public": "每分钟"
         }
       },
       "held": {

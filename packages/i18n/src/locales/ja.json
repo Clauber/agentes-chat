@@ -10822,15 +10822,20 @@
       },
       "connect": {
         "title": "Wiki を GitHub に置く",
-        "description": "ページはあなたのリポジトリの Markdown ノートになります。GitHub が元になります。向こうでの変更はここに表示され、ここでの変更は向こうに送られます。",
+        "description": "ページは GitHub リポジトリの Markdown ノートになり、GitHub がその元になります。",
         "repository": "リポジトリ",
         "repositoryPlaceholder": "リポジトリを選択",
-        "repositoryHelp": "GitHub アプリがインストールされているリポジトリだけが表示されます。",
-        "byAddress": "別のリポジトリ（アドレスで指定）",
+        "repositoryHelp": "GitHub アプリが届くリポジトリ、または公開リポジトリのアドレス。",
+        "byAddress": "別のリポジトリのアドレスを貼り付ける",
         "address": "リポジトリのアドレス",
         "addressPlaceholder": "https://github.com/所有者/名前",
-        "addressHelp": "公開リポジトリならアプリなしでも使えます。Wiki がリポジトリに追従し、ここでの変更はここに残ります。",
-        "openConnectors": "向こうにも書き込むには、または非公開リポジトリには、コネクタで GitHub アプリをインストールしてください。",
+        "addressHelp": "GitHub 上のリポジトリ、またはその中のフォルダのアドレス。",
+        "checking": "リポジトリを確認しています…",
+        "canWrite": "{{repo}}、ブランチ {{branch}}：GitHub アプリが読み書きします。",
+        "readOnly": "{{repo}}、ブランチ {{branch}}：公開リポジトリのため、Wiki は書き込まずに追従します。",
+        "installForWrite": "向こうにも書き込むには、このリポジトリに GitHub アプリをインストールしてください。",
+        "openConnectors": "コネクタを開く",
+        "more": "フォルダとブランチ",
         "search": "リポジトリを検索",
         "noResults": "その名前のリポジトリはありません。",
         "folder": "フォルダ",
@@ -10839,7 +10844,6 @@
         "branch": "ブランチ",
         "branchPlaceholder": "デフォルトのブランチ",
         "branchHelp": "任意です。ノートはこのブランチから読み込まれ、このブランチに書き込まれます。",
-        "noteBoth": "ここのページはリポジトリに送られ、向こうのノートはページになります。",
         "noteConflict": "ノートが両方で変更された場合は、リポジトリ側が残ります。ここでの変更はページの履歴に残ります。",
         "noteRestricted": "一部の人に限定されたページは、ここから出ません。",
         "submit": "接続"
@@ -10848,6 +10852,7 @@
         "title": "GitHub 上の Wiki",
         "notes": "ノート",
         "updated": "更新",
+        "cadence": "更新",
         "updating": "更新中…",
         "never": "まだ",
         "pending_other": "{{count}} ページがまだ GitHub に送られていません。",
@@ -10866,17 +10871,30 @@
       "writing": {
         "label": "Wiki の書き込み方法",
         "direct": "ブランチに直接",
-        "directDesc": "変更のたびに、Wiki が追従するブランチにコミットします。",
+        "directDesc": "ここでの変更はそれぞれ {{branch}} へのコミットになります。",
+        "directDescAny": "ここでの変更はそれぞれ、Wiki が追従するブランチへのコミットになります。",
         "pullRequest": "プルリクエストで",
-        "pullRequestDesc": "変更は Wiki 専用のブランチに入り、GitHub で誰かが承認するプルリクエストになります。",
-        "none": "書き込まない",
-        "noneDesc": "Wiki はリポジトリに追従するだけです。ここでの変更はここに残ります。",
+        "pullRequestDesc": "ここでの変更は {{branch}} へのプルリクエストに入り、GitHub で誰かが承認します。",
+        "pullRequestDescAny": "ここでの変更はプルリクエストに入り、GitHub で誰かが承認します。",
+        "none": "追従のみ",
+        "noneDesc": "Wiki は GitHub での変更を受け取ります。ここでの変更はここに残ります。",
+        "needsApp": "このリポジトリに、書き込み権限付きの GitHub アプリが必要です。",
         "branch": "プルリクエストのブランチ",
         "branchHelp": "Wiki は変更のたびにこのブランチを作り直します。このブランチではなく Wiki を編集してください。",
         "now": {
           "direct": "Wiki は {{branch}} に直接コミットします。",
           "pull_request": "Wiki は {{branch}} へのプルリクエストで変更を提案します。",
           "none": "Wiki はリポジトリに追従するだけです。ここでの変更はここに残ります。"
+        }
+      },
+      "cadence": {
+        "notified": "GitHub での変更はすぐに届きます。GitHub がプッシュのたびに Wiki に知らせます。",
+        "app": "GitHub での変更は、GitHub がプッシュを知らせたとき、または 5 分ごとの次の確認で届きます。",
+        "public": "Wiki は 1 分ごとに GitHub を確認し、変更を取り込みます。",
+        "short": {
+          "notified": "すぐに",
+          "app": "5 分ごと",
+          "public": "1 分ごと"
         }
       },
       "held": {

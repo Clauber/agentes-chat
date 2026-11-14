@@ -11206,15 +11206,20 @@
       },
       "connect": {
         "title": "Wiki'yi GitHub'da tutun",
-        "description": "Sayfalar, deponuzda Markdown notlarına dönüşür. Kaynak GitHub'dır: orada değişen burada görünür, burada değişen oraya gider.",
+        "description": "Sayfalar bir GitHub deposunda Markdown notlarına dönüşür ve kaynakları GitHub olur.",
         "repository": "Depo",
         "repositoryPlaceholder": "Bir depo seçin",
-        "repositoryHelp": "Yalnızca GitHub uygulamasının yüklü olduğu depolar görünür.",
-        "byAddress": "Başka bir depo, adresiyle",
+        "repositoryHelp": "GitHub uygulamasının ulaştığı depolar ya da herhangi bir herkese açık deponun adresi.",
+        "byAddress": "Başka bir deponun adresini yapıştır",
         "address": "Depo adresi",
         "addressPlaceholder": "https://github.com/sahip/ad",
-        "addressHelp": "Herkese açık bir depo uygulama olmadan da çalışır: wiki onu takip eder, burada değişen burada kalır.",
-        "openConnectors": "Oraya da yazmak için ya da özel bir depo için GitHub uygulamasını Bağlayıcılar'dan yükleyin.",
+        "addressHelp": "GitHub'daki bir deponun ya da içindeki bir klasörün adresi.",
+        "checking": "Depo kontrol ediliyor…",
+        "canWrite": "{{repo}}, {{branch}} dalı: GitHub uygulaması orada okur ve yazar.",
+        "readOnly": "{{repo}}, {{branch}} dalı: herkese açık, bu yüzden wiki oraya yazmadan onu takip eder.",
+        "installForWrite": "Oraya da yazmak için GitHub uygulamasını bu depoya yükleyin.",
+        "openConnectors": "Bağlayıcıları aç",
+        "more": "Klasör ve dal",
         "search": "Depolarda ara",
         "noResults": "Bu adda depo yok.",
         "folder": "Klasör",
@@ -11223,7 +11228,6 @@
         "branch": "Dal",
         "branchPlaceholder": "Varsayılan dal",
         "branchHelp": "İsteğe bağlı. Notlar bu daldan okunur ve bu dala yazılır.",
-        "noteBoth": "Buradaki sayfalar depoya gider, oradaki notlar sayfa olur.",
         "noteConflict": "Bir not iki tarafta da değiştiyse deponunki kalır. Buradaki, sayfanın geçmişine gider.",
         "noteRestricted": "Bazı kişilerle sınırlı sayfalar buradan hiç çıkmaz.",
         "submit": "Bağla"
@@ -11232,6 +11236,7 @@
         "title": "GitHub'da Wiki",
         "notes": "Notlar",
         "updated": "Güncellendi",
+        "cadence": "Güncelleme",
         "updating": "güncelleniyor…",
         "never": "henüz değil",
         "pending_one": "{{count}} sayfa henüz GitHub'a gidecek.",
@@ -11252,17 +11257,30 @@
       "writing": {
         "label": "Wiki oraya nasıl yazar",
         "direct": "Doğrudan dala",
-        "directDesc": "Her değişiklik, wiki'nin takip ettiği dalda bir commit olur.",
+        "directDesc": "Buradaki her değişiklik {{branch}} dalında bir commit olur.",
+        "directDescAny": "Buradaki her değişiklik, wiki'nin takip ettiği dalda bir commit olur.",
         "pullRequest": "Pull request ile",
-        "pullRequestDesc": "Değişiklikler wiki'ye ait bir dala, birinin GitHub'da kabul edeceği tek bir pull request'e gider.",
-        "none": "Yazma",
-        "noneDesc": "Wiki yalnızca depoyu takip eder: burada değişen burada kalır.",
+        "pullRequestDesc": "Buradaki değişiklikler, birinin GitHub'da kabul edeceği bir pull request ile {{branch}} dalına gider.",
+        "pullRequestDescAny": "Buradaki değişiklikler, birinin GitHub'da kabul edeceği bir pull request ile gider.",
+        "none": "Sadece takip et",
+        "noneDesc": "Wiki GitHub'da değişeni alır, burada değişen ise burada kalır.",
+        "needsApp": "Bu depoda yazma izni olan GitHub uygulaması gerekir.",
         "branch": "Pull request'in dalı",
         "branchHelp": "Wiki bu dalı her değişiklikte yeniden kurar: bu dalı değil, wiki'yi düzenleyin.",
         "now": {
           "direct": "Wiki doğrudan {{branch}} dalına commit yapar.",
           "pull_request": "Wiki değişikliklerini {{branch}} dalına giden bir pull request'te önerir.",
           "none": "Wiki yalnızca depoyu takip eder: burada değişen burada kalır."
+        }
+      },
+      "cadence": {
+        "notified": "GitHub'da değişen hemen gelir: GitHub her push'u wiki'ye bildirir.",
+        "app": "GitHub'da değişen, GitHub bir push bildirdiğinde ya da 5 dakikada bir yapılan bir sonraki kontrolde gelir.",
+        "public": "Wiki, orada değişeni getirmek için GitHub'ı her dakika kontrol eder.",
+        "short": {
+          "notified": "hemen",
+          "app": "5 dakikada bir",
+          "public": "her dakika"
         }
       },
       "held": {

@@ -5481,12 +5481,28 @@ export interface WikiRepository {
   /** A sync is running or about to. */
   syncing: boolean;
   syncedAt: string | null;
+  /** The last push GitHub told of: when set, changes there arrive at once; else at the next look. */
+  notifiedAt: string | null;
   /** Notes that are pages. */
   notes: number;
   /** Pages whose last version is still to be written there. */
   pending: number;
   /** Notes that couldn't become pages, with why (`wiki.body_too_long`…). */
   held: { path: string; code: string }[];
+}
+
+/** What connecting a repository would do, before it is connected. */
+export interface WikiRepositoryCheck {
+  owner: string;
+  repo: string;
+  /** The branch the wiki would follow, and the repository's default one. */
+  branch: string;
+  defaultBranch: string | null;
+  /** The folder, from the address when it names one. */
+  path: string;
+  /** The wiki may write there; false: a public repository followed read-only. */
+  writable: boolean;
+  url: string;
 }
 
 export interface WikiRepositoryWriting {

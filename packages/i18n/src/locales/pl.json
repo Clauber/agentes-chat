@@ -12086,15 +12086,20 @@
       },
       "connect": {
         "title": "Trzymaj wiki na GitHubie",
-        "description": "Strony stają się notatkami Markdown w twoim repozytorium. GitHub jest źródłem: to, co zmienia się tam, pojawia się tutaj, a to, co zmienia się tutaj, trafia tam.",
+        "description": "Strony stają się notatkami Markdown w repozytorium GitHub, a GitHub staje się ich źródłem.",
         "repository": "Repozytorium",
         "repositoryPlaceholder": "Wybierz repozytorium",
-        "repositoryHelp": "Pokazują się tylko repozytoria, w których zainstalowana jest aplikacja GitHub.",
-        "byAddress": "Inne repozytorium, po adresie",
+        "repositoryHelp": "Repozytoria, które sięga aplikacja GitHub, albo adres dowolnego publicznego repozytorium.",
+        "byAddress": "Wklej adres innego repozytorium",
         "address": "Adres repozytorium",
         "addressPlaceholder": "https://github.com/wlasciciel/nazwa",
-        "addressHelp": "Publiczne repozytorium działa bez aplikacji: wiki za nim podąża, a to, co zmienia się tutaj, zostaje tutaj.",
-        "openConnectors": "Aby też tam pisać albo dla prywatnego repozytorium, zainstaluj aplikację GitHub w Konektorach.",
+        "addressHelp": "Adres repozytorium na GitHubie albo folderu w nim.",
+        "checking": "Sprawdzanie repozytorium…",
+        "canWrite": "{{repo}}, gałąź {{branch}}: aplikacja GitHub tam czyta i pisze.",
+        "readOnly": "{{repo}}, gałąź {{branch}}: publiczne, więc wiki za nim podąża, nie pisząc tam.",
+        "installForWrite": "Aby też tam pisać, zainstaluj aplikację GitHub w tym repozytorium.",
+        "openConnectors": "Otwórz Konektory",
+        "more": "Folder i gałąź",
         "search": "Szukaj repozytoriów",
         "noResults": "Brak repozytorium o tej nazwie.",
         "folder": "Folder",
@@ -12103,7 +12108,6 @@
         "branch": "Gałąź",
         "branchPlaceholder": "Domyślna gałąź",
         "branchHelp": "Opcjonalnie. Notatki są czytane z tej gałęzi i do niej zapisywane.",
-        "noteBoth": "Strony stąd trafiają do repozytorium, a notatki stamtąd stają się stronami.",
         "noteConflict": "Jeśli notatka zmieniła się po obu stronach, zostaje ta z repozytorium. Ta stąd trafia do historii strony.",
         "noteRestricted": "Strony ograniczone do kilku osób nigdy stąd nie wychodzą.",
         "submit": "Połącz"
@@ -12112,6 +12116,7 @@
         "title": "Wiki na GitHubie",
         "notes": "Notatki",
         "updated": "Zaktualizowano",
+        "cadence": "Aktualizacja",
         "updating": "aktualizowanie…",
         "never": "jeszcze nie",
         "pending_one": "{{count}} strona jeszcze trafi na GitHuba.",
@@ -12136,17 +12141,30 @@
       "writing": {
         "label": "Jak wiki tam pisze",
         "direct": "Bezpośrednio na gałąź",
-        "directDesc": "Każda zmiana to commit na gałęzi, za którą podąża wiki.",
+        "directDesc": "Każda zmiana tutaj to commit na {{branch}}.",
+        "directDescAny": "Każda zmiana tutaj to commit na gałęzi, za którą podąża wiki.",
         "pullRequest": "Przez pull request",
-        "pullRequestDesc": "Zmiany trafiają na własną gałąź wiki, w jeden pull request, który ktoś akceptuje na GitHubie.",
-        "none": "Nie pisz",
-        "noneDesc": "Wiki tylko podąża za repozytorium: to, co zmienia się tutaj, zostaje tutaj.",
+        "pullRequestDesc": "Zmiany stąd trafiają do pull requesta do {{branch}}, który ktoś akceptuje na GitHubie.",
+        "pullRequestDescAny": "Zmiany stąd trafiają do pull requesta, który ktoś akceptuje na GitHubie.",
+        "none": "Tylko podążaj",
+        "noneDesc": "Wiki dostaje to, co zmienia się na GitHubie, a to, co zmienia się tutaj, zostaje tutaj.",
+        "needsApp": "Wymaga aplikacji GitHub w tym repozytorium, z prawem zapisu.",
         "branch": "Gałąź pull requesta",
         "branchHelp": "Wiki odbudowuje ją przy każdej zmianie: edytuj wiki, nie tę gałąź.",
         "now": {
           "direct": "Wiki robi commity bezpośrednio na {{branch}}.",
           "pull_request": "Wiki proponuje swoje zmiany w pull requeście do {{branch}}.",
           "none": "Wiki tylko podąża za repozytorium: to, co zmienia się tutaj, zostaje tutaj."
+        }
+      },
+      "cadence": {
+        "notified": "To, co zmienia się na GitHubie, przychodzi od razu: GitHub zgłasza wiki każdy push.",
+        "app": "To, co zmienia się na GitHubie, przychodzi, gdy GitHub zgłosi push, albo przy następnym sprawdzeniu, co 5 minut.",
+        "public": "Wiki co minutę sprawdza GitHuba, by przynieść to, co się tam zmieniło.",
+        "short": {
+          "notified": "od razu",
+          "app": "co 5 min",
+          "public": "co minutę"
         }
       },
       "held": {

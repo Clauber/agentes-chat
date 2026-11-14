@@ -1,4 +1,4 @@
-import { and, type Database, type Executor, eq, schema, sql } from "@agenteschat/db";
+import { and, type Database, type Executor, eq, inArray, schema, sql } from "@agenteschat/db";
 import { enqueue } from "../outbox";
 import { closedOrg } from "../standing";
 
@@ -56,7 +56,7 @@ export async function queueWikiRepositoryPush(db: Database, payload: Record<stri
   if (!ref.startsWith("refs/heads/") || typeof full !== "string" || typeof installationId !== "number") return false;
   const [owner = "", repo = ""] = full.toLowerCase().split("/");
   const rows = await db
-    .select({ orgId: wikiRepositories.orgId, headSha: wikiRepositories.headSha })
+    .select({ id: wikiRepositories.id, orgId: wikiRepositories.orgId, headSha: wikiRepositories.headSha })
     .from(wikiRepositories)
     .innerJoin(
       githubAppInstallations,
@@ -74,6 +74,18 @@ export async function queueWikiRepositoryPush(db: Database, payload: Record<stri
         eq(wikiRepositories.status, "active"),
       ),
     );
+  // GitHub reaches this server: the app says changes there arrive at once.
+  if (rows.length) {
+    await db
+      .update(wikiRepositories)
+      .set({ notifiedAt: new Date() })
+      .where(
+        inArray(
+          wikiRepositories.id,
+          rows.map((r) => r.id),
+        ),
+      );
+  }
   let queued = false;
   for (const row of rows) {
     if (row.headSha && row.headSha === payload.after) continue;

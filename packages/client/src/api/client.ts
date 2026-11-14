@@ -355,6 +355,7 @@ import type {
   WikiPageInput,
   WikiPageSummary,
   WikiRepository,
+  WikiRepositoryCheck,
   WikiRepositoryInput,
   WikiRepositoryWriting,
   WikiTopRead,
@@ -1700,6 +1701,11 @@ export interface ApiClient {
     githubNotes(orgId: string, url: string): Promise<Blob>;
     /** The repository the wiki is kept in (null: none). */
     repository(orgId: string): Promise<WikiRepository | null>;
+    /** What connecting that repository would do: its branch, and whether the wiki may write there (administrators). */
+    checkRepository(
+      orgId: string,
+      input: Pick<WikiRepositoryInput, "repository" | "branch" | "path">,
+    ): Promise<WikiRepositoryCheck>;
     /** Keeps the wiki in that GitHub repository (administrators); replaces the one before. */
     connectRepository(orgId: string, input: WikiRepositoryInput): Promise<WikiRepository>;
     /** How the wiki writes there: straight on the branch, through a pull request, or never (administrators). */

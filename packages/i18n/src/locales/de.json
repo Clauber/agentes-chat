@@ -11263,15 +11263,20 @@
       },
       "connect": {
         "title": "Das Wiki auf GitHub pflegen",
-        "description": "Die Seiten werden zu Markdown-Notizen in einem deiner Repositorys. GitHub ist die Quelle: Was sich dort ändert, erscheint hier, und was sich hier ändert, geht dorthin.",
+        "description": "Die Seiten werden zu Markdown-Notizen in einem GitHub-Repository, und GitHub wird ihre Quelle.",
         "repository": "Repository",
         "repositoryPlaceholder": "Repository wählen",
-        "repositoryHelp": "Nur die Repositorys, in denen die GitHub-App installiert ist, werden angezeigt.",
-        "byAddress": "Ein anderes Repository, über seine Adresse",
+        "repositoryHelp": "Die Repositorys, die die GitHub-App erreicht, oder die Adresse eines beliebigen öffentlichen.",
+        "byAddress": "Adresse eines anderen Repositorys einfügen",
         "address": "Adresse des Repositorys",
         "addressPlaceholder": "https://github.com/besitzer/name",
-        "addressHelp": "Ein öffentliches Repository geht auch ohne die App: Das Wiki folgt ihm, und was sich hier ändert, bleibt hier.",
-        "openConnectors": "Um auch dorthin zu schreiben, oder für ein privates Repository, installiere die GitHub-App in Konnektoren.",
+        "addressHelp": "Die Adresse eines Repositorys auf GitHub oder eines Ordners darin.",
+        "checking": "Repository wird geprüft…",
+        "canWrite": "{{repo}}, Branch {{branch}}: Die GitHub-App liest und schreibt dort.",
+        "readOnly": "{{repo}}, Branch {{branch}}: öffentlich, also folgt das Wiki ihm, ohne dort zu schreiben.",
+        "installForWrite": "Um auch dorthin zu schreiben, installiere die GitHub-App in diesem Repository.",
+        "openConnectors": "Konnektoren öffnen",
+        "more": "Ordner und Branch",
         "search": "Repositorys durchsuchen",
         "noResults": "Kein Repository mit diesem Namen.",
         "folder": "Ordner",
@@ -11280,7 +11285,6 @@
         "branch": "Branch",
         "branchPlaceholder": "Der Standard-Branch",
         "branchHelp": "Optional. Die Notizen werden aus diesem Branch gelesen und in ihn geschrieben.",
-        "noteBoth": "Die Seiten hier gehen ins Repository, und die Notizen dort werden zu Seiten.",
         "noteConflict": "Wenn sich eine Notiz auf beiden Seiten geändert hat, bleibt die aus dem Repository. Die von hier kommt in den Verlauf der Seite.",
         "noteRestricted": "Seiten, die nur für einige Personen sichtbar sind, bleiben immer hier.",
         "submit": "Verbinden"
@@ -11289,6 +11293,7 @@
         "title": "Wiki auf GitHub",
         "notes": "Notizen",
         "updated": "Aktualisiert",
+        "cadence": "Aktualisierung",
         "updating": "wird aktualisiert…",
         "never": "noch nicht",
         "pending_one": "{{count}} Seite geht noch zu GitHub.",
@@ -11309,17 +11314,30 @@
       "writing": {
         "label": "Wie das Wiki dort schreibt",
         "direct": "Direkt im Branch",
-        "directDesc": "Jede Änderung ist ein Commit auf dem Branch, dem das Wiki folgt.",
+        "directDesc": "Jede Änderung hier ist ein Commit auf {{branch}}.",
+        "directDescAny": "Jede Änderung hier ist ein Commit auf dem Branch, dem das Wiki folgt.",
         "pullRequest": "Über einen Pull Request",
-        "pullRequestDesc": "Änderungen gehen auf einen eigenen Branch des Wikis, in einen Pull Request, den jemand auf GitHub annimmt.",
-        "none": "Nicht schreiben",
-        "noneDesc": "Das Wiki folgt dem Repository nur: Was sich hier ändert, bleibt hier.",
+        "pullRequestDesc": "Änderungen von hier gehen in einen Pull Request nach {{branch}}, den jemand auf GitHub annimmt.",
+        "pullRequestDescAny": "Änderungen von hier gehen in einen Pull Request, den jemand auf GitHub annimmt.",
+        "none": "Nur folgen",
+        "noneDesc": "Das Wiki bekommt, was sich auf GitHub ändert, und was sich hier ändert, bleibt hier.",
+        "needsApp": "Braucht die GitHub-App in diesem Repository, mit Schreibrecht.",
         "branch": "Branch des Pull Requests",
         "branchHelp": "Das Wiki baut ihn bei jeder Änderung neu: Bearbeite das Wiki, nicht diesen Branch.",
         "now": {
           "direct": "Das Wiki committet direkt auf {{branch}}.",
           "pull_request": "Das Wiki schlägt seine Änderungen in einem Pull Request nach {{branch}} vor.",
           "none": "Das Wiki folgt dem Repository nur: Was sich hier ändert, bleibt hier."
+        }
+      },
+      "cadence": {
+        "notified": "Was sich auf GitHub ändert, kommt sofort an: GitHub meldet dem Wiki jeden Push.",
+        "app": "Was sich auf GitHub ändert, kommt an, wenn GitHub einen Push meldet, oder bei der nächsten Prüfung, alle 5 Minuten.",
+        "public": "Das Wiki prüft GitHub jede Minute auf Änderungen.",
+        "short": {
+          "notified": "sofort",
+          "app": "alle 5 Min.",
+          "public": "jede Minute"
         }
       },
       "held": {

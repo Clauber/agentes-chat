@@ -27534,7 +27534,7 @@
     "value": "Keep the wiki on GitHub"
   },
   "wiki.repo.connect.description": {
-    "value": "The pages become Markdown notes in a repository of yours. GitHub is the source: what changes there shows up here, and what changes here goes there."
+    "value": "The pages become Markdown notes in a GitHub repository, and GitHub becomes their source."
   },
   "wiki.repo.connect.repository": {
     "value": "Repository"
@@ -27543,10 +27543,10 @@
     "value": "Choose a repository"
   },
   "wiki.repo.connect.repositoryHelp": {
-    "value": "Only the repositories the GitHub app is installed on show up."
+    "value": "The repositories the GitHub app reaches, or the address of any public one."
   },
   "wiki.repo.connect.byAddress": {
-    "value": "Another repository, by its address"
+    "value": "Paste another repository's address"
   },
   "wiki.repo.connect.address": {
     "value": "Repository address"
@@ -27555,10 +27555,25 @@
     "value": "https://github.com/owner/name"
   },
   "wiki.repo.connect.addressHelp": {
-    "value": "A public repository works without the app: the wiki follows it, and what changes here stays here."
+    "value": "A repository's address on GitHub, or a folder's in it."
+  },
+  "wiki.repo.connect.checking": {
+    "value": "Checking the repository…"
+  },
+  "wiki.repo.connect.canWrite": {
+    "value": "{{repo}}, {{branch}} branch: the GitHub app reads and writes there."
+  },
+  "wiki.repo.connect.readOnly": {
+    "value": "{{repo}}, {{branch}} branch: public, so the wiki follows it without writing there."
+  },
+  "wiki.repo.connect.installForWrite": {
+    "value": "To write there too, install the GitHub app on this repository."
   },
   "wiki.repo.connect.openConnectors": {
-    "value": "To write there too, or for a private repository, install the GitHub app in Connectors."
+    "value": "Open Connectors"
+  },
+  "wiki.repo.connect.more": {
+    "value": "Folder and branch"
   },
   "wiki.repo.connect.search": {
     "value": "Search repositories"
@@ -27584,9 +27599,6 @@
   "wiki.repo.connect.branchHelp": {
     "value": "Optional. The notes are read from and written to this branch."
   },
-  "wiki.repo.connect.noteBoth": {
-    "value": "The pages here go to the repository, and the notes there become pages."
-  },
   "wiki.repo.connect.noteConflict": {
     "value": "If a note changed on both sides, the repository's stays. The one from here goes to the page's history."
   },
@@ -27604,6 +27616,9 @@
   },
   "wiki.repo.manage.updated": {
     "value": "Updated"
+  },
+  "wiki.repo.manage.cadence": {
+    "value": "Updates"
   },
   "wiki.repo.manage.updating": {
     "value": "updating…"
@@ -27660,19 +27675,28 @@
     "value": "Straight to the branch"
   },
   "wiki.repo.writing.directDesc": {
-    "value": "Each change is a commit on the branch the wiki follows."
+    "value": "Each change here is a commit on {{branch}}."
+  },
+  "wiki.repo.writing.directDescAny": {
+    "value": "Each change here is a commit on the branch the wiki follows."
   },
   "wiki.repo.writing.pullRequest": {
     "value": "Through a pull request"
   },
   "wiki.repo.writing.pullRequestDesc": {
-    "value": "Changes go to a branch of the wiki's own, in one pull request someone accepts on GitHub."
+    "value": "Changes here go in a pull request into {{branch}}, for someone to accept on GitHub."
+  },
+  "wiki.repo.writing.pullRequestDescAny": {
+    "value": "Changes here go in a pull request, for someone to accept on GitHub."
   },
   "wiki.repo.writing.none": {
-    "value": "Don't write"
+    "value": "Just follow"
   },
   "wiki.repo.writing.noneDesc": {
-    "value": "The wiki only follows the repository: what changes here stays here."
+    "value": "The wiki gets what changes on GitHub, and what changes here stays here."
+  },
+  "wiki.repo.writing.needsApp": {
+    "value": "Needs the GitHub app on this repository, allowed to write."
   },
   "wiki.repo.writing.branch": {
     "value": "The pull request's branch"
@@ -27688,6 +27712,24 @@
   },
   "wiki.repo.writing.now.none": {
     "value": "The wiki only follows the repository: what changes here stays here."
+  },
+  "wiki.repo.cadence.notified": {
+    "value": "What changes on GitHub arrives at once: GitHub tells the wiki of each push."
+  },
+  "wiki.repo.cadence.app": {
+    "value": "What changes on GitHub arrives when GitHub tells of a push, or at the next check, every 5 minutes."
+  },
+  "wiki.repo.cadence.public": {
+    "value": "The wiki checks GitHub every minute for what changed there."
+  },
+  "wiki.repo.cadence.short.notified": {
+    "value": "at once"
+  },
+  "wiki.repo.cadence.short.app": {
+    "value": "every 5 min"
+  },
+  "wiki.repo.cadence.short.public": {
+    "value": "every minute"
   },
   "wiki.repo.held.tooLong": {
     "value": "Longer than a page can be"

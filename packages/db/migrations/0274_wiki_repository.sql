@@ -20,6 +20,7 @@ CREATE TABLE "wiki_repositories" (
 	"dirty" boolean DEFAULT false NOT NULL,
 	"syncing_until" timestamp with time zone,
 	"synced_at" timestamp with time zone,
+	"notified_at" timestamp with time zone,
 	"created_by_user_id" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL

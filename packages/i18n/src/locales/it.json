@@ -11698,15 +11698,20 @@
       },
       "connect": {
         "title": "Tieni la wiki su GitHub",
-        "description": "Le pagine diventano note Markdown in un tuo repository. GitHub è la fonte: quello che cambia lì compare qui, e quello che cambia qui va lì.",
+        "description": "Le pagine diventano note Markdown in un repository GitHub, e GitHub diventa la loro fonte.",
         "repository": "Repository",
         "repositoryPlaceholder": "Scegli un repository",
-        "repositoryHelp": "Compaiono solo i repository in cui è installata l'app di GitHub.",
-        "byAddress": "Un altro repository, dal suo indirizzo",
+        "repositoryHelp": "I repository che l'app di GitHub raggiunge, o l'indirizzo di qualsiasi repository pubblico.",
+        "byAddress": "Incolla l'indirizzo di un altro repository",
         "address": "Indirizzo del repository",
         "addressPlaceholder": "https://github.com/proprietario/nome",
-        "addressHelp": "Un repository pubblico funziona senza l'app: la wiki lo segue, e quello che cambia qui resta qui.",
-        "openConnectors": "Per scrivere anche lì, o per un repository privato, installa l'app di GitHub in Connettori.",
+        "addressHelp": "L'indirizzo di un repository su GitHub, o di una sua cartella.",
+        "checking": "Controllo del repository…",
+        "canWrite": "{{repo}}, branch {{branch}}: l'app di GitHub legge e scrive lì.",
+        "readOnly": "{{repo}}, branch {{branch}}: pubblico, quindi la wiki lo segue senza scriverci.",
+        "installForWrite": "Per scrivere anche lì, installa l'app di GitHub in questo repository.",
+        "openConnectors": "Apri Connettori",
+        "more": "Cartella e branch",
         "search": "Cerca repository",
         "noResults": "Nessun repository con questo nome.",
         "folder": "Cartella",
@@ -11715,7 +11720,6 @@
         "branch": "Branch",
         "branchPlaceholder": "Il branch predefinito",
         "branchHelp": "Facoltativo. Le note vengono lette e scritte su questo branch.",
-        "noteBoth": "Le pagine di qui vanno nel repository, e le note di lì diventano pagine.",
         "noteConflict": "Se una nota è cambiata da entrambe le parti, resta quella del repository. Quella di qui va nella cronologia della pagina.",
         "noteRestricted": "Le pagine limitate ad alcune persone non escono mai da qui.",
         "submit": "Collega"
@@ -11724,6 +11728,7 @@
         "title": "Wiki su GitHub",
         "notes": "Note",
         "updated": "Aggiornata",
+        "cadence": "Aggiornamento",
         "updating": "aggiornamento…",
         "never": "non ancora",
         "pending_one": "{{count}} pagina deve ancora andare su GitHub.",
@@ -11746,17 +11751,30 @@
       "writing": {
         "label": "Come scrive la wiki lì",
         "direct": "Direttamente sul branch",
-        "directDesc": "Ogni modifica è un commit sul branch che la wiki segue.",
+        "directDesc": "Ogni modifica qui è un commit su {{branch}}.",
+        "directDescAny": "Ogni modifica qui è un commit sul branch che la wiki segue.",
         "pullRequest": "Con una pull request",
-        "pullRequestDesc": "Le modifiche vanno su un branch tutto della wiki, in una pull request che qualcuno accetta su GitHub.",
-        "none": "Non scrivere",
-        "noneDesc": "La wiki segue solo il repository: quello che cambia qui resta qui.",
+        "pullRequestDesc": "Le modifiche da qui vanno in una pull request verso {{branch}}, che qualcuno accetta su GitHub.",
+        "pullRequestDescAny": "Le modifiche da qui vanno in una pull request, che qualcuno accetta su GitHub.",
+        "none": "Solo seguire",
+        "noneDesc": "La wiki riceve quello che cambia su GitHub, e quello che cambia qui resta qui.",
+        "needsApp": "Serve l'app di GitHub in questo repository, con il permesso di scrivere.",
         "branch": "Branch della pull request",
         "branchHelp": "La wiki lo ricostruisce a ogni modifica: modifica la wiki, non questo branch.",
         "now": {
           "direct": "La wiki fa commit direttamente su {{branch}}.",
           "pull_request": "La wiki propone le sue modifiche in una pull request verso {{branch}}.",
           "none": "La wiki segue solo il repository: quello che cambia qui resta qui."
+        }
+      },
+      "cadence": {
+        "notified": "Quello che cambia su GitHub arriva subito: GitHub avvisa la wiki a ogni push.",
+        "app": "Quello che cambia su GitHub arriva quando GitHub avvisa di un push, o al prossimo controllo, ogni 5 minuti.",
+        "public": "La wiki controlla GitHub ogni minuto per portare quello che è cambiato lì.",
+        "short": {
+          "notified": "subito",
+          "app": "ogni 5 min",
+          "public": "ogni minuto"
         }
       },
       "held": {

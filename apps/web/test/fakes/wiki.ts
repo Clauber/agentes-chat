@@ -332,6 +332,19 @@ export function createFakeWiki(ctx: MockContext, log: (method: string, ...args: 
       log("wiki.repository", orgId);
       return null;
     },
+    checkRepository: async (orgId, input) => {
+      log("wiki.checkRepository", orgId, input);
+      const [owner = "", repo = ""] = input.repository.replace(/^https?:\/\/(www\.)?github\.com\//, "").split("/");
+      return {
+        owner,
+        repo,
+        branch: input.branch ?? "main",
+        defaultBranch: "main",
+        path: input.path ?? "",
+        writable: true,
+        url: `https://github.com/${owner}/${repo}`,
+      };
+    },
     connectRepository: async (orgId, input) => {
       log("wiki.connectRepository", orgId, input);
       const [owner = "", repo = ""] = input.repository.split("/");
@@ -350,6 +363,7 @@ export function createFakeWiki(ctx: MockContext, log: (method: string, ...args: 
         errorCode: null,
         syncing: true,
         syncedAt: null,
+        notifiedAt: null,
         notes: 0,
         pending: 0,
         held: [],

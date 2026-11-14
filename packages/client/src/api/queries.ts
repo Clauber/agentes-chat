@@ -5420,6 +5420,21 @@ export const useWikiRepository = (orgId: string, enabled = true) => {
   });
 };
 
+/**
+ * What connecting a repository would do (its branch, whether the wiki may write there), asked once the name stops
+ * changing; a refusal is the query's error. Off while `repository` is empty.
+ */
+export const useWikiRepositoryCheck = (orgId: string, repository: string, branch: string) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.wikiRepositoryCheck(orgId, repository, branch),
+    queryFn: () => api.wiki.checkRepository(orgId, { repository, ...(branch ? { branch } : {}) }),
+    enabled: repository.length > 0,
+    retry: false,
+    staleTime: 60_000,
+  });
+};
+
 /** Connect, sync now (or start again) and disconnect the wiki's repository; the wiki is read again after. */
 export function useWikiRepositoryActions(orgId: string) {
   const api = useApi();

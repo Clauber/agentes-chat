@@ -11330,15 +11330,20 @@
       },
       "connect": {
         "title": "De wiki op GitHub bijhouden",
-        "description": "De pagina's worden Markdown-notities in een repository van je. GitHub is de bron: wat daar verandert, verschijnt hier, en wat hier verandert, gaat daarheen.",
+        "description": "De pagina's worden Markdown-notities in een GitHub-repository, en GitHub wordt hun bron.",
         "repository": "Repository",
         "repositoryPlaceholder": "Kies een repository",
-        "repositoryHelp": "Alleen de repository's waarop de GitHub-app is geïnstalleerd, verschijnen.",
-        "byAddress": "Een andere repository, via het adres",
+        "repositoryHelp": "De repository's die de GitHub-app bereikt, of het adres van een openbare repository.",
+        "byAddress": "Adres van een andere repository plakken",
         "address": "Adres van de repository",
         "addressPlaceholder": "https://github.com/eigenaar/naam",
-        "addressHelp": "Een openbare repository werkt zonder de app: de wiki volgt hem, en wat hier verandert, blijft hier.",
-        "openConnectors": "Om daar ook te schrijven, of voor een privérepository, installeer je de GitHub-app bij Connectors.",
+        "addressHelp": "Het adres van een repository op GitHub, of van een map erin.",
+        "checking": "Repository controleren…",
+        "canWrite": "{{repo}}, branch {{branch}}: de GitHub-app leest en schrijft daar.",
+        "readOnly": "{{repo}}, branch {{branch}}: openbaar, dus de wiki volgt hem zonder daar te schrijven.",
+        "installForWrite": "Installeer de GitHub-app op deze repository om daar ook te schrijven.",
+        "openConnectors": "Connectors openen",
+        "more": "Map en branch",
         "search": "Repository's zoeken",
         "noResults": "Geen repository met die naam.",
         "folder": "Map",
@@ -11347,7 +11352,6 @@
         "branch": "Branch",
         "branchPlaceholder": "De standaardbranch",
         "branchHelp": "Optioneel. De notities worden uit deze branch gelezen en erin geschreven.",
-        "noteBoth": "De pagina's hier gaan naar de repository, en de notities daar worden pagina's.",
         "noteConflict": "Als een notitie aan beide kanten is veranderd, blijft die van de repository. Die van hier gaat naar de geschiedenis van de pagina.",
         "noteRestricted": "Pagina's die beperkt zijn tot een paar mensen, gaan hier nooit weg.",
         "submit": "Verbinden"
@@ -11356,6 +11360,7 @@
         "title": "Wiki op GitHub",
         "notes": "Notities",
         "updated": "Bijgewerkt",
+        "cadence": "Bijwerken",
         "updating": "bijwerken…",
         "never": "nog niet",
         "pending_one": "{{count}} pagina moet nog naar GitHub.",
@@ -11376,17 +11381,30 @@
       "writing": {
         "label": "Hoe de wiki daar schrijft",
         "direct": "Direct op de branch",
-        "directDesc": "Elke wijziging is een commit op de branch die de wiki volgt.",
+        "directDesc": "Elke wijziging hier is een commit op {{branch}}.",
+        "directDescAny": "Elke wijziging hier is een commit op de branch die de wiki volgt.",
         "pullRequest": "Via een pull request",
-        "pullRequestDesc": "Wijzigingen gaan naar een eigen branch van de wiki, in één pull request dat iemand op GitHub accepteert.",
-        "none": "Niet schrijven",
-        "noneDesc": "De wiki volgt de repository alleen: wat hier verandert, blijft hier.",
+        "pullRequestDesc": "Wijzigingen van hier gaan in een pull request naar {{branch}}, dat iemand op GitHub accepteert.",
+        "pullRequestDescAny": "Wijzigingen van hier gaan in een pull request, dat iemand op GitHub accepteert.",
+        "none": "Alleen volgen",
+        "noneDesc": "De wiki krijgt wat er op GitHub verandert, en wat hier verandert, blijft hier.",
+        "needsApp": "Vereist de GitHub-app op deze repository, met schrijfrechten.",
         "branch": "Branch van het pull request",
         "branchHelp": "De wiki bouwt hem bij elke wijziging opnieuw op: bewerk de wiki, niet deze branch.",
         "now": {
           "direct": "De wiki commit direct op {{branch}}.",
           "pull_request": "De wiki stelt zijn wijzigingen voor in een pull request naar {{branch}}.",
           "none": "De wiki volgt de repository alleen: wat hier verandert, blijft hier."
+        }
+      },
+      "cadence": {
+        "notified": "Wat op GitHub verandert, komt meteen binnen: GitHub meldt elke push aan de wiki.",
+        "app": "Wat op GitHub verandert, komt binnen als GitHub een push meldt, of bij de volgende controle, elke 5 minuten.",
+        "public": "De wiki controleert GitHub elke minuut op wat daar veranderde.",
+        "short": {
+          "notified": "meteen",
+          "app": "elke 5 min",
+          "public": "elke minuut"
         }
       },
       "held": {

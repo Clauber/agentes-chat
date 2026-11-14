@@ -1,6 +1,7 @@
 import { connectorOAuthApps } from "@agenteschat/config";
 import {
   appendSourceToWiki,
+  checkWikiRepository,
   connectWikiRepository,
   createPageFromSource,
   createWikiPage,
@@ -998,6 +999,9 @@ export function wikiRoutes(deps: AppDeps) {
       }),
       syncing: z.boolean(),
       syncedAt: z.string().nullable(),
+      notifiedAt: z.string().nullable().openapi({
+        description: "The last push GitHub told of: when set, changes there arrive at once; else at the next look.",
+      }),
       notes: z.number().openapi({ description: "Notes that are pages." }),
       pending: z.number().openapi({ description: "Pages whose last version is still to be written there." }),
       held: z
@@ -1053,6 +1057,48 @@ export function wikiRoutes(deps: AppDeps) {
       deps.wakeWorkers?.();
       return c.json(view, 200);
     },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/wiki/repository/check",
+      tags,
+      security,
+      summary: "What connecting a repository would do: its branch, and whether the wiki may write there",
+      description: "Administrators. The refusals of connecting.",
+      request: {
+        params: OrgParams,
+        body: body(
+          z.object({
+            repository: z.string().min(1).max(300),
+            branch: z.string().max(250).optional(),
+            path: z.string().max(300).optional(),
+          }),
+        ),
+      },
+      responses: {
+        200: json(
+          z
+            .object({
+              owner: z.string(),
+              repo: z.string(),
+              branch: z.string(),
+              defaultBranch: z.string().nullable(),
+              path: z.string(),
+              writable: z.boolean(),
+              url: z.string(),
+            })
+            .openapi("WikiRepositoryCheck"),
+        ),
+        ...errors,
+      },
+    }),
+    async (c) =>
+      c.json(
+        await checkWikiRepository(repository(), c.get("user").id, c.req.valid("param").orgId, c.req.valid("json")),
+        200,
+      ),
   );
 
   app.openapi(

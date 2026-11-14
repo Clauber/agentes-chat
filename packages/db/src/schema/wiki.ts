@@ -247,6 +247,8 @@ export const wikiRepositories = pgTable(
     /** A sync holds it until then, so two never write at once. */
     syncingUntil: timestamp({ withTimezone: true }),
     syncedAt: timestamp({ withTimezone: true }),
+    /** The last push GitHub told of (its webhook reaches this server): changes there then arrive at once. */
+    notifiedAt: timestamp({ withTimezone: true }),
     /** Who connected it, or started it again: what comes from the repository is saved with their rights. */
     createdByUserId: text().references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),

@@ -49,6 +49,8 @@ export interface WikiRepositoryView {
   /** A sync is running or about to. */
   syncing: boolean;
   syncedAt: string | null;
+  /** The last push GitHub told of: when set, changes there arrive at once; else at the next look (5 minutes, or 1). */
+  notifiedAt: string | null;
   /** Notes that are pages. */
   notes: number;
   /** Pages whose last version is still to be written there (none while read-only). */
@@ -108,6 +110,7 @@ async function viewOf(db: Database, row: Repository): Promise<WikiRepositoryView
     errorCode: row.errorCode,
     syncing: row.status === "active" && (row.dirty || (row.syncingUntil !== null && row.syncingUntil > new Date())),
     syncedAt: row.syncedAt?.toISOString() ?? null,
+    notifiedAt: row.notifiedAt?.toISOString() ?? null,
     notes: count?.n ?? 0,
     pending: row.writable && row.commitMode !== "none" ? (waiting?.n ?? 0) : 0,
     held: held.map((h) => ({ path: h.path, code: h.code ?? "" })),
@@ -220,6 +223,68 @@ const answered = <T>(promise: Promise<T>) =>
   });
 
 /**
+ * The repository someone named, reached as the workspace: its name as GitHub has it, the branch the wiki would follow
+ * (asked for, the address's, else the default one) and the folder, and whether the wiki may write there. Refusals
+ * are what a person reads (`wiki.repo_*`, `github.unreachable`).
+ */
+async function resolveRepository(
+  deps: WikiRepositoryDeps,
+  orgId: string,
+  input: { repository: string; branch?: string; path?: string; commitMode?: WikiCommitMode },
+) {
+  const named = namedRepository(input.repository);
+  if (!named) throw new ValidationError("Name the repository as owner/name", "wiki.repo_invalid");
+  const path = cleanPath(input.path?.trim() ? input.path : named.path);
+  const reached = await answered(
+    reachRepository(deps, orgId, { provider: "github", ...named, commitMode: input.commitMode }),
+  );
+  if ("miss" in reached) throw refused(reached.miss);
+  const facts = await answered(reached.remote.about());
+  const branch = input.branch?.trim() || named.branch || facts.defaultBranch;
+  const empty = () =>
+    new ValidationError("That repository has no commit yet: add a first file to it", "wiki.repo_empty");
+  if (!branch) throw empty();
+  const head = await answered(reached.remote.head(branch));
+  if (head === "missing") throw new ValidationError("That branch doesn't exist", "wiki.repo_branch_missing");
+  if (head === "empty") throw empty();
+  return { facts, branch, path, writable: reached.writable };
+}
+
+/** What connecting a repository would do, before it is connected: the dialog says it as the address is typed. */
+export interface WikiRepositoryCheck {
+  owner: string;
+  repo: string;
+  /** The branch the wiki would follow, and the repository's default one. */
+  branch: string;
+  defaultBranch: string | null;
+  /** The folder, from the address when it names one. */
+  path: string;
+  /** The wiki may write there (the GitHub App, allowed to); false: a public repository followed read-only. */
+  writable: boolean;
+  url: string;
+}
+
+/** Whether a repository can keep the wiki, and how (an administrator), with `connectWikiRepository`'s refusals. */
+export async function checkWikiRepository(
+  deps: WikiRepositoryDeps,
+  userId: string,
+  orgId: string,
+  input: Pick<WikiRepositoryInput, "repository" | "branch" | "path">,
+): Promise<WikiRepositoryCheck> {
+  await requirePermission(deps.db, userId, orgId, WIKI_REPOSITORY_PERMISSION);
+  const found = await resolveRepository(deps, orgId, input);
+  return {
+    owner: found.facts.owner,
+    repo: found.facts.repo,
+    branch: found.branch,
+    defaultBranch: found.facts.defaultBranch,
+    path: found.path,
+    writable: found.writable,
+    url: repositoryUrl({ provider: "github", ...found.facts, branch: found.branch, path: found.path }),
+  };
+}
+
+/**
  * Keeps the workspace's wiki in a GitHub repository (an administrator): the notes under that folder become pages and,
  * where the wiki may write there, its pages become notes, each side then following the other with the repository as
  * the source. The repository is reached through the GitHub App's installation on it for this workspace; a public one
@@ -234,21 +299,8 @@ export async function connectWikiRepository(
 ): Promise<WikiRepositoryView> {
   const { db } = deps;
   await requirePermission(db, userId, orgId, WIKI_REPOSITORY_PERMISSION);
-  const named = namedRepository(input.repository);
-  if (!named) throw new ValidationError("Name the repository as owner/name", "wiki.repo_invalid");
-  const path = cleanPath(input.path?.trim() ? input.path : named.path);
   const commitMode = input.commitMode ?? "direct";
-  const reached = await answered(reachRepository(deps, orgId, { provider: "github", ...named, commitMode }));
-  if ("miss" in reached) throw refused(reached.miss);
-  const facts = await answered(reached.remote.about());
-  const branch = input.branch?.trim() || named.branch || facts.defaultBranch;
-  if (!branch)
-    throw new ValidationError("That repository has no commit yet: add a first file to it", "wiki.repo_empty");
-  const head = await answered(reached.remote.head(branch));
-  if (head === "missing") throw new ValidationError("That branch doesn't exist", "wiki.repo_branch_missing");
-  if (head === "empty") {
-    throw new ValidationError("That repository has no commit yet: add a first file to it", "wiki.repo_empty");
-  }
+  const { facts, branch, path, writable } = await resolveRepository(deps, orgId, { ...input, commitMode });
   const prBranch = cleanBranch(input.prBranch ?? WIKI_PR_BRANCH, branch);
   const row = await db.transaction(async (tx) => {
     const [before] = await tx.select().from(wikiRepositories).where(eq(wikiRepositories.orgId, orgId));
@@ -269,7 +321,7 @@ export async function connectWikiRepository(
               status: "active",
               errorCode: null,
               dirty: false,
-              writable: reached.writable,
+              writable,
               commitMode,
               prBranch,
               createdByUserId: userId,
@@ -286,7 +338,7 @@ export async function connectWikiRepository(
               repo: facts.repo,
               branch,
               path,
-              writable: reached.writable,
+              writable,
               commitMode,
               prBranch,
               createdByUserId: userId,
@@ -303,7 +355,7 @@ export async function connectWikiRepository(
         repository: `${facts.owner}/${facts.repo}`,
         branch,
         path,
-        writable: reached.writable,
+        writable,
         commitMode,
       },
     });

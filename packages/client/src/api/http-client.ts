@@ -258,6 +258,7 @@ import type {
   WikiPage,
   WikiPageSummary,
   WikiRepository,
+  WikiRepositoryCheck,
   WikiRepositoryInput,
   WikiRepositoryWriting,
   WikiTopRead,
@@ -1849,6 +1850,8 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       githubNotes: (orgId, url) => files.blob(`${org(orgId)}/wiki/import/github?url=${enc(url)}`),
       repository: async (orgId) =>
         (await request<{ repository: WikiRepository | null }>(`${org(orgId)}/wiki/repository`)).repository,
+      checkRepository: (orgId, input) =>
+        request<WikiRepositoryCheck>(`${org(orgId)}/wiki/repository/check`, { json: input }),
       connectRepository: (orgId, input: WikiRepositoryInput) =>
         request<WikiRepository>(`${org(orgId)}/wiki/repository`, { method: "PUT", json: input }),
       setRepositoryWriting: async (orgId, input: WikiRepositoryWriting) =>
