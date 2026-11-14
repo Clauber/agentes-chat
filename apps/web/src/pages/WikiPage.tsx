@@ -32,6 +32,7 @@ import { WikiAudienceDialog } from "@/components/wiki/WikiAudience";
 import { WikiBulkAgentsDialog, WikiBulkDeleteDialog, WikiTrash } from "@/components/wiki/WikiBulk";
 import { useVaultDrop, VaultDropOverlay, WikiImportDialog } from "@/components/wiki/WikiImport";
 import { AuthorAvatar, PageOutline, WikiReader } from "@/components/wiki/WikiReader";
+import { WikiRepositoryDialog, WikiRepositoryMenuItem, WikiRepositoryStopped } from "@/components/wiki/WikiRepository";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useRightHandLook } from "@/hooks/useRightHandLook";
 import { copyText } from "@/lib/context-menu";
@@ -253,6 +254,8 @@ function WikiNav({
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulk, setBulk] = useState<"delete" | "agents" | null>(null);
+  // The repository the wiki is kept in (ADR 0186): connecting one, or how it is going.
+  const [repositoryOpen, setRepositoryOpen] = useState(false);
   const uid = useId();
   // The side column's own "…", named apart from the open page's: "Mais ações: Wiki".
   const moreLabel = t("artifacts.more", { title: t("wiki.title") });
@@ -393,6 +396,7 @@ function WikiNav({
 
   return (
     <aside className="wiki-nav" data-open={open || undefined} aria-label={t("wiki.nav")}>
+      {repositoryOpen && <WikiRepositoryDialog onClose={() => setRepositoryOpen(false)} />}
       {audienceFolder !== null && (
         <WikiAudienceDialog folder={audienceFolder} onClose={() => setAudienceFolder(null)} />
       )}
@@ -438,6 +442,7 @@ function WikiNav({
             <MenuItem icon="upload" onSelect={onImport}>
               {t("wiki.import.cta")}
             </MenuItem>
+            <WikiRepositoryMenuItem onOpen={() => setRepositoryOpen(true)} />
           </Menu>
         )}
       </div>
@@ -580,6 +585,7 @@ function WikiNav({
           </div>
         </section>
       )}
+      <WikiRepositoryStopped onOpen={() => setRepositoryOpen(true)} />
     </aside>
   );
 }

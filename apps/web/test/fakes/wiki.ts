@@ -328,6 +328,36 @@ export function createFakeWiki(ctx: MockContext, log: (method: string, ...args: 
       log("wiki.githubNotes", orgId, url);
       return new Blob();
     },
+    repository: async (orgId) => {
+      log("wiki.repository", orgId);
+      return null;
+    },
+    connectRepository: async (orgId, input) => {
+      log("wiki.connectRepository", orgId, input);
+      const [owner = "", repo = ""] = input.repository.split("/");
+      return {
+        provider: "github",
+        owner,
+        repo,
+        branch: "main",
+        path: input.path ?? "",
+        url: `https://github.com/${owner}/${repo}`,
+        status: "active",
+        errorCode: null,
+        syncing: true,
+        syncedAt: null,
+        notes: 0,
+        pending: 0,
+        held: [],
+      };
+    },
+    syncRepository: async (orgId) => {
+      log("wiki.syncRepository", orgId);
+      return null;
+    },
+    disconnectRepository: async (orgId) => {
+      log("wiki.disconnectRepository", orgId);
+    },
     import: async (orgId, input) => {
       log("wiki.import", orgId, input);
       const list = await store(orgId);

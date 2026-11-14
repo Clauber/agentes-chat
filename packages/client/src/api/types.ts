@@ -5430,6 +5430,58 @@ export interface WikiPage extends WikiPageSummary {
   reads?: WikiAgentReads & {
     last: { agentId: string; channelId: string | null; channelName: string | null; at: string } | null;
   };
+  /** Its note in the repository the wiki is kept in (ADR 0186); null or absent when there is none. */
+  repository?: WikiPageRepository | null;
+}
+
+/** A page's note in the wiki's repository. */
+export interface WikiPageRepository {
+  /**
+   * `synced`: the note holds this version. `pending`: this version is still to be written there. `local`: limited to
+   * some people, it never goes there. `held`: the note couldn't be read here, so the page isn't written over it.
+   */
+  state: "synced" | "pending" | "local" | "held";
+  /** The sync stopped until someone starts it again. */
+  stopped: boolean;
+  /** The note's address, once it has one. */
+  url: string | null;
+}
+
+/**
+ * The repository a workspace keeps its wiki in (ADR 0186): the notes under `path` of `branch` are the pages, each side
+ * following the other and the repository the source.
+ */
+export interface WikiRepository {
+  /** Where it is hosted: `github`. */
+  provider: string;
+  owner: string;
+  repo: string;
+  branch: string;
+  /** The folder the notes are under; empty = the whole repository. */
+  path: string;
+  /** The repository's page. */
+  url: string;
+  /** `error`: it stopped, with why in `errorCode`. While `active`, an `errorCode` is a trouble it gets past by itself. */
+  status: "active" | "error";
+  errorCode: string | null;
+  /** A sync is running or about to. */
+  syncing: boolean;
+  syncedAt: string | null;
+  /** Notes that are pages. */
+  notes: number;
+  /** Pages whose last version is still to be written there. */
+  pending: number;
+  /** Notes that couldn't become pages, with why (`wiki.body_too_long`…). */
+  held: { path: string; code: string }[];
+}
+
+export interface WikiRepositoryInput {
+  /** `owner/name`. */
+  repository: string;
+  /** The folder; left out: the whole repository. */
+  path?: string;
+  /** Left out: the repository's default branch. */
+  branch?: string;
 }
 
 export interface WikiVersion {

@@ -232,6 +232,8 @@ export const keys = {
   wikiGraph: (orgId: string) => ["org", orgId, "wiki", "graph"] as const,
   wikiReads: (orgId: string) => ["org", orgId, "wiki", "reads"] as const,
   wikiTrash: (orgId: string) => ["org", orgId, "wiki", "trash"] as const,
+  /** Under the wiki's key: the wiki's own events read it again too. */
+  wikiRepository: (orgId: string) => ["org", orgId, "wiki", "repository"] as const,
   pins: (orgId: string, channelId: string) => ["org", orgId, "channel", channelId, "pins"] as const,
   followUps: (orgId: string, channelId: string) => ["org", orgId, "channel", channelId, "follow-ups"] as const,
   /** Every GIF search (prefix): the workspace's rating or its GIFs switch changing refreshes them all (ADR 0091). */

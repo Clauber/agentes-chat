@@ -201,6 +201,8 @@ import type {
   WikiBulkTarget,
   WikiPage,
   WikiPageInput,
+  WikiRepository,
+  WikiRepositoryInput,
   WikiUpdateInput,
   WorkspaceActionCard,
   WorkspaceActionCardView,
@@ -5401,6 +5403,49 @@ export function useWikiAction(orgId: string) {
       void qc.invalidateQueries({ queryKey: keys.wiki(orgId) });
     },
   });
+}
+
+/**
+ * The repository the wiki is kept in (null: none, ADR 0186). Read again every few seconds while a sync runs, and with
+ * the wiki's own events (its key is under the wiki's).
+ */
+export const useWikiRepository = (orgId: string, enabled = true) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.wikiRepository(orgId),
+    queryFn: () => api.wiki.repository(orgId),
+    enabled,
+    refetchInterval: (query) => (query.state.data?.syncing ? 4000 : false),
+  });
+};
+
+/** Connect, sync now (or start again) and disconnect the wiki's repository; the wiki is read again after. */
+export function useWikiRepositoryActions(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  const done = (repository: WikiRepository | null) => {
+    qc.setQueryData(keys.wikiRepository(orgId), repository);
+    void qc.invalidateQueries({
+      predicate: ({ queryKey: k }) => k[0] === "org" && k[1] === orgId && k[2] === "wiki" && k[3] !== "repository",
+    });
+  };
+  return {
+    connect: useMutation({
+      meta: { silent: true },
+      mutationFn: (input: WikiRepositoryInput) => api.wiki.connectRepository(orgId, input),
+      onSuccess: done,
+    }),
+    sync: useMutation({
+      meta: { silent: true },
+      mutationFn: () => api.wiki.syncRepository(orgId),
+      onSuccess: done,
+    }),
+    disconnect: useMutation({
+      meta: { silent: true },
+      mutationFn: () => api.wiki.disconnectRepository(orgId),
+      onSuccess: () => done(null),
+    }),
+  };
 }
 
 /** The wiki's Lixeira: pages deleted in the last 30 days. */

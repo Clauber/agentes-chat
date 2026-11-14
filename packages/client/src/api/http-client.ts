@@ -257,6 +257,8 @@ import type {
   WikiImportResult,
   WikiPage,
   WikiPageSummary,
+  WikiRepository,
+  WikiRepositoryInput,
   WikiTopRead,
   WikiVersion,
   WorkingRun,
@@ -1844,6 +1846,17 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       reads: (orgId) => request<WikiTopRead[]>(`${org(orgId)}/wiki/reads`),
       import: (orgId, input) => request<WikiImportResult>(`${org(orgId)}/wiki/import`, { json: input }),
       githubNotes: (orgId, url) => files.blob(`${org(orgId)}/wiki/import/github?url=${enc(url)}`),
+      repository: async (orgId) =>
+        (await request<{ repository: WikiRepository | null }>(`${org(orgId)}/wiki/repository`)).repository,
+      connectRepository: (orgId, input: WikiRepositoryInput) =>
+        request<WikiRepository>(`${org(orgId)}/wiki/repository`, { method: "PUT", json: input }),
+      syncRepository: async (orgId) =>
+        (
+          await request<{ repository: WikiRepository | null }>(`${org(orgId)}/wiki/repository/sync`, {
+            method: "POST",
+          })
+        ).repository,
+      disconnectRepository: (orgId) => request<void>(`${org(orgId)}/wiki/repository`, { method: "DELETE" }),
       append: (orgId, slug, input) =>
         request<WikiPage>(`${org(orgId)}/wiki/pages/${enc(slug)}/append`, { json: input }),
     },

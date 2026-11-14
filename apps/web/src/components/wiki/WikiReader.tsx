@@ -53,6 +53,7 @@ import { WikiAskDialog } from "./WikiAsk";
 import { WikiAudienceDialog, WikiWhoSeesDialog } from "./WikiAudience";
 import { WikiBulkDeleteDialog } from "./WikiBulk";
 import { WikiFolderPicker, WikiTagsEdit } from "./WikiProps";
+import { WikiRepositoryMark } from "./WikiRepository";
 import { WikiRichEditor, type WikiRichEditorHandle } from "./WikiRichEditor";
 
 /** The name of who wrote it, and for whom ("Theo", "Ana"). */
@@ -388,7 +389,9 @@ function PageMeta({
           {t("wiki.locked")}
         </Chip>
       )}
-      {isImportedPage(page.source?.type) && (
+      <WikiRepositoryMark page={page} />
+      {/* Kept in the wiki's repository: the mark above already says GitHub. */}
+      {isImportedPage(page.source?.type) && !(page.repository && page.source?.type === "github") && (
         <span className="wiki-chip">
           {page.source?.type === "obsidian" ? (
             <ObsidianMark size={14} />
