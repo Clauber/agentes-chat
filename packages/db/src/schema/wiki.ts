@@ -189,3 +189,74 @@ export const wikiPageReads = pgTable(
   },
   (t) => [index().on(t.orgId, t.createdAt), index().on(t.pageId, t.createdAt)],
 );
+
+/**
+ * The git repository a workspace keeps its wiki in (ADR 0186): the Markdown notes under `path` of one branch are the
+ * wiki's pages, and the repository is the source. A save here is committed there and a push there is saved here; when
+ * both changed a note, the repository's text stays and ours is a version in the page's history. One per workspace.
+ */
+export const wikiRepositories = pgTable(
+  "wiki_repositories",
+  {
+    id: uuid()
+      .primaryKey()
+      .$defaultFn(() => Bun.randomUUIDv7()),
+    orgId: uuid()
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    /** Where the repository is hosted: `github` (reached through the server's GitHub App). */
+    provider: text().notNull().default("github"),
+    owner: text().notNull(),
+    repo: text().notNull(),
+    branch: text().notNull(),
+    /** The folder the notes are under (`notes/wiki`); empty = the repository's root. */
+    path: text().notNull().default(""),
+    /** The commit both sides agreed on last; null before the first sync. */
+    headSha: text(),
+    /** `active`, or `error` with `errorCode` saying why it stopped (the app left the repository, the branch is gone). */
+    status: text().notNull().default("active"),
+    errorCode: text(),
+    /** Something changed since the last sync began: one more is queued when this turns true. */
+    dirty: boolean().notNull().default(false),
+    /** A sync holds it until then, so two never write at once. */
+    syncingUntil: timestamp({ withTimezone: true }),
+    syncedAt: timestamp({ withTimezone: true }),
+    /** Who connected it, or started it again: what comes from the repository is saved with their rights. */
+    createdByUserId: text().references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex().on(t.orgId), index().on(t.provider, t.owner, t.repo)],
+);
+
+/**
+ * One note of the repository and the page it is: what both sides held when they last agreed (the file's git blob, the
+ * page's version, its title and folder), which is how a later change on either side is told apart.
+ */
+export const wikiRepositoryFiles = pgTable(
+  "wiki_repository_files",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    orgId: uuid().notNull(),
+    repositoryId: uuid()
+      .notNull()
+      .references(() => wikiRepositories.id, { onDelete: "cascade" }),
+    /** Relative to the repository's `path`: `Processos/Guia de Deploy.md`. */
+    path: text().notNull(),
+    /** Null: the note couldn't become a page (`issue`), or its page is gone for good. */
+    pageId: uuid().references(() => wikiPages.id, { onDelete: "set null" }),
+    blobSha: text().notNull(),
+    /** The page's version at that blob. */
+    pageVersion: integer().notNull().default(0),
+    title: text().notNull().default(""),
+    folder: text().notNull().default(""),
+    /** The file up to its text (the frontmatter and the blank lines after it), kept as written. */
+    head: text().notNull().default(""),
+    /** Left as it is on both sides: its page is limited to some people here. */
+    detached: boolean().notNull().default(false),
+    /** Why the note isn't a page (`wiki.body_too_long`…), until its file changes. */
+    issue: text(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex().on(t.repositoryId, t.path), index().on(t.pageId), index().on(t.orgId)],
+);

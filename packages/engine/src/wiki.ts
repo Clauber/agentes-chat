@@ -38,6 +38,8 @@ import {
   wikiPageVisibleSql,
   wikiSlug,
 } from "./wiki-links";
+import { requestWikiRepositorySync } from "./wiki-repository/queue";
+import { type WikiPageRepository, wikiPageRepository } from "./wiki-repository/state";
 
 const {
   wikiPages,
@@ -72,6 +74,11 @@ export interface WikiDeps {
   pubsub?: PubSub;
   /** Search over the wiki (else a title/body match). */
   search?: SearchDeps;
+  /**
+   * Saves the wiki's repository makes (its sync, ADR 0186): they queue no other sync. Every other save does, when the
+   * wiki is kept in one.
+   */
+  fromRepository?: boolean;
 }
 
 export interface WikiAuthor {
@@ -175,6 +182,8 @@ export interface WikiPageView extends WikiPageSummary {
   /** Whether the editors' list lets this reader edit it (a locked page or a missing `edit_wiki` still stops them). */
   canEdit: boolean;
   deletedAt: string | null;
+  /** Its note in the repository the wiki is kept in (ADR 0186); null when the wiki is kept in none. */
+  repository: WikiPageRepository | null;
 }
 
 /** Where a page came from. An import keeps its attachments: file name → Drive artifact id. */
@@ -733,7 +742,7 @@ function excerpt(body: string, page: Pick<PageRow, "slug" | "aliases">) {
 }
 
 async function detail(db: Database, actor: WikiActor, row: PageRow): Promise<WikiPageView> {
-  const [summary, versions, backlinks, links, reads, rule, canEdit] = await Promise.all([
+  const [summary, versions, backlinks, links, reads, rule, canEdit, repository] = await Promise.all([
     summaryOf(db, row),
     db
       .select({
@@ -751,6 +760,7 @@ async function detail(db: Database, actor: WikiActor, row: PageRow): Promise<Wik
     pageReads(db, row),
     ruleFor(db, row.orgId, row.folder),
     actor.type === "agent" ? agentEdits(actor.agentId, row) : edits(db, actor.userId, row),
+    wikiPageRepository(db, row),
   ]);
   const authors: WikiAuthor[] = [];
   const seen = new Set<string>();
@@ -782,6 +792,7 @@ async function detail(db: Database, actor: WikiActor, row: PageRow): Promise<Wik
     source: row.source ?? null,
     reads,
     deletedAt: row.deletedAt?.toISOString() ?? null,
+    repository,
   };
 }
 
@@ -970,6 +981,15 @@ async function claimLinks(tx: Executor, page: Pick<PageRow, "id" | "orgId" | "sl
     );
 }
 
+/**
+ * The wiki changed: when it is kept in a repository, a sync is queued (ADR 0186), unless the change is the sync's own.
+ * Never in the way of the save that asked: the periodic look takes what this misses.
+ */
+async function followRepository(deps: WikiDeps, orgId: string) {
+  if (deps.fromRepository) return;
+  await requestWikiRepositorySync(deps.db, orgId).catch(() => false);
+}
+
 async function announce(
   deps: WikiDeps,
   orgId: string,
@@ -991,6 +1011,7 @@ async function announce(
   extra: Record<string, unknown> = {},
 ) {
   caches.contextPresence.delete(`${orgId}:wiki`);
+  await followRepository(deps, orgId);
   // The broadcast reaches every member: a restricted page goes out as its id alone (the apps refetch what they see).
   const shown = page.audience ? { id: page.id, restricted: true } : page;
   await publishOrgEvent(deps.pubsub, {
@@ -1326,7 +1347,31 @@ const NOTE_PATTERNS: [RegExp, string, string[]][] = [
   [/^saved a message$/, "saved_message", []],
   [/^created from a message$/, "created_from_message", []],
   [/^imported from "(.*)"$/, "imported", ["source"]],
+  [/^synced from the repository at (\S+)$/, "repository", ["commit"]],
 ];
+
+/** The note of a version the wiki's repository brought (ADR 0186): a note that changed there, at that commit. */
+export const wikiRepositoryNote = (commit: string) => `synced from the repository at ${commit.slice(0, 7)}`;
+
+/**
+ * Names a page also answers to (a note's frontmatter `aliases`), added to the ones it has: `[[Alias]]` links reach
+ * it, the ones written before it had the name too.
+ */
+export async function addWikiPageAliases(db: Database, orgId: string, pageId: string, names: string[]) {
+  const wanted = [...new Set(names.map((n) => wikiSlug(n)).filter(Boolean))];
+  if (wanted.length === 0) return;
+  await db.transaction(async (tx) => {
+    const [page] = await tx
+      .select()
+      .from(wikiPages)
+      .where(and(eq(wikiPages.id, pageId), eq(wikiPages.orgId, orgId)));
+    if (!page) return;
+    const aliases = [...new Set([...page.aliases, ...wanted])].filter((a) => a !== page.slug).slice(-20);
+    if (aliases.length === page.aliases.length && aliases.every((a) => page.aliases.includes(a))) return;
+    const [saved] = await tx.update(wikiPages).set({ aliases }).where(eq(wikiPages.id, page.id)).returning();
+    if (saved) await claimLinks(tx, saved);
+  });
+}
 
 /** `noteCode`/`noteParams` of a version note the server wrote; nothing for a person's own note. */
 export function wikiNoteDetail(note: string): { noteCode: string; noteParams: Record<string, string> } | null {
@@ -1755,6 +1800,7 @@ async function pagesToChange(
 /** One event for many pages: every member's app reads the wiki again (a page's title may be for some only). */
 async function announceMany(deps: WikiDeps, orgId: string, action: "deleted" | "restored" | "audience") {
   caches.contextPresence.delete(`${orgId}:wiki`);
+  await followRepository(deps, orgId);
   await publishOrgEvent(deps.pubsub, {
     type: "org.broadcast",
     orgId,
@@ -2282,6 +2328,8 @@ export async function setWikiFolderAudience(
     return count;
   });
   caches.contextPresence.delete(`${orgId}:wiki`);
+  // Pages that became limited leave the repository; ones that opened go back to it.
+  await followRepository(deps, orgId);
   // No page in it: this reaches every member, and the folder's name may be for some of them only.
   await publishOrgEvent(deps.pubsub, {
     type: "org.broadcast",

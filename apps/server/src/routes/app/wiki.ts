@@ -1,13 +1,16 @@
 import { connectorOAuthApps } from "@agenteschat/config";
 import {
   appendSourceToWiki,
+  connectWikiRepository,
   createPageFromSource,
   createWikiPage,
   deleteWikiPage,
   deleteWikiPages,
   diffWikiVersions,
+  disconnectWikiRepository,
   getWikiFolderAudience,
   getWikiPage,
+  getWikiRepository,
   getWikiVersion,
   importWikiPages,
   listWikiPages,
@@ -21,6 +24,7 @@ import {
   resolveWikiTargets,
   restoreWikiPage,
   restoreWikiPages,
+  resumeWikiRepository,
   setWikiFolderAudience,
   setWikiPageAgentContext,
   setWikiPageAudience,
@@ -36,12 +40,13 @@ import {
   WIKI_TRASH_DAYS,
   type WikiActor,
   type WikiDeps,
+  type WikiRepositoryDeps,
   wikiGraph,
   wikiTree,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { errorResponse } from "../../http/errors";
-import { githubAppOf } from "../github-app";
+import { githubAccess, githubAppOf } from "../github-app";
 import {
   type AppDeps,
   body,
@@ -169,6 +174,17 @@ const Page = Summary.extend({
       })
       .nullable(),
   }).openapi({ description: "Agents that used the page in the last 7 days (in their context or opened)." }),
+  repository: z
+    .object({
+      state: z.enum(["synced", "pending", "local", "held"]).openapi({
+        description:
+          "`synced`: the note holds this version; `pending`: still to be written there; `local`: limited to some people, never written there; `held`: the note couldn't be read here, so the page isn't written over it.",
+      }),
+      stopped: z.boolean().openapi({ description: "The sync stopped until someone starts it again." }),
+      url: z.string().nullable().openapi({ description: "The note's address, once it has one." }),
+    })
+    .nullable()
+    .openapi({ description: "Its note in the repository the wiki is kept in (ADR 0186); null when there is none." }),
 }).openapi("WikiPage");
 const Version = z
   .object({
@@ -938,6 +954,117 @@ export function wikiRoutes(deps: AppDeps) {
       const { orgId, slug } = c.req.valid("param");
       const { from, to } = c.req.valid("query");
       return c.json(await diffWikiVersions(db, person(c.get("user").id), orgId, slug, from, to), 200);
+    },
+  );
+
+  // The repository the wiki is kept in (ADR 0186): the notes of one branch's folder are the pages, each side following
+  // the other and the repository the source (a save here is a commit there, a push there a new version here).
+  // Reached through the GitHub App's installation on it for this workspace; an administrator connects it.
+  const repository = (): WikiRepositoryDeps => ({
+    db,
+    pubsub: adapters.pubsub,
+    github: { app: () => githubAppOf(deps), http: githubAccess(deps).http },
+  });
+  const Repository = z
+    .object({
+      provider: z.string().openapi({ description: "Where it is hosted: `github`." }),
+      owner: z.string(),
+      repo: z.string(),
+      branch: z.string(),
+      path: z.string().openapi({ description: "The folder the notes are under; empty = the repository's root." }),
+      url: z.string(),
+      status: z.enum(["active", "error"]),
+      errorCode: z.string().nullable().openapi({
+        description:
+          "Why it stopped (`error`), or, while `active`, a trouble the sync gets past by itself (`wiki.repo_unreachable`).",
+      }),
+      syncing: z.boolean(),
+      syncedAt: z.string().nullable(),
+      notes: z.number().openapi({ description: "Notes that are pages." }),
+      pending: z.number().openapi({ description: "Pages whose last version is still to be written there." }),
+      held: z
+        .array(z.object({ path: z.string(), code: z.string() }))
+        .openapi({ description: "Notes that couldn't become pages, with why (`wiki.body_too_long`…)." }),
+    })
+    .openapi("WikiRepository");
+  const RepositoryState = z.object({ repository: Repository.nullable() }).openapi("WikiRepositoryState");
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/wiki/repository",
+      tags,
+      security,
+      summary: "The repository the wiki is kept in, and how its sync is going (null: none)",
+      request: { params: OrgParams },
+      responses: { 200: json(RepositoryState), ...errors },
+    }),
+    async (c) => c.json({ repository: await getWikiRepository(db, c.get("user").id, c.req.valid("param").orgId) }, 200),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/wiki/repository",
+      tags,
+      security,
+      summary: "Keep the wiki in a GitHub repository (replaces the one before; the pages stay)",
+      description:
+        "Administrators. `wiki.repo_invalid`, `wiki.repo_no_app`, `wiki.repo_not_installed`, `wiki.repo_refused`, `wiki.repo_branch_missing`, `wiki.repo_empty`, `wiki.repo_path_invalid`, `github.unreachable`.",
+      request: {
+        params: OrgParams,
+        body: body(
+          z.object({
+            repository: z.string().min(1).max(300).openapi({ description: "`owner/name`, or its address on GitHub." }),
+            branch: z.string().max(250).optional().openapi({ description: "Left out: the default branch." }),
+            path: z.string().max(300).optional().openapi({ description: "The folder; left out: the root." }),
+          }),
+        ),
+      },
+      responses: { 200: json(Repository), ...errors },
+    }),
+    async (c) => {
+      const view = await connectWikiRepository(
+        repository(),
+        c.get("user").id,
+        c.req.valid("param").orgId,
+        c.req.valid("json"),
+      );
+      deps.wakeWorkers?.();
+      return c.json(view, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/wiki/repository/sync",
+      tags,
+      security,
+      summary: "Sync with the repository now, and start a stopped sync again (administrators)",
+      request: { params: OrgParams },
+      responses: { 200: json(RepositoryState), ...errors },
+    }),
+    async (c) => {
+      const view = await resumeWikiRepository(repository(), c.get("user").id, c.req.valid("param").orgId);
+      deps.wakeWorkers?.();
+      return c.json({ repository: view }, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/wiki/repository",
+      tags,
+      security,
+      summary: "Stop keeping the wiki in its repository; pages and notes stay as they are (administrators)",
+      request: { params: OrgParams },
+      responses: { 204: noContent[204], ...errors },
+    }),
+    async (c) => {
+      await disconnectWikiRepository(repository(), c.get("user").id, c.req.valid("param").orgId);
+      return c.body(null, 204);
     },
   );
 

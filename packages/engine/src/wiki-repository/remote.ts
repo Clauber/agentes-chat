@@ -1,0 +1,72 @@
+/**
+ * Where a wiki's repository lives, as its sync sees it (ADR 0186): a branch's head, the notes under a folder with the
+ * git blob each holds, a note's text, and one commit that writes and removes notes. GitHub is the host today
+ * (`github.ts`, through the server's GitHub App); another host is one more `NoteRemote`, the sync unchanged.
+ */
+export interface NoteRemote {
+  /** The commit a branch is at: `missing` when there is no such branch, `empty` when the repository has no commit. */
+  head(branch: string): Promise<string | "missing" | "empty">;
+  /** The Markdown notes of a commit under `folder` (hidden folders left out), by their path relative to it. */
+  list(commit: string, folder: string): Promise<RemoteNotes>;
+  /** A note's text by its blob. */
+  read(blob: string): Promise<string>;
+  /**
+   * One commit on top of `parent` that writes and removes those notes, and the branch moved to it. `moved` when the
+   * branch is no longer at `parent` (someone pushed meanwhile): nothing changed, and the sync starts over.
+   */
+  commit(input: RemoteCommit): Promise<string | "moved">;
+}
+
+export interface RemoteNote {
+  /** The git blob id of its content: equal content, equal id, on both sides. */
+  sha: string;
+  /** Bytes; 0 when unknown. */
+  size: number;
+}
+
+export interface RemoteNotes {
+  files: Map<string, RemoteNote>;
+}
+
+export interface RemoteCommit {
+  branch: string;
+  /** The commit the branch is at. */
+  parent: string;
+  message: string;
+  /** Paths from the repository's root. A removed path is one the parent has. */
+  writes: { path: string; text: string }[];
+  removes: string[];
+}
+
+/** The host said no for a reason a retry won't change: the sync stops with `code` until a person looks. */
+export class RepoRefusal extends Error {
+  constructor(readonly code: string) {
+    super(code);
+    this.name = "RepoRefusal";
+  }
+}
+
+/** A note larger than this is never read: a page holds 200,000 characters. */
+export const NOTE_MAX_BYTES = 1024 * 1024;
+/** A folder that lists more notes than this isn't a wiki we keep. */
+export const NOTES_MAX = 10_000;
+
+/** The repository's page, and a note's, for people (`provider` names the host). */
+export interface RepositoryPlace {
+  provider: string;
+  owner: string;
+  repo: string;
+  branch: string;
+  /** The folder the notes are under; empty = the root. */
+  path: string;
+}
+
+const segments = (path: string) => path.split("/").filter(Boolean).map(encodeURIComponent).join("/");
+
+/** Where a person opens the repository. */
+export const repositoryUrl = (place: RepositoryPlace) =>
+  `https://github.com/${encodeURIComponent(place.owner)}/${encodeURIComponent(place.repo)}`;
+
+/** Where a person opens one note (`path`: relative to the repository's folder). */
+export const noteUrl = (place: RepositoryPlace, path: string) =>
+  `${repositoryUrl(place)}/blob/${segments(place.branch)}/${segments(place.path ? `${place.path}/${path}` : path)}`;
