@@ -203,6 +203,7 @@ import type {
   WikiPageInput,
   WikiRepository,
   WikiRepositoryInput,
+  WikiRepositoryWriting,
   WikiUpdateInput,
   WorkspaceActionCard,
   WorkspaceActionCardView,
@@ -5438,6 +5439,11 @@ export function useWikiRepositoryActions(orgId: string) {
     sync: useMutation({
       meta: { silent: true },
       mutationFn: () => api.wiki.syncRepository(orgId),
+      onSuccess: done,
+    }),
+    writing: useMutation({
+      meta: { silent: true },
+      mutationFn: (input: WikiRepositoryWriting) => api.wiki.setRepositoryWriting(orgId, input),
       onSuccess: done,
     }),
     disconnect: useMutation({

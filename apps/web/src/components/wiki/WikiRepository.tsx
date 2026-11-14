@@ -1,4 +1,4 @@
-import type { WikiPage, WikiRepository } from "@agenteschat/client";
+import type { WikiCommitMode, WikiPage, WikiRepository } from "@agenteschat/client";
 import { useGitHubRepos, useWikiRepository, useWikiRepositoryActions } from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
 import { relativeTime } from "@agenteschat/client/lib/format";
@@ -13,6 +13,7 @@ import {
   Field,
   Input,
   MenuItem,
+  OptionList,
   SearchSelect,
   SettingNote,
 } from "@agenteschat/ui";
@@ -61,12 +62,13 @@ const heldText = (t: TFunction, code: string) => t(HELD[code as keyof typeof HEL
 /** It keeps going by itself, but GitHub didn't answer the last time. */
 const retrying = (r: WikiRepository) => r.status === "active" && r.errorCode !== null;
 
-/** The repository's state in one line: up to date since when, updating, retrying, or stopped. */
+/** The repository's state in one line: up to date since when (read-only, or not), updating, retrying, or stopped. */
 function stateLine(t: TFunction, locale: string, r: WikiRepository) {
   if (r.status === "error") return t("wiki.repo.state.stopped", { repo: nameOf(r) });
   if (retrying(r)) return t("wiki.repo.state.retrying", { repo: nameOf(r) });
   if (r.syncing || !r.syncedAt) return t("wiki.repo.state.syncing", { repo: nameOf(r) });
-  return t("wiki.repo.state.upToDate", { repo: nameOf(r), when: relativeTime(t, locale, r.syncedAt) });
+  const when = relativeTime(t, locale, r.syncedAt);
+  return t(r.writable ? "wiki.repo.state.upToDate" : "wiki.repo.state.readOnly", { repo: nameOf(r), when });
 }
 
 /**
@@ -117,6 +119,22 @@ export function WikiRepositoryMark({ page }: { page: WikiPage }) {
   const { t } = useTranslation();
   const r = page.repository;
   if (!r) return null;
+  if ((r.state === "review" || r.state === "declined") && r.url) {
+    const declined = r.state === "declined";
+    return (
+      <a
+        className="wiki-repo-mark"
+        data-warn={declined || undefined}
+        href={r.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={t(declined ? "wiki.repo.page.declinedHint" : "wiki.repo.page.reviewHint")}
+      >
+        <GitHubMark size={14} />
+        {t(declined ? "wiki.repo.page.declined" : "wiki.repo.page.review")}
+      </a>
+    );
+  }
   if (r.state === "synced" && r.url) {
     return (
       <a
@@ -131,9 +149,11 @@ export function WikiRepositoryMark({ page }: { page: WikiPage }) {
       </a>
     );
   }
+  // Only here because the repository is followed read-only, or because the page is limited to some people.
+  const localHint = r.readOnly && !page.audience ? t("wiki.repo.page.readOnlyHint") : t("wiki.repo.page.localHint");
   const word =
     r.state === "local"
-      ? { text: t("wiki.repo.page.local"), hint: t("wiki.repo.page.localHint") }
+      ? { text: t("wiki.repo.page.local"), hint: localHint }
       : r.state === "held"
         ? { text: t("wiki.repo.page.held"), hint: t("wiki.repo.page.heldHint") }
         : r.stopped
@@ -172,19 +192,89 @@ export function WikiRepositoryDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
+/** The pull request's branch, unless someone names another. */
+const PR_BRANCH = "agentes/wiki";
+
+/**
+ * How the wiki writes in its repository: straight on the branch, through a pull request from a branch of its own
+ * (named under it), or never.
+ */
+function WritingChoice({
+  mode,
+  onMode,
+  prBranch,
+  onPrBranch,
+  disabled,
+}: {
+  mode: WikiCommitMode;
+  onMode: (mode: WikiCommitMode) => void;
+  prBranch: string;
+  onPrBranch: (branch: string) => void;
+  disabled?: boolean;
+}) {
+  const { t } = useTranslation();
+  return (
+    <Field label={t("wiki.repo.writing.label")} group>
+      <OptionList
+        value={mode}
+        onValueChange={onMode}
+        aria-label={t("wiki.repo.writing.label")}
+        disabled={disabled}
+        attached
+        options={[
+          { value: "direct", title: t("wiki.repo.writing.direct"), description: t("wiki.repo.writing.directDesc") },
+          {
+            value: "pull_request",
+            title: t("wiki.repo.writing.pullRequest"),
+            description: t("wiki.repo.writing.pullRequestDesc"),
+            children: (
+              <Field
+                label={t("wiki.repo.writing.branch")}
+                id="wiki-repo-pr-branch"
+                example={t("wiki.repo.writing.branchHelp")}
+              >
+                <Input
+                  id="wiki-repo-pr-branch"
+                  value={prBranch}
+                  onChange={(e) => onPrBranch(e.target.value)}
+                  placeholder={PR_BRANCH}
+                  autoComplete="off"
+                  spellCheck={false}
+                  disabled={disabled}
+                />
+              </Field>
+            ),
+          },
+          { value: "none", title: t("wiki.repo.writing.none"), description: t("wiki.repo.writing.noneDesc") },
+        ]}
+      />
+    </Field>
+  );
+}
+
+/** The picker's last option: a repository named by its address (a public one, or one the app reaches). */
+const BY_ADDRESS = ":address";
+
 function Connect({ onClose }: { onClose: () => void }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const repos = useGitHubRepos(org.id);
   const { connect } = useWikiRepositoryActions(org.id);
   const [chosen, setChosen] = useState<string>();
+  const [address, setAddress] = useState("");
   const [path, setPath] = useState("");
   const [branch, setBranch] = useState("");
+  const [mode, setMode] = useState<WikiCommitMode>("direct");
+  const [prBranch, setPrBranch] = useState(PR_BRANCH);
   const [error, setError] = useState<string | null>(null);
-  const options = (repos.data?.accounts ?? []).flatMap((account) =>
+  const listed = (repos.data?.accounts ?? []).flatMap((account) =>
     account.repositories.map((r) => ({ value: r.fullName, label: r.fullName, group: account.login })),
   );
-  const none = !repos.isLoading && options.length === 0;
+  // The app reaches none: the address is the only way in, for a public repository.
+  const none = !repos.isLoading && listed.length === 0;
+  const options = [...listed, { value: BY_ADDRESS, label: t("wiki.repo.connect.byAddress") }];
+  const byAddress = none || chosen === BY_ADDRESS;
+  const repository = byAddress ? address.trim() : chosen;
   return (
     <>
       <DialogBody>
@@ -193,48 +283,71 @@ function Connect({ onClose }: { onClose: () => void }) {
           className="wiki-repo-form"
           onSubmit={(e) => {
             e.preventDefault();
-            if (!chosen) return;
+            if (!repository) return;
             setError(null);
             connect.mutate(
               {
-                repository: chosen,
+                repository,
                 ...(path.trim() ? { path: path.trim() } : {}),
                 ...(branch.trim() ? { branch: branch.trim() } : {}),
+                commitMode: mode,
+                ...(mode === "pull_request" ? { prBranch: prBranch.trim() || PR_BRANCH } : {}),
               },
               { onError: (e) => setError(errorText(t, e, i18n.language)) },
             );
           }}
         >
-          <Field
-            label={t("wiki.repo.connect.repository")}
-            id="wiki-repo-name"
-            example={none ? undefined : t("wiki.repo.connect.repositoryHelp")}
-            error={
-              none ? (
-                <>
-                  {t("wiki.repo.connect.noRepositories")}{" "}
-                  <Link to="/org/$orgId/settings/$section" params={{ orgId: org.id, section: "connectors" }}>
-                    {t("wiki.repo.connect.openConnectors")}
-                  </Link>
-                </>
-              ) : undefined
-            }
-          >
-            <SearchSelect
+          {!none && (
+            <Field
+              label={t("wiki.repo.connect.repository")}
               id="wiki-repo-name"
-              value={chosen}
-              onValueChange={setChosen}
-              options={options}
-              disabled={none}
-              placeholder={t("wiki.repo.connect.repositoryPlaceholder")}
-              labels={{
-                search: t("wiki.repo.connect.search"),
-                searchPlaceholder: t("wiki.repo.connect.search"),
-                noResults: t("wiki.repo.connect.noResults"),
-                list: t("wiki.repo.connect.repository"),
-              }}
-            />
-          </Field>
+              example={t("wiki.repo.connect.repositoryHelp")}
+            >
+              <SearchSelect
+                id="wiki-repo-name"
+                value={chosen}
+                onValueChange={setChosen}
+                options={options}
+                disabled={repos.isLoading}
+                placeholder={t("wiki.repo.connect.repositoryPlaceholder")}
+                labels={{
+                  search: t("wiki.repo.connect.search"),
+                  searchPlaceholder: t("wiki.repo.connect.search"),
+                  noResults: t("wiki.repo.connect.noResults"),
+                  list: t("wiki.repo.connect.repository"),
+                }}
+              />
+            </Field>
+          )}
+          {byAddress && (
+            <Field
+              label={none ? t("wiki.repo.connect.repository") : t("wiki.repo.connect.address")}
+              id="wiki-repo-address"
+              example={
+                <>
+                  {t("wiki.repo.connect.addressHelp")}
+                  {none && (
+                    <>
+                      {" "}
+                      <Link to="/org/$orgId/settings/$section" params={{ orgId: org.id, section: "connectors" }}>
+                        {t("wiki.repo.connect.openConnectors")}
+                      </Link>
+                    </>
+                  )}
+                </>
+              }
+            >
+              <Input
+                id="wiki-repo-address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder={t("wiki.repo.connect.addressPlaceholder")}
+                inputMode="url"
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </Field>
+          )}
           <Field label={t("wiki.repo.connect.folder")} id="wiki-repo-path" example={t("wiki.repo.connect.folderHelp")}>
             <Input
               id="wiki-repo-path"
@@ -255,6 +368,7 @@ function Connect({ onClose }: { onClose: () => void }) {
               placeholder={t("wiki.repo.connect.branchPlaceholder")}
             />
           </Field>
+          <WritingChoice mode={mode} onMode={setMode} prBranch={prBranch} onPrBranch={setPrBranch} />
           <div>
             <SettingNote icon="swap">{t("wiki.repo.connect.noteBoth")}</SettingNote>
             <SettingNote icon="clock">{t("wiki.repo.connect.noteConflict")}</SettingNote>
@@ -269,7 +383,7 @@ function Connect({ onClose }: { onClose: () => void }) {
           type="submit"
           form="wiki-repo-connect"
           variant="primary"
-          disabled={!chosen || connect.isPending}
+          disabled={!repository || connect.isPending}
           loading={connect.isPending}
         >
           {t("wiki.repo.connect.submit")}
@@ -283,16 +397,24 @@ function Manage({ repository, onClose }: { repository: WikiRepository; onClose: 
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const toast = useToast();
-  const { sync, disconnect } = useWikiRepositoryActions(org.id);
+  const { sync, disconnect, writing } = useWikiRepositoryActions(org.id);
   const admin = can(org, "administrator");
   const stopped = repository.status === "error";
   const fail = (e: unknown) => toast.show(errorText(t, e, i18n.language), "error");
+  const [mode, setMode] = useState<WikiCommitMode>(repository.commitMode);
+  const [prBranch, setPrBranch] = useState(repository.prBranch);
+  const changed =
+    mode !== repository.commitMode || (mode === "pull_request" && prBranch.trim() !== repository.prBranch);
+  const pull = repository.pullRequest;
   return (
     <>
       <DialogBody>
         <div className="wiki-repo-form">
           {stopped && <Alert>{whyText(t, repository)}</Alert>}
           {retrying(repository) && <Alert tone="neutral">{t("wiki.repo.manage.retrying")}</Alert>}
+          {!stopped && !repository.writable && (
+            <Alert tone="neutral">{t("wiki.repo.manage.readOnly", { repo: nameOf(repository) })}</Alert>
+          )}
           <FactStrip
             facts={[
               {
@@ -320,6 +442,40 @@ function Manage({ repository, onClose }: { repository: WikiRepository; onClose: 
               },
             ]}
           />
+          {pull && (
+            <SettingNote icon="link">
+              <a href={pull.url} target="_blank" rel="noopener noreferrer">
+                {t(pull.state === "declined" ? "wiki.repo.manage.prDeclined" : "wiki.repo.manage.prOpen", {
+                  number: pull.number,
+                })}
+              </a>
+            </SettingNote>
+          )}
+          {admin ? (
+            <div className="wiki-repo-writing">
+              <WritingChoice mode={mode} onMode={setMode} prBranch={prBranch} onPrBranch={setPrBranch} />
+              {changed && (
+                <Button
+                  size="sm"
+                  variant="primary"
+                  disabled={writing.isPending}
+                  loading={writing.isPending}
+                  onClick={() =>
+                    writing.mutate(
+                      { commitMode: mode, ...(mode === "pull_request" ? { prBranch: prBranch.trim() } : {}) },
+                      { onSuccess: () => toast.show(t("common.saved")), onError: fail },
+                    )
+                  }
+                >
+                  {t("common.save")}
+                </Button>
+              )}
+            </div>
+          ) : (
+            <SettingNote icon="info">
+              {t(`wiki.repo.writing.now.${repository.commitMode}`, { branch: repository.branch })}
+            </SettingNote>
+          )}
           {repository.pending > 0 && (stopped || !repository.syncing) && (
             <SettingNote icon="clock">{t("wiki.repo.manage.pending", { count: repository.pending })}</SettingNote>
           )}

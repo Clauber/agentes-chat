@@ -1,12 +1,13 @@
 # 0186. The wiki kept in a git repository, the repository being the source
 
-- Status: Accepted (built: GitHub, through the server's GitHub App). An option per workspace, off until an
-  administrator connects a repository
+- Status: Accepted (built: GitHub, through the server's GitHub App, and public repositories without it). An option
+  per workspace, off until an administrator connects a repository
 - Date: 2026-11-14
 - Amends: ADR 0023 (the wiki's pages lived in Postgres alone). Builds on ADR 0156 (the GitHub App is the workspace's
   identity on GitHub)
 - Code: `packages/engine/src/wiki-repository/` (`sync.ts` the sync, `remote.ts` the host as the sync sees it,
-  `github.ts` GitHub's git data API, `file.ts` the note format, `queue.ts` the jobs and the `push` webhook, `state.ts`
+  `github.ts` GitHub's git data API and pull requests, `public.ts` a public repository read without credentials,
+  `file.ts` the note format, `queue.ts` the jobs and the `push` webhook, `state.ts`
   each page's note, `index.ts` connect, start again and disconnect); hooks in `wiki.ts` (`followRepository`,
   `wikiRepositoryNote`, `addWikiPageAliases`, `WikiPageView.repository`); routes `apps/server/src/routes/app/wiki.ts`
   (`/organizations/{orgId}/wiki/repository`), the webhook in `apps/server/src/routes/github-app.ts`, the periodic look
@@ -23,10 +24,11 @@ never reaches the repository. Teams don't want a second copy of what they know t
 ## Decision
 
 1. **An option per workspace.** An administrator keeps the wiki in one repository: one branch (the default one unless
-   another is named) and one folder (the whole repository unless one is named). Connecting another repository,
-   branch or folder replaces the one before; disconnecting leaves the pages here and the notes there as they are.
-   Administrators only: connecting writes every page that isn't limited to some people into a place everyone with
-   access to the repository reads.
+   another is named) and one folder (the whole repository unless one is named), picked among the repositories the
+   GitHub App reaches or named by an address (`owner/name`, or a link to the repository or to a folder in it, which
+   gives the branch and the folder). Connecting another repository, branch or folder replaces the one before;
+   disconnecting leaves the pages here and the notes there as they are. Administrators only: connecting writes every
+   page that isn't limited to some people into a place everyone with access to the repository reads.
 2. **The repository is the source.** Each side follows the other. When both changed a note since they last agreed,
    the repository's text is the page's new version and the one written here is the version before it, in the page's
    history: nothing is lost, and the repository is never written over. A locked page follows the repository too: the
@@ -64,12 +66,35 @@ never reaches the repository. Teams don't want a second copy of what they know t
    another one starts it again. Commits are the GitHub App's; their message names each file and who last wrote it.
 10. **Each page says where its note stands**, in its line of facts: on GitHub (a link to the file), going to GitHub,
     not on GitHub yet (stopped), only here (limited), or not updated on GitHub (held).
-11. **One host today, more later.** The sync talks to the host only through `NoteRemote` (a branch's head, the notes
+11. **How the wiki writes there, the administrator's choice** (`commitMode`):
+    - `direct` (the default): one commit on the branch per sync, as above.
+    - `pull_request`: the same commit on a branch of the wiki's own (`prBranch`, `agentes/wiki` unless another is
+      named, never the followed branch), rebuilt on the followed branch's head at every change and force-moved there,
+      and one pull request from it into the followed branch, opened or brought up to date (title and body list the
+      notes and who wrote them). It never conflicts and always holds all the wiki has to say; an unchanged one isn't
+      sent again. Nothing counts as agreed until it is merged: the merged notes then come back from the followed branch
+      as any push does, each to the page it came from (`prFiles`: path → page, version, name and blob), so a page
+      created, renamed or moved here never comes back as a second page. A pull request closed without merging is
+      `declined`: the same changes aren't proposed again until they change. A pull request with nothing left to
+      propose is closed, as is one left open when the wiki stops proposing. A protected branch is the reason to use
+      it: the wiki's branch takes the commits, a person merges them.
+    - `none`: the wiki only follows the repository.
+    Each page says where it stands: in the pull request (a link to it), or declined there.
+12. **A public repository without the app is followed read-only.** When the GitHub App isn't installed on the
+    repository (or isn't set up on the server), a public repository is still followed: its branch's head through
+    git's own `ls-refs` over HTTPS (one small request, outside the REST API, whose unauthenticated calls share one
+    limit per server address) and a commit's notes through its archive, as the wiki's import by link reads one. Nothing
+    is written there; what changes here stays here (each page says so) until its note changes there. No webhook tells
+    of its pushes, so it is looked at every minute. Installing the app on it, allowed to write, makes the wiki write
+    there too at the next sync; an app that may only read keeps it read-only. A repository that is neither public nor
+    reached by the app is refused with why (`wiki.repo_not_installed`, or `wiki.repo_no_app` on a server without the
+    app).
+13. **One host today, more later.** The sync talks to the host only through `NoteRemote` (a branch's head, the notes
     of a commit with their git blobs, a note's text, one commit); `wiki_repositories.provider` says which host.
     GitHub's is the git data API with the app's installation token, so the server runs no git and keeps no clone: the
     self-host still needs only Postgres.
-12. **What is remembered.** `wiki_repositories` (one per workspace: the repository, the commit both sides agreed on,
-    state) and `wiki_repository_files` (per note: the git blob and the page's version both sides last agreed on, the
+14. **What is remembered.** `wiki_repositories` (one per workspace: the repository, the commit both sides agreed on,
+    state, how it writes, the wiki's pull request) and `wiki_repository_files` (per note: the git blob and the page's version both sides last agreed on, the
     title and folder that note was written under, its frontmatter): a later change on either side is told apart by
     comparing with them.
 
@@ -83,4 +108,8 @@ never reaches the repository. Teams don't want a second copy of what they know t
   the trash and a new one takes the text, without the old one's history.
 - A first sync of a large repository or wiki takes several jobs; the dialog shows it updating meanwhile.
 - A rule on the branch that refuses the app's commits (protection, required reviews, signed commits) stops the sync
-  with `wiki.repo_protected`: the wiki then needs a branch the app may push to.
+  with `wiki.repo_protected`, until the wiki writes through a pull request or the app may push to it.
+- The wiki's pull request branch is the wiki's: what someone pushes to it is replaced at the next change. Review
+  happens in the pull request, edits in the wiki or the followed branch.
+- A page limited to some people after its note went there leaves the repository only when the pull request that
+  removes it is merged, when the wiki writes through one.

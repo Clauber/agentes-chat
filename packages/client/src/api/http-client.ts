@@ -259,6 +259,7 @@ import type {
   WikiPageSummary,
   WikiRepository,
   WikiRepositoryInput,
+  WikiRepositoryWriting,
   WikiTopRead,
   WikiVersion,
   WorkingRun,
@@ -1850,6 +1851,13 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         (await request<{ repository: WikiRepository | null }>(`${org(orgId)}/wiki/repository`)).repository,
       connectRepository: (orgId, input: WikiRepositoryInput) =>
         request<WikiRepository>(`${org(orgId)}/wiki/repository`, { method: "PUT", json: input }),
+      setRepositoryWriting: async (orgId, input: WikiRepositoryWriting) =>
+        (
+          await request<{ repository: WikiRepository | null }>(`${org(orgId)}/wiki/repository`, {
+            method: "PATCH",
+            json: input,
+          })
+        ).repository,
       syncRepository: async (orgId) =>
         (
           await request<{ repository: WikiRepository | null }>(`${org(orgId)}/wiki/repository/sync`, {

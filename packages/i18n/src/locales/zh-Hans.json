@@ -10884,7 +10884,8 @@
         "upToDate": "{{repo}} · 已更新（{{when}}）",
         "syncing": "{{repo}} · 正在更新…",
         "retrying": "{{repo}} · GitHub 没有响应，正在重试",
-        "stopped": "已停止与 {{repo}} 同步更新"
+        "stopped": "已停止与 {{repo}} 同步更新",
+        "readOnly": "{{repo}} · 只读 · 已更新（{{when}}）"
       },
       "connect": {
         "title": "把 Wiki 保存在 GitHub",
@@ -10892,8 +10893,11 @@
         "repository": "仓库",
         "repositoryPlaceholder": "选择仓库",
         "repositoryHelp": "只显示安装了 GitHub 应用的仓库。",
-        "noRepositories": "GitHub 应用还无法访问任何仓库。",
-        "openConnectors": "在连接器中安装",
+        "byAddress": "其他仓库，通过地址",
+        "address": "仓库地址",
+        "addressPlaceholder": "https://github.com/所有者/名称",
+        "addressHelp": "公开仓库无需应用也能使用：Wiki 会跟随它，这里的改动会留在这里。",
+        "openConnectors": "如果也要写回那边，或者使用私有仓库，请在连接器中安装 GitHub 应用。",
         "search": "搜索仓库",
         "noResults": "没有这个名称的仓库。",
         "folder": "文件夹",
@@ -10916,12 +10920,31 @@
         "pending_other": "还有 {{count}} 个页面要同步到 GitHub。",
         "held_other": "{{count}} 条笔记没有成为页面",
         "retrying": "上次 GitHub 没有响应。Wiki 会自动重试。",
+        "prOpen": "GitHub 上的拉取请求 #{{number}} 已打开",
+        "prDeclined": "拉取请求 #{{number}} 未合并就被关闭了：这些改动会留在这里，直到它们再次改变。",
+        "readOnly": "{{repo}} 没有安装 GitHub 应用，或者应用只能读取它：Wiki 会跟随它，这里的改动会留在这里。在该仓库上安装有写入权限的应用，这里的改动也会同步过去。",
         "noteDisconnect": "断开连接后，页面留在这里，笔记留在那边，保持原样。",
         "noteStopped": "在此期间，这里写的内容会留在这里，仓库恢复后再同步过去。",
         "disconnect": "断开连接",
         "open": "在 GitHub 上打开",
         "syncNow": "立即更新",
         "retry": "重试"
+      },
+      "writing": {
+        "label": "Wiki 如何写入那边",
+        "direct": "直接写入分支",
+        "directDesc": "每次改动都是 Wiki 所跟随分支上的一个提交。",
+        "pullRequest": "通过拉取请求",
+        "pullRequestDesc": "改动进入 Wiki 自己的分支，形成一个拉取请求，由有人在 GitHub 上接受。",
+        "none": "不写入",
+        "noneDesc": "Wiki 只跟随仓库：这里的改动会留在这里。",
+        "branch": "拉取请求的分支",
+        "branchHelp": "Wiki 每次改动都会重建这个分支：请编辑 Wiki，不要编辑这个分支。",
+        "now": {
+          "direct": "Wiki 直接提交到 {{branch}}。",
+          "pull_request": "Wiki 通过一个合并到 {{branch}} 的拉取请求提出改动。",
+          "none": "Wiki 只跟随仓库：这里的改动会留在这里。"
+        }
       },
       "held": {
         "tooLong": "超过了页面的长度上限",
@@ -10930,16 +10953,16 @@
         "other": "无法成为页面"
       },
       "why": {
-        "not_installed": "GitHub 应用已无法访问 {{repo}}。管理员在 GitHub 上把这个仓库添加到应用后，Wiki 会重新同步。",
-        "refused": "GitHub 应用无权写入 {{repo}}。管理员在 GitHub 上接受应用的权限后，Wiki 会重新同步。",
+        "not_installed": "GitHub 应用已无法访问 {{repo}}，而且它不是公开的。管理员在 GitHub 上把这个仓库添加到应用后，Wiki 会重新同步。",
+        "refused": "GitHub 应用无权读取 {{repo}}。管理员在 GitHub 上接受应用的权限后，Wiki 会重新同步。",
         "branch_missing": "存放 Wiki 的分支已从 {{repo}} 中消失。请重新连接仓库。",
         "empty": "{{repo}} 还没有任何文件。添加第一个文件后再试一次。",
-        "missing": "{{repo}} 已不存在，或者 GitHub 应用已看不到它。",
+        "missing": "{{repo}} 已不存在，或者已无法读取。",
         "too_large": "{{repo}} 的笔记太多，无法同步。请改为连接它的某个文件夹。",
         "owner_gone": "连接 {{repo}} 的人已不再是这里的管理员。请管理员在这里重新开始。",
         "folder_missing": "Wiki 的文件夹已从 {{repo}} 中消失，或者是空的。这里没有删除任何内容：请用正确的文件夹重新连接仓库。",
-        "no_app": "原本可以访问 {{repo}} 的 GitHub 应用已不存在。管理员在连接器中重新设置后，Wiki 会重新同步。",
-        "protected": "{{repo}} 不接受直接提交到这个分支（它受保护）。请允许 GitHub 应用推送到该分支，或连接另一个分支。",
+        "no_app": "{{repo}} 不是公开的，也没有设置可以访问它的 GitHub 应用。管理员在连接器中设置后，Wiki 会重新同步。",
+        "protected": "{{repo}} 不接受直接提交到这个分支（它受保护）。请选择“通过拉取请求”，或允许 GitHub 应用推送到该分支。",
         "other": "Wiki 已停止同步 {{repo}}。请重试。"
       },
       "page": {
@@ -10951,8 +10974,13 @@
         "notSentHint": "Wiki 已停止与 GitHub 同步更新。恢复后这个版本会同步过去。",
         "local": "仅在这里",
         "localHint": "仅部分人可见的页面永远不会同步到 GitHub。",
+        "readOnlyHint": "这个仓库以只读方式跟随：这个版本留在这里，那边笔记的下一次改动会替换它。",
         "held": "GitHub 上未更新",
-        "heldHint": "无法在这里读取它在 GitHub 上的笔记，所以这个页面不会覆盖它。"
+        "heldHint": "无法在这里读取它在 GitHub 上的笔记，所以这个页面不会覆盖它。",
+        "review": "在拉取请求中",
+        "reviewHint": "这个版本在 Wiki 的拉取请求中等待，直到有人在 GitHub 上接受它。",
+        "declined": "已在 GitHub 上被拒绝",
+        "declinedHint": "包含这个版本的拉取请求未合并就被关闭了：它会留在这里，直到再次改变。"
       }
     },
     "import": {
@@ -14114,9 +14142,11 @@
       "githubNoNotes": "此链接中没有 Markdown 笔记。",
       "githubTooLarge": "笔记太多，无法通过链接读取。请将代码库下载为 .zip，然后在“文件”中导入。",
       "repoInvalid": "请按 所有者/名称 的格式填写仓库。",
-      "repoNoApp": "还没有设置可以访问仓库的 GitHub 应用。",
-      "repoNotInstalled": "这个仓库没有安装 GitHub 应用。",
-      "repoRefused": "GitHub 应用无权写入这个仓库。",
+      "repoNoApp": "这个仓库是私有的或不存在，也没有设置可以访问它的 GitHub 应用。",
+      "repoNotInstalled": "这个仓库没有安装 GitHub 应用，而且它不是公开的。",
+      "repoRefused": "GitHub 应用无权读取这个仓库。",
+      "repoMissing": "这个仓库已不存在，或者已无法读取。",
+      "repoBranchInvalid": "这个名称不能用作拉取请求的分支：请使用字母、数字、- 和 /，并且不要使用 Wiki 所跟随的分支。",
       "repoBranchMissing": "仓库中没有这个分支。",
       "repoEmpty": "这个仓库还没有任何文件。添加第一个文件后再试一次。",
       "repoPathInvalid": "这个文件夹不能存放 Wiki。",

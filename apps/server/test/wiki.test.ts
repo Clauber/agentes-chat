@@ -278,7 +278,15 @@ test("wiki API: a bad note doesn't sink its batch; delete an import, the trash, 
   expect(((await on.json()) as { agentContext: boolean }).agentContext).toBe(true);
 });
 
-test("wiki API: the repository the wiki is kept in (ADR 0186): none yet, administrators only, the GitHub App needed", async () => {
+test("wiki API: the repository the wiki is kept in (ADR 0186): none yet, administrators only, private ones refused", async () => {
+  // No GitHub App on this server, and github.com hides every repository (private, or missing).
+  await t.close();
+  const hidden = (async () => new Response("", { status: 401 })) as unknown as typeof fetch;
+  t = await createTestServer({
+    http: hidden,
+    resolveHost: async () => ["140.82.112.3"],
+    env: { ALLOW_SIGNUP: "true" },
+  });
   const owner = browser(t);
   await signUp(owner, "owner@example.com");
   const { orgId } = await seedOrg(owner);
@@ -287,7 +295,7 @@ test("wiki API: the repository the wiki is kept in (ADR 0186): none yet, adminis
   const code = async (res: Response) => ((await res.json()) as { error: { code: string } }).error.code;
 
   expect(await (await api("/wiki/repository")).json()).toEqual({ repository: null });
-  // A name that isn't one, and a server with no GitHub App to reach a repository with.
+  // A name that isn't one, and a repository that isn't public with no GitHub App to reach it.
   const invalid = await api("/wiki/repository", { method: "PUT", json: { repository: "not a repository" } });
   expect(invalid.status).toBe(400);
   expect(await code(invalid)).toBe("wiki.repo_invalid");

@@ -1811,3 +1811,13 @@ a.wiki-repo-mark:hover {
 .wiki-repo-held li span:last-child {
   color: var(--muted);
 }
+/* How the wiki writes there, with its Save under the choice once it changed. */
+.wiki-repo-writing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.wiki-repo-writing > .ac-field {
+  align-self: stretch;
+}

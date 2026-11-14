@@ -356,6 +356,7 @@ import type {
   WikiPageSummary,
   WikiRepository,
   WikiRepositoryInput,
+  WikiRepositoryWriting,
   WikiTopRead,
   WikiUpdateInput,
   WikiVersion,
@@ -1701,6 +1702,8 @@ export interface ApiClient {
     repository(orgId: string): Promise<WikiRepository | null>;
     /** Keeps the wiki in that GitHub repository (administrators); replaces the one before. */
     connectRepository(orgId: string, input: WikiRepositoryInput): Promise<WikiRepository>;
+    /** How the wiki writes there: straight on the branch, through a pull request, or never (administrators). */
+    setRepositoryWriting(orgId: string, input: WikiRepositoryWriting): Promise<WikiRepository | null>;
     /** Syncs now, and starts a stopped sync again (administrators). */
     syncRepository(orgId: string): Promise<WikiRepository | null>;
     /** Stops keeping the wiki in its repository: pages and notes stay as they are. */

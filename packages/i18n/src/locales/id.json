@@ -10870,7 +10870,8 @@
         "upToDate": "{{repo}} · terbaru {{when}}",
         "syncing": "{{repo}} · memperbarui…",
         "retrying": "{{repo}} · GitHub tidak menjawab, mencoba lagi",
-        "stopped": "Berhenti memperbarui dengan {{repo}}"
+        "stopped": "Berhenti memperbarui dengan {{repo}}",
+        "readOnly": "{{repo}} · hanya baca · terbaru {{when}}"
       },
       "connect": {
         "title": "Simpan wiki di GitHub",
@@ -10878,8 +10879,11 @@
         "repository": "Repositori",
         "repositoryPlaceholder": "Pilih repositori",
         "repositoryHelp": "Hanya repositori yang memasang aplikasi GitHub yang muncul.",
-        "noRepositories": "Aplikasi GitHub belum menjangkau repositori mana pun.",
-        "openConnectors": "Pasang di Konektor",
+        "byAddress": "Repositori lain, lewat alamatnya",
+        "address": "Alamat repositori",
+        "addressPlaceholder": "https://github.com/pemilik/nama",
+        "addressHelp": "Repositori publik bisa dipakai tanpa aplikasi: wiki mengikutinya, dan yang berubah di sini tetap di sini.",
+        "openConnectors": "Untuk menulis ke sana juga, atau untuk repositori privat, pasang aplikasi GitHub di Konektor.",
         "search": "Cari repositori",
         "noResults": "Tidak ada repositori dengan nama itu.",
         "folder": "Folder",
@@ -10902,12 +10906,31 @@
         "pending_other": "{{count}} halaman masih akan dikirim ke GitHub.",
         "held_other": "{{count}} catatan tidak menjadi halaman",
         "retrying": "GitHub tidak menjawab terakhir kali. Wiki mencoba lagi dengan sendirinya.",
+        "prOpen": "Pull request #{{number}} terbuka di GitHub",
+        "prDeclined": "Pull request #{{number}} ditutup tanpa digabung: perubahan itu menunggu di sini sampai berubah lagi.",
+        "readOnly": "Aplikasi GitHub tidak terpasang di {{repo}}, atau hanya bisa membacanya: wiki mengikutinya, dan yang berubah di sini tetap di sini. Pasang aplikasi di sana dengan izin menulis untuk mengirim perubahan dari sini juga.",
         "noteDisconnect": "Memutus sambungan membiarkan halaman di sini dan catatan di sana apa adanya.",
         "noteStopped": "Sementara itu, yang ditulis di sini tetap di sini dan dikirim ke repositori saat kembali.",
         "disconnect": "Putuskan",
         "open": "Buka di GitHub",
         "syncNow": "Perbarui sekarang",
         "retry": "Coba lagi"
+      },
+      "writing": {
+        "label": "Cara wiki menulis di sana",
+        "direct": "Langsung ke branch",
+        "directDesc": "Setiap perubahan menjadi commit di branch yang diikuti wiki.",
+        "pullRequest": "Lewat pull request",
+        "pullRequestDesc": "Perubahan masuk ke branch milik wiki sendiri, dalam satu pull request yang diterima seseorang di GitHub.",
+        "none": "Jangan menulis",
+        "noneDesc": "Wiki hanya mengikuti repositori: yang berubah di sini tetap di sini.",
+        "branch": "Branch pull request",
+        "branchHelp": "Wiki membangun ulang branch ini setiap ada perubahan: edit wiki, bukan branch ini.",
+        "now": {
+          "direct": "Wiki melakukan commit langsung ke {{branch}}.",
+          "pull_request": "Wiki mengusulkan perubahannya dalam pull request ke {{branch}}.",
+          "none": "Wiki hanya mengikuti repositori: yang berubah di sini tetap di sini."
+        }
       },
       "held": {
         "tooLong": "Lebih panjang dari batas halaman",
@@ -10916,16 +10939,16 @@
         "other": "Tidak bisa menjadi halaman"
       },
       "why": {
-        "not_installed": "Aplikasi GitHub tidak lagi menjangkau {{repo}}. Admin menambahkan repositori ke aplikasi di GitHub, lalu wiki mengikutinya lagi.",
-        "refused": "Aplikasi GitHub tidak boleh menulis ke {{repo}}. Admin menerima izin aplikasi di GitHub, lalu wiki mengikutinya lagi.",
+        "not_installed": "Aplikasi GitHub tidak lagi menjangkau {{repo}}, dan repositori itu tidak publik. Admin menambahkan repositori ke aplikasi di GitHub, lalu wiki mengikutinya lagi.",
+        "refused": "Aplikasi GitHub tidak boleh membaca {{repo}}. Admin menerima izin aplikasi di GitHub, lalu wiki mengikutinya lagi.",
         "branch_missing": "Branch tempat wiki disimpan sudah hilang dari {{repo}}. Hubungkan repositori lagi.",
         "empty": "{{repo}} belum punya file. Tambahkan file pertama lalu coba lagi.",
-        "missing": "{{repo}} sudah hilang, atau aplikasi GitHub tidak lagi melihatnya.",
+        "missing": "{{repo}} sudah hilang, atau tidak bisa dibaca lagi.",
         "too_large": "{{repo}} punya terlalu banyak catatan untuk diikuti. Hubungkan salah satu foldernya saja.",
         "owner_gone": "Orang yang menghubungkan {{repo}} bukan Admin di sini lagi. Admin memulainya lagi dari sini.",
         "folder_missing": "Folder wiki sudah hilang dari {{repo}}, atau kosong. Tidak ada yang dihapus di sini: hubungkan repositori lagi dengan folder yang benar.",
-        "no_app": "Aplikasi GitHub yang menjangkau {{repo}} sudah tidak ada. Admin menyiapkan yang baru di Konektor, lalu wiki mengikutinya lagi.",
-        "protected": "{{repo}} tidak menerima commit langsung di branch itu (branch dilindungi). Izinkan aplikasi GitHub melakukan push ke sana, atau hubungkan branch lain.",
+        "no_app": "{{repo}} tidak publik, dan belum ada aplikasi GitHub yang disiapkan untuk menjangkaunya. Admin menyiapkannya di Konektor, lalu wiki mengikutinya lagi.",
+        "protected": "{{repo}} tidak menerima commit langsung di branch itu (branch dilindungi). Pilih “Lewat pull request”, atau izinkan aplikasi GitHub melakukan push ke sana.",
         "other": "Wiki berhenti mengikuti {{repo}}. Coba lagi."
       },
       "page": {
@@ -10937,8 +10960,13 @@
         "notSentHint": "Wiki berhenti memperbarui dengan GitHub. Versi ini dikirim ke sana saat berjalan lagi.",
         "local": "Hanya di sini",
         "localHint": "Halaman yang dibatasi untuk beberapa orang tidak pernah dikirim ke GitHub.",
+        "readOnlyHint": "Repositori diikuti hanya baca: versi ini tetap di sini, dan perubahan berikutnya pada catatannya di sana akan menggantikannya.",
         "held": "Belum diperbarui di GitHub",
-        "heldHint": "Catatannya di GitHub tidak bisa dibaca di sini, jadi halaman ini tidak menimpanya."
+        "heldHint": "Catatannya di GitHub tidak bisa dibaca di sini, jadi halaman ini tidak menimpanya.",
+        "review": "Di pull request",
+        "reviewHint": "Versi ini menunggu di pull request wiki, sampai seseorang menerimanya di GitHub.",
+        "declined": "Ditolak di GitHub",
+        "declinedHint": "Pull request berisi versi ini ditutup tanpa digabung: versi ini tetap di sini sampai berubah lagi."
       }
     },
     "import": {
@@ -14104,9 +14132,11 @@
       "githubNoNotes": "Tidak ada catatan Markdown di tautan ini.",
       "githubTooLarge": "Catatannya terlalu banyak untuk dibaca dari tautan. Unduh repositori sebagai .zip lalu impor di File.",
       "repoInvalid": "Tulis repositori sebagai pemilik/nama.",
-      "repoNoApp": "Belum ada aplikasi GitHub yang disiapkan untuk menjangkau repositori.",
-      "repoNotInstalled": "Aplikasi GitHub tidak terpasang di repositori itu.",
-      "repoRefused": "Aplikasi GitHub tidak boleh menulis ke repositori itu.",
+      "repoNoApp": "Repositori itu privat atau tidak ada, dan belum ada aplikasi GitHub yang disiapkan untuk menjangkaunya.",
+      "repoNotInstalled": "Aplikasi GitHub tidak terpasang di repositori itu, dan repositori itu tidak publik.",
+      "repoRefused": "Aplikasi GitHub tidak boleh membaca repositori itu.",
+      "repoMissing": "Repositori itu sudah hilang, atau tidak bisa dibaca lagi.",
+      "repoBranchInvalid": "Nama itu tidak bisa menjadi branch pull request: pakai huruf, angka, - dan /, dan bukan branch yang diikuti wiki.",
       "repoBranchMissing": "Branch itu tidak ada di repositori.",
       "repoEmpty": "Repositori itu belum punya file. Tambahkan file pertama lalu coba lagi.",
       "repoPathInvalid": "Folder itu tidak bisa menyimpan wiki.",

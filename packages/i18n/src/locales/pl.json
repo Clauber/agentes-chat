@@ -12081,7 +12081,8 @@
         "upToDate": "{{repo}} · aktualne {{when}}",
         "syncing": "{{repo}} · aktualizowanie…",
         "retrying": "{{repo}} · GitHub nie odpowiedział, ponawiam",
-        "stopped": "Przestało się aktualizować z {{repo}}"
+        "stopped": "Przestało się aktualizować z {{repo}}",
+        "readOnly": "{{repo}} · tylko odczyt · aktualne {{when}}"
       },
       "connect": {
         "title": "Trzymaj wiki na GitHubie",
@@ -12089,8 +12090,11 @@
         "repository": "Repozytorium",
         "repositoryPlaceholder": "Wybierz repozytorium",
         "repositoryHelp": "Pokazują się tylko repozytoria, w których zainstalowana jest aplikacja GitHub.",
-        "noRepositories": "Aplikacja GitHub nie sięga jeszcze żadnego repozytorium.",
-        "openConnectors": "Zainstaluj ją w Konektorach",
+        "byAddress": "Inne repozytorium, po adresie",
+        "address": "Adres repozytorium",
+        "addressPlaceholder": "https://github.com/wlasciciel/nazwa",
+        "addressHelp": "Publiczne repozytorium działa bez aplikacji: wiki za nim podąża, a to, co zmienia się tutaj, zostaje tutaj.",
+        "openConnectors": "Aby też tam pisać albo dla prywatnego repozytorium, zainstaluj aplikację GitHub w Konektorach.",
         "search": "Szukaj repozytoriów",
         "noResults": "Brak repozytorium o tej nazwie.",
         "folder": "Folder",
@@ -12119,12 +12123,31 @@
         "held_many": "{{count}} notatek nie stało się stronami",
         "held_other": "{{count}} notatki nie stały się stronami",
         "retrying": "GitHub nie odpowiedział ostatnim razem. Wiki ponawia próbę sama.",
+        "prOpen": "Pull request #{{number}} otwarty na GitHubie",
+        "prDeclined": "Pull request #{{number}} zamknięto bez scalenia: te zmiany czekają tutaj, aż znów się zmienią.",
+        "readOnly": "Aplikacja GitHub nie jest zainstalowana w {{repo}} albo może je tylko czytać: wiki za nim podąża, a to, co zmienia się tutaj, zostaje tutaj. Zainstaluj tam aplikację z prawem zapisu, aby wysyłać też zmiany stąd.",
         "noteDisconnect": "Rozłączenie zostawia strony tutaj, a notatki tam, takie, jakie są.",
         "noteStopped": "W międzyczasie to, co zostanie tu napisane, zostaje tutaj i trafi do repozytorium, gdy ono wróci.",
         "disconnect": "Rozłącz",
         "open": "Otwórz na GitHubie",
         "syncNow": "Aktualizuj teraz",
         "retry": "Spróbuj ponownie"
+      },
+      "writing": {
+        "label": "Jak wiki tam pisze",
+        "direct": "Bezpośrednio na gałąź",
+        "directDesc": "Każda zmiana to commit na gałęzi, za którą podąża wiki.",
+        "pullRequest": "Przez pull request",
+        "pullRequestDesc": "Zmiany trafiają na własną gałąź wiki, w jeden pull request, który ktoś akceptuje na GitHubie.",
+        "none": "Nie pisz",
+        "noneDesc": "Wiki tylko podąża za repozytorium: to, co zmienia się tutaj, zostaje tutaj.",
+        "branch": "Gałąź pull requesta",
+        "branchHelp": "Wiki odbudowuje ją przy każdej zmianie: edytuj wiki, nie tę gałąź.",
+        "now": {
+          "direct": "Wiki robi commity bezpośrednio na {{branch}}.",
+          "pull_request": "Wiki proponuje swoje zmiany w pull requeście do {{branch}}.",
+          "none": "Wiki tylko podąża za repozytorium: to, co zmienia się tutaj, zostaje tutaj."
+        }
       },
       "held": {
         "tooLong": "Dłuższa, niż może być strona",
@@ -12133,16 +12156,16 @@
         "other": "Nie udało się jej zamienić w stronę"
       },
       "why": {
-        "not_installed": "Aplikacja GitHub nie sięga już {{repo}}. Administrator dodaje repozytorium do aplikacji na GitHubie, a wiki znów za nim podąża.",
-        "refused": "Aplikacja GitHub nie może pisać do {{repo}}. Administrator akceptuje uprawnienia aplikacji na GitHubie, a wiki znów za nim podąża.",
+        "not_installed": "Aplikacja GitHub nie sięga już {{repo}}, a repozytorium nie jest publiczne. Administrator dodaje repozytorium do aplikacji na GitHubie, a wiki znów za nim podąża.",
+        "refused": "Aplikacja GitHub nie może czytać {{repo}}. Administrator akceptuje uprawnienia aplikacji na GitHubie, a wiki znów za nim podąża.",
         "branch_missing": "Gałąź, na której była wiki, zniknęła z {{repo}}. Połącz repozytorium ponownie.",
         "empty": "{{repo}} nie ma jeszcze żadnego pliku. Dodaj pierwszy plik i spróbuj ponownie.",
-        "missing": "{{repo}} zniknęło albo aplikacja GitHub już go nie widzi.",
+        "missing": "{{repo}} zniknęło albo nie da się go już odczytać.",
         "too_large": "{{repo}} ma za dużo notatek, by za nimi podążać. Połącz zamiast tego jeden z jego folderów.",
         "owner_gone": "Osoba, która połączyła {{repo}}, nie jest już tu Administratorem. Administrator wznawia to stąd.",
         "folder_missing": "Folder wiki zniknął z {{repo}} albo jest pusty. Nic tu nie zostało usunięte: połącz repozytorium ponownie z właściwym folderem.",
-        "no_app": "Aplikacji GitHub, która sięgała {{repo}}, już nie ma. Administrator konfiguruje nową w Konektorach, a wiki znów za nim podąża.",
-        "protected": "{{repo}} nie przyjmuje bezpośrednich commitów na tej gałęzi (jest chroniona). Pozwól aplikacji GitHub wypychać do niej albo połącz inną gałąź.",
+        "no_app": "{{repo}} nie jest publiczne i nie skonfigurowano aplikacji GitHub, by je sięgnąć. Administrator konfiguruje ją w Konektorach, a wiki znów za nim podąża.",
+        "protected": "{{repo}} nie przyjmuje bezpośrednich commitów na tej gałęzi (jest chroniona). Wybierz „Przez pull request” albo pozwól aplikacji GitHub wypychać do niej.",
         "other": "Wiki przestała podążać za {{repo}}. Spróbuj ponownie."
       },
       "page": {
@@ -12154,8 +12177,13 @@
         "notSentHint": "Wiki przestała się aktualizować z GitHubem. Ta wersja trafi tam, gdy znów ruszy.",
         "local": "Tylko tutaj",
         "localHint": "Strony ograniczone do kilku osób nigdy nie trafiają na GitHuba.",
+        "readOnlyHint": "Repozytorium jest śledzone tylko do odczytu: ta wersja zostaje tutaj, a następna zmiana jego notatki tam ją zastąpi.",
         "held": "Nieaktualna na GitHubie",
-        "heldHint": "Jej notatki na GitHubie nie udało się tu odczytać, więc ta strona jej nie nadpisuje."
+        "heldHint": "Jej notatki na GitHubie nie udało się tu odczytać, więc ta strona jej nie nadpisuje.",
+        "review": "W pull requeście",
+        "reviewHint": "Ta wersja czeka w pull requeście wiki, aż ktoś zaakceptuje ją na GitHubie.",
+        "declined": "Odrzucona na GitHubie",
+        "declinedHint": "Pull request z tą wersją zamknięto bez scalenia: zostaje tutaj, aż znów się zmieni."
       }
     },
     "import": {
@@ -15598,9 +15626,11 @@
       "githubNoNotes": "Pod tym linkiem nie ma notatek Markdown.",
       "githubTooLarge": "Za dużo notatek, żeby wczytać je z linku. Pobierz repozytorium jako .zip i zaimportuj je w Plikach.",
       "repoInvalid": "Zapisz repozytorium jako właściciel/nazwa.",
-      "repoNoApp": "Nie skonfigurowano jeszcze aplikacji GitHub, by sięgać repozytoriów.",
-      "repoNotInstalled": "Aplikacja GitHub nie jest zainstalowana w tym repozytorium.",
-      "repoRefused": "Aplikacja GitHub nie może pisać do tego repozytorium.",
+      "repoNoApp": "To repozytorium jest prywatne albo nie istnieje i nie skonfigurowano aplikacji GitHub, by je sięgnąć.",
+      "repoNotInstalled": "Aplikacja GitHub nie jest zainstalowana w tym repozytorium, a ono nie jest publiczne.",
+      "repoRefused": "Aplikacja GitHub nie może czytać tego repozytorium.",
+      "repoMissing": "To repozytorium zniknęło albo nie da się go już odczytać.",
+      "repoBranchInvalid": "Ta nazwa nie może być gałęzią pull requesta: użyj liter, cyfr, - i /, i nie gałęzi, za którą podąża wiki.",
       "repoBranchMissing": "Ta gałąź nie istnieje w repozytorium.",
       "repoEmpty": "To repozytorium nie ma jeszcze żadnego pliku. Dodaj pierwszy plik i spróbuj ponownie.",
       "repoPathInvalid": "Ten folder nie może przechowywać wiki.",

@@ -5437,15 +5437,22 @@ export interface WikiPage extends WikiPageSummary {
 /** A page's note in the wiki's repository. */
 export interface WikiPageRepository {
   /**
-   * `synced`: the note holds this version. `pending`: this version is still to be written there. `local`: limited to
-   * some people, it never goes there. `held`: the note couldn't be read here, so the page isn't written over it.
+   * `synced`: the note holds this version. `pending`: this version is still to be written there. `review`: it waits in
+   * the wiki's pull request (`url`). `declined`: that pull request was closed without merging. `local`: it stays here
+   * (limited to some people, or the repository is followed read-only). `held`: the note couldn't be read here, so the
+   * page isn't written over it.
    */
-  state: "synced" | "pending" | "local" | "held";
+  state: "synced" | "pending" | "review" | "declined" | "local" | "held";
   /** The sync stopped until someone starts it again. */
   stopped: boolean;
-  /** The note's address, once it has one. */
+  /** The repository is followed read-only: what changes here stays here (`local`). */
+  readOnly: boolean;
+  /** The note's address, once it has one; for `review` and `declined`, the pull request's. */
   url: string | null;
 }
+
+/** How the wiki writes in its repository: straight on the branch, through a pull request, or never. */
+export type WikiCommitMode = "direct" | "pull_request" | "none";
 
 /**
  * The repository a workspace keeps its wiki in (ADR 0186): the notes under `path` of `branch` are the pages, each side
@@ -5461,6 +5468,13 @@ export interface WikiRepository {
   path: string;
   /** The repository's page. */
   url: string;
+  /** The wiki may write there. False: a public repository the GitHub App doesn't reach, followed read-only. */
+  writable: boolean;
+  commitMode: WikiCommitMode;
+  /** The wiki's own branch for its pull request. */
+  prBranch: string;
+  /** The wiki's pull request; `declined`: closed without merging (those changes wait here). */
+  pullRequest: { number: number; url: string; state: "open" | "declined" } | null;
   /** `error`: it stopped, with why in `errorCode`. While `active`, an `errorCode` is a trouble it gets past by itself. */
   status: "active" | "error";
   errorCode: string | null;
@@ -5475,8 +5489,14 @@ export interface WikiRepository {
   held: { path: string; code: string }[];
 }
 
-export interface WikiRepositoryInput {
-  /** `owner/name`. */
+export interface WikiRepositoryWriting {
+  commitMode?: WikiCommitMode;
+  /** The pull request's branch. */
+  prBranch?: string;
+}
+
+export interface WikiRepositoryInput extends WikiRepositoryWriting {
+  /** `owner/name`, or an address on GitHub (a repository's, or a folder's in it). */
   repository: string;
   /** The folder; left out: the whole repository. */
   path?: string;

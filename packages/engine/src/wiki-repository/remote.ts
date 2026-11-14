@@ -1,9 +1,12 @@
 /**
  * Where a wiki's repository lives, as its sync sees it (ADR 0186): a branch's head, the notes under a folder with the
- * git blob each holds, a note's text, and one commit that writes and removes notes. GitHub is the host today
- * (`github.ts`, through the server's GitHub App); another host is one more `NoteRemote`, the sync unchanged.
+ * git blob each holds, a note's text, one commit that writes and removes notes, and the wiki's pull request. GitHub is
+ * the host today (`github.ts` through the server's GitHub App, `public.ts` read-only without it); another host is one
+ * more `NoteRemote`, the sync unchanged.
  */
 export interface NoteRemote {
+  /** The repository as its host names it, and its default branch (null: it has none yet). */
+  about(): Promise<{ owner: string; repo: string; defaultBranch: string | null }>;
   /** The commit a branch is at: `missing` when there is no such branch, `empty` when the repository has no commit. */
   head(branch: string): Promise<string | "missing" | "empty">;
   /** The Markdown notes of a commit under `folder` (hidden folders left out), by their path relative to it. */
@@ -15,6 +18,22 @@ export interface NoteRemote {
    * branch is no longer at `parent` (someone pushed meanwhile): nothing changed, and the sync starts over.
    */
   commit(input: RemoteCommit): Promise<string | "moved">;
+  /**
+   * The same commit on the wiki's own branch (`branch`, moved there whatever it held), and one open pull request from
+   * it into `base`, made or brought up to date: its number and address. `moved` as `commit`'s.
+   */
+  propose(input: RemoteProposal): Promise<{ number: number; url: string } | "moved">;
+  /** Where a pull request of the wiki's stands. */
+  proposal(number: number): Promise<"open" | "merged" | "closed" | "missing">;
+  /** Closes a pull request of the wiki's that no longer holds anything to change. */
+  withdraw(number: number): Promise<void>;
+}
+
+export interface RemoteProposal extends RemoteCommit {
+  /** The branch the pull request goes into: the one the wiki follows. */
+  base: string;
+  title: string;
+  body: string;
 }
 
 export interface RemoteNote {

@@ -9,6 +9,11 @@ export const WIKI_REPOSITORY_SYNC_JOB = "wiki.repository.sync";
 
 /** How often a connected repository is looked at when nothing said it changed (a webhook that never came). */
 export const WIKI_REPOSITORY_EVERY_MS = 5 * 60_000;
+/**
+ * How often a repository the wiki follows read-only is looked at: no webhook ever tells of its pushes, and the look is
+ * one small request outside GitHub's API limits.
+ */
+export const WIKI_REPOSITORY_READ_EVERY_MS = 60_000;
 
 const queue = (db: Executor, orgId: string, repositoryId: string, options: { dedupeKey?: string; runAt?: Date } = {}) =>
   enqueue(db, {
@@ -77,16 +82,20 @@ export async function queueWikiRepositoryPush(db: Database, payload: Record<stri
   return queued;
 }
 
-/** Every connected repository of an open workspace, queued once per window: what a missed webhook left behind. */
+/**
+ * Every connected repository of an open workspace, queued once per window: what a missed webhook left behind, and the
+ * only way a repository followed read-only tells of its pushes (a window of its own, shorter).
+ */
 export async function enqueueWikiRepositorySyncs(db: Database, now = new Date()): Promise<number> {
   const due = await db
-    .select({ id: wikiRepositories.id, orgId: wikiRepositories.orgId })
+    .select({ id: wikiRepositories.id, orgId: wikiRepositories.orgId, writable: wikiRepositories.writable })
     .from(wikiRepositories)
     .innerJoin(organizations, eq(organizations.id, wikiRepositories.orgId))
     .where(and(eq(wikiRepositories.status, "active"), sql`not ${closedOrg}`));
-  const window = Math.floor(now.getTime() / WIKI_REPOSITORY_EVERY_MS);
   for (const row of due) {
-    await queue(db, row.orgId, row.id, { dedupeKey: `${WIKI_REPOSITORY_SYNC_JOB}:${row.id}:${window}` });
+    const every = row.writable ? WIKI_REPOSITORY_EVERY_MS : WIKI_REPOSITORY_READ_EVERY_MS;
+    const window = Math.floor(now.getTime() / every);
+    await queue(db, row.orgId, row.id, { dedupeKey: `${WIKI_REPOSITORY_SYNC_JOB}:${row.id}:${every}:${window}` });
   }
   return due.length;
 }

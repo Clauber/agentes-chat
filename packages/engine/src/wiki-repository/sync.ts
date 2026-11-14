@@ -1,9 +1,11 @@
+import { createHash } from "node:crypto";
 import type { PubSub } from "@agenteschat/adapters";
 import { and, type Database, eq, inArray, isNull, lt, or, schema } from "@agenteschat/db";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "../errors";
 import { publishOrgEvent } from "../events";
-import { appRepoToken } from "../git/github-app";
+import { type AppPermissions, appRepoToken } from "../git/github-app";
 import type { GitHubAppAccess } from "../git/github-call";
+import type { ResolveHost } from "../net-guard";
 import { requirePermission } from "../organizations";
 import { closedRefusal, orgStanding } from "../standing";
 import {
@@ -22,6 +24,7 @@ import {
 } from "../wiki";
 import { gitBlobSha, noteFileText, notePath, pageOfPath, parseNoteFile, pathKey } from "./file";
 import { GitHubBusy, githubRemote } from "./github";
+import { publicBranch, publicRemote } from "./public";
 import { queueWikiRepositorySync } from "./queue";
 import { NOTE_MAX_BYTES, type NoteRemote, type RemoteNote, RepoRefusal } from "./remote";
 
@@ -34,8 +37,14 @@ type Page = typeof wikiPages.$inferSelect;
 export interface WikiRepositoryDeps {
   db: Database;
   pubsub?: PubSub;
-  /** The server's GitHub App: a repository on GitHub is reached with its installation's token. Absent: no sync. */
+  /**
+   * The server's GitHub App: a repository it is installed on is reached with its installation's token. Absent, or not
+   * installed there: a public repository is followed read-only.
+   */
   github?: GitHubAppAccess;
+  /** Tests: fake HTTP and DNS for the public reads. */
+  fetch?: (url: string, init?: RequestInit) => Promise<Response>;
+  resolveHost?: ResolveHost;
 }
 
 /** A sync holds its repository this long at most; one that died lets go by itself. */
@@ -172,19 +181,52 @@ export async function syncWikiRepository(
   return outcome;
 }
 
-/** The repository's host, reached as the workspace: GitHub through the server's app installed on that repository. */
-async function remoteOf(deps: WikiRepositoryDeps, link: Repository): Promise<NoteRemote> {
-  if (link.provider !== "github") throw new RepoRefusal("wiki.repo_provider");
-  const app = deps.github?.app();
-  if (!app || !deps.github) throw new RepoRefusal("wiki.repo_no_app");
-  const got = await appRepoToken(app, deps.github.http, { db: deps.db, orgId: link.orgId }, link.owner, link.repo, {
-    contents: "write",
-  });
-  if ("miss" in got) {
-    if (got.miss === "unreachable") throw new GitHubBusy("GitHub didn't answer for the app's token");
-    throw new RepoRefusal(got.miss === "refused" ? "wiki.repo_refused" : "wiki.repo_not_installed");
+/**
+ * The repository's host, reached as the workspace, and whether the wiki writes there: GitHub through the server's app
+ * installed on that repository (writing, else reading), else, for a public repository, without credentials and
+ * read-only. Neither: why not (`miss`).
+ */
+export async function reachRepository(
+  deps: WikiRepositoryDeps,
+  orgId: string,
+  place: { provider: string; owner: string; repo: string; commitMode?: string },
+): Promise<{ remote: NoteRemote; writable: boolean } | { miss: string }> {
+  if (place.provider !== "github") return { miss: "wiki.repo_provider" };
+  const github = deps.github;
+  const app = github?.app();
+  let miss = "wiki.repo_no_app";
+  if (app && github) {
+    const tenant = { db: deps.db, orgId };
+    const reach = (token: string) => githubRemote({ http: github.http, token, owner: place.owner, repo: place.repo });
+    // Through a pull request it opens one too.
+    const writes: AppPermissions =
+      place.commitMode === "pull_request" ? { contents: "write", pull_requests: "write" } : { contents: "write" };
+    const write = await appRepoToken(app, github.http, tenant, place.owner, place.repo, writes);
+    if ("token" in write) return { remote: reach(write.token), writable: true };
+    if (write.miss === "unreachable") throw new GitHubBusy("GitHub didn't answer for the app's token");
+    miss = write.miss === "refused" ? "wiki.repo_refused" : "wiki.repo_not_installed";
+    // Installed, but without the permission to write: it still reads, private or not.
+    if (write.miss === "refused") {
+      const read = await appRepoToken(app, github.http, tenant, place.owner, place.repo, { contents: "read" });
+      if ("token" in read) return { remote: reach(read.token), writable: false };
+    }
   }
-  return githubRemote({ http: deps.github.http, token: got.token, owner: link.owner, repo: link.repo });
+  const access = {
+    db: deps.db,
+    orgId,
+    owner: place.owner,
+    repo: place.repo,
+    fetch: deps.fetch,
+    resolveHost: deps.resolveHost,
+  };
+  if (!(await publicBranch(access, null))) return { miss };
+  return { remote: publicRemote(access), writable: false };
+}
+
+async function remoteOf(deps: WikiRepositoryDeps, link: Repository) {
+  const reached = await reachRepository(deps, link.orgId, link);
+  if ("miss" in reached) throw new RepoRefusal(reached.miss);
+  return reached;
 }
 
 async function run(deps: WikiRepositoryDeps, link: Repository) {
@@ -196,7 +238,14 @@ async function run(deps: WikiRepositoryDeps, link: Repository) {
   await requirePermission(db, userId, orgId, WIKI_REPOSITORY_PERMISSION).catch(() => {
     throw new RepoRefusal("wiki.repo_owner_gone");
   });
-  const remote = await remoteOf(deps, link);
+  const { remote, writable } = await remoteOf(deps, link);
+  if (writable !== link.writable) {
+    await db.update(wikiRepositories).set({ writable }).where(eq(wikiRepositories.id, link.id));
+  }
+  // What the workspace chose: straight on the branch, through a pull request, or never.
+  const writing = writable && link.commitMode !== "none";
+  // A pull request left from before the wiki stopped proposing: closed, it no longer says anything.
+  if (link.prNumber && (link.commitMode !== "pull_request" || !writing)) await settleProposal(deps, link, remote, true);
   let pulled = 0;
   for (let round = 0; round < ROUNDS; round++) {
     const head = await remote.head(link.branch);
@@ -224,7 +273,12 @@ async function run(deps: WikiRepositoryDeps, link: Repository) {
     pulled += got.count;
     // Notes still to read: nothing is written before every note has its page, or a page could take a note's path.
     if (got.more) return { pulled, pushed: 0, more: true };
-    const pushed = await push(sync);
+    // Read-only: the wiki follows the repository, and what changes here stays here.
+    if (!writing) {
+      await db.update(wikiRepositories).set({ headSha: head }).where(eq(wikiRepositories.id, link.id));
+      return { pulled, pushed: 0, more: false };
+    }
+    const pushed = link.commitMode === "pull_request" ? await propose(sync) : await push(sync);
     if (pushed === "moved") continue;
     await db.update(wikiRepositories).set({ headSha: pushed.head }).where(eq(wikiRepositories.id, link.id));
     return { pulled, pushed: pushed.count, more: pushed.more };
@@ -379,10 +433,11 @@ async function followMoves(sync: Sync) {
     if (!page || page.deletedAt || page.restricted) continue;
     const at = pageOfPath(to);
     try {
-      if (basename(to) !== basename(row.path) && at.title) {
+      // A page already named and placed so (renamed or moved here, its pull request merged) only moves its row.
+      if (basename(to) !== basename(row.path) && at.title && at.title !== page.title) {
         await renameWikiPage(wiki, actor, link.orgId, page.id, { title: at.title });
       }
-      if (dirname(to) !== dirname(row.path)) {
+      if (dirname(to) !== dirname(row.path) && cleanFolder(dirname(to)) !== page.folder) {
         await moveWikiPage(wiki, actor, link.orgId, page.id, cleanFolder(dirname(to)));
       }
     } catch (error) {
@@ -446,6 +501,25 @@ async function pull(sync: Sync) {
     if (row && page?.deletedAt && !page.restricted && (await restoreFromNote(sync, row, page, file.sha, text))) {
       continue;
     }
+    // The wiki's own note, its pull request merged: it goes back to the page it came from (renamed or moved here, its
+    // old note's row lets go of it), and a change made to it on GitHub meanwhile is the page's next version.
+    const proposed = row ? undefined : link.prFiles?.[path];
+    const mine = proposed ? await pageById(db, link.orgId, proposed.pageId) : null;
+    if (proposed && mine && !mine.deletedAt && !mine.restricted) {
+      for (const old of [...rows.values()]) if (old.pageId === mine.id && old.path !== path) await dropRow(sync, old);
+      const tied = await saveRow(sync, {
+        path,
+        blobSha: file.sha,
+        pageId: mine.id,
+        pageVersion: proposed.version,
+        title: proposed.title,
+        folder: proposed.folder,
+        head: parseNoteFile(text).head,
+      });
+      waiting.delete(pathKey(path));
+      if (tied && file.sha !== proposed.sha) await updateFromNote(sync, tied, mine, file.sha, text);
+      continue;
+    }
     // The first sync of a wiki that already had this page: the two are tied, and the note's text is the page's.
     const waits = row ? undefined : waiting.get(pathKey(path));
     const adopted = waits ? await pageById(db, link.orgId, waits) : null;
@@ -463,11 +537,13 @@ async function pull(sync: Sync) {
     await createFromNote(sync, path, file.sha, text);
   }
   if (more) return { count, more };
-  // Notes the repository no longer has: their pages go to the trash, where they wait as any deleted page does.
+  // Notes the repository no longer has: their pages go to the trash, where they wait as any deleted page does. Not a
+  // page another note now holds (it moved).
+  const held = new Set([...rows.values()].filter((r) => files.has(r.path) && r.pageId).map((r) => r.pageId));
   for (const row of [...rows.values()]) {
     if (files.has(row.path)) continue;
     const page = row.pageId && !row.detached ? await pageById(db, link.orgId, row.pageId) : null;
-    if (page && !page.deletedAt && !page.restricted) {
+    if (page && !page.deletedAt && !page.restricted && !held.has(page.id)) {
       try {
         await deleteWikiPage(sync.wiki, sync.actor, link.orgId, page.id);
         count++;
@@ -515,9 +591,22 @@ async function writers(db: Database, pages: Page[]) {
   return names;
 }
 
-/** One commit with what the wiki changed since both sides last agreed; `moved` when the branch moved meanwhile. */
-async function push(sync: Sync) {
-  const { link, files, rows, remote, head } = sync;
+interface Changes {
+  writes: { path: string; text: string; head: string; sha: string; page: Page; from: FileRow | null }[];
+  removes: Set<string>;
+  /** Rows whose page is gone or limited: dropped once the repository no longer has their notes. */
+  dropped: FileRow[];
+  /** Pages left for the next sync (`cap`). */
+  more: boolean;
+}
+
+/**
+ * What the wiki changed since both sides last agreed: notes to write (new, edited, renamed or moved pages) and notes
+ * to remove (pages deleted or limited here). A change only to what no file holds (a pin, a lock) is just remembered.
+ * `cap`: at most one batch, the rest left for the next sync.
+ */
+async function changesOf(sync: Sync, cap: boolean): Promise<Changes> {
+  const { link, files, rows } = sync;
   const { db } = sync.deps;
   const live = await db
     .select({
@@ -532,19 +621,16 @@ async function push(sync: Sync) {
   const liveIds = new Set(live.map((p) => p.id));
   const byPage = new Map([...rows.values()].filter((r) => r.pageId).map((r) => [r.pageId as string, r]));
   const taken = new Set([...files.keys(), ...rows.keys()].map(pathKey));
-  const writes: { path: string; text: string; head: string; sha: string; page: Page; from: FileRow | null }[] = [];
-  const removes = new Set<string>();
-  const dropped: FileRow[] = [];
+  const changes: Changes = { writes: [], removes: new Set(), dropped: [], more: false };
   let bytes = 0;
-  let more = false;
 
   for (const light of live) {
     const row = byPage.get(light.id) ?? null;
     if (light.restricted) {
       // Limited to some people since it was written there: its note leaves the repository.
       if (row && !row.detached) {
-        if (files.has(row.path)) removes.add(row.path);
-        dropped.push(row);
+        if (files.has(row.path)) changes.removes.add(row.path);
+        changes.dropped.push(row);
       }
       continue;
     }
@@ -553,8 +639,8 @@ async function push(sync: Sync) {
     // Nothing new: the version both sides hold, under the name they agreed on.
     const same = row && light.title === row.title && light.folder === row.folder;
     if (row && same && row.pageVersion === light.version && !row.detached) continue;
-    if (writes.length >= WIKI_REPOSITORY_BATCH.write || bytes >= WIKI_REPOSITORY_BATCH.bytes) {
-      more = true;
+    if (cap && (changes.writes.length >= WIKI_REPOSITORY_BATCH.write || bytes >= WIKI_REPOSITORY_BATCH.bytes)) {
+      changes.more = true;
       break;
     }
     const page = await pageById(db, link.orgId, light.id);
@@ -572,48 +658,148 @@ async function push(sync: Sync) {
     }
     taken.add(pathKey(path));
     bytes += Buffer.byteLength(text, "utf8");
-    writes.push({ path, text, head: top, sha, page, from: row });
-    if (row && moved && files.has(row.path)) removes.add(row.path);
+    changes.writes.push({ path, text, head: top, sha, page, from: row });
+    if (row && moved && files.has(row.path)) changes.removes.add(row.path);
   }
   // Pages deleted here, or gone for good: their notes leave the repository.
   for (const row of rows.values()) {
     if (row.detached || row.issue || (row.pageId && liveIds.has(row.pageId))) continue;
-    if (files.has(row.path)) removes.add(row.path);
-    dropped.push(row);
+    if (files.has(row.path)) changes.removes.add(row.path);
+    changes.dropped.push(row);
   }
-  for (const w of writes) removes.delete(w.path);
+  for (const w of changes.writes) changes.removes.delete(w.path);
+  return changes;
+}
 
+/** The commit's (and the pull request's) words: what it writes and removes, and who last wrote each page. */
+async function messageOf(sync: Sync, changes: Changes) {
+  const { writes, removes } = changes;
+  const names = await writers(
+    sync.deps.db,
+    writes.map((w) => w.page),
+  );
+  const lines = [
+    ...writes.map((w) => `- ${w.path}${names.has(w.page.updatedById) ? ` (${names.get(w.page.updatedById)})` : ""}`),
+    ...[...removes].map((path) => `- removed ${path}`),
+  ];
+  const first = writes[0];
+  const subject =
+    writes.length === 1 && removes.size <= 1 && first
+      ? `Update wiki: ${first.page.title}`
+      : `Update wiki: ${writes.length + removes.size} notes`;
+  return { subject, lines };
+}
+
+const fromRoot = (sync: Sync, path: string) => (sync.link.path ? `${sync.link.path}/${path}` : path);
+
+/** One commit on the branch with what the wiki changed since both sides last agreed; `moved` when it moved meanwhile. */
+async function push(sync: Sync) {
+  const { link, remote, head } = sync;
+  const changes = await changesOf(sync, true);
+  const { writes, removes } = changes;
   let at = head;
   if (writes.length || removes.size) {
-    const names = await writers(
-      db,
-      writes.map((w) => w.page),
-    );
-    const prefix = link.path ? `${link.path}/` : "";
-    const lines = [
-      ...writes.map((w) => `- ${w.path}${names.has(w.page.updatedById) ? ` (${names.get(w.page.updatedById)})` : ""}`),
-      ...[...removes].map((path) => `- removed ${path}`),
-    ];
-    const first = writes[0];
-    const subject =
-      writes.length === 1 && removes.size <= 1 && first
-        ? `Update wiki: ${first.page.title}`
-        : `Update wiki: ${writes.length + removes.size} notes`;
+    const { subject, lines } = await messageOf(sync, changes);
     const made = await remote.commit({
       branch: link.branch,
       parent: head,
       message: `${subject}\n\n${lines.join("\n")}`,
-      writes: writes.map((w) => ({ path: `${prefix}${w.path}`, text: w.text })),
-      removes: [...removes].map((path) => `${prefix}${path}`),
+      writes: writes.map((w) => ({ path: fromRoot(sync, w.path), text: w.text })),
+      removes: [...removes].map((path) => fromRoot(sync, path)),
     });
     // Someone pushed meanwhile: nothing was written, and the sync starts over from the new head.
     if (made === "moved") return "moved" as const;
     at = made;
   }
-  for (const row of dropped) await dropRow(sync, row);
+  for (const row of changes.dropped) await dropRow(sync, row);
   for (const w of writes) {
     if (w.from && w.from.path !== w.path) await dropRow(sync, w.from);
     await saveRow(sync, { path: w.path, blobSha: w.sha, ...tiedTo(w.page), head: w.head });
   }
-  return { head: at, count: writes.length + removes.size, more };
+  return { head: at, count: writes.length + removes.size, more: changes.more };
+}
+
+/**
+ * What the wiki changed, as one pull request into the branch from the wiki's own branch, rebuilt on the branch's head
+ * at every change, so it never conflicts and always holds all the wiki has to say. Nothing is remembered as agreed
+ * until the pull request is merged: its notes then come back from the branch as any push does. An unchanged proposal
+ * isn't sent again; one with nothing left to change is closed.
+ */
+async function propose(sync: Sync) {
+  const { link, remote, head } = sync;
+  const { db } = sync.deps;
+  const changes = await changesOf(sync, false);
+  const { writes, removes } = changes;
+  if (writes.length === 0 && removes.size === 0) {
+    if (link.prNumber) await settleProposal(sync.deps, link, remote, true);
+    return { head, count: 0, more: false };
+  }
+  // What it holds, and on which head: the same changes on a moved branch are sent again, rebuilt on it.
+  const content = createHash("sha256")
+    .update(
+      [link.branch, link.prBranch, ...writes.map((w) => `${w.path}\t${w.sha}`).sort(), ...[...removes].sort()].join(
+        "\n",
+      ),
+    )
+    .digest("hex");
+  const signature = `${head}:${content}`;
+  if (link.prNumber) {
+    const state = await remote.proposal(link.prNumber);
+    if (state === "open" && link.prSignature === signature) return { head, count: 0, more: false };
+    // Closed without merging: these changes were declined, and wait here until they change.
+    if (state === "closed" && link.prSignature?.endsWith(`:${content}`)) {
+      if (link.prState !== "declined") {
+        await db.update(wikiRepositories).set({ prState: "declined" }).where(eq(wikiRepositories.id, link.id));
+      }
+      return { head, count: 0, more: false };
+    }
+  }
+  const { subject, lines } = await messageOf(sync, changes);
+  const made = await remote.propose({
+    base: link.branch,
+    branch: link.prBranch,
+    parent: head,
+    title: subject,
+    body: [
+      ...lines,
+      "",
+      `This branch is the wiki's: it is rebuilt on \`${link.branch}\` at every change. Edit the wiki, or \`${link.branch}\`, not this branch.`,
+    ].join("\n"),
+    message: `${subject}\n\n${lines.join("\n")}`,
+    writes: writes.map((w) => ({ path: fromRoot(sync, w.path), text: w.text })),
+    removes: [...removes].map((path) => fromRoot(sync, path)),
+  });
+  if (made === "moved") return "moved" as const;
+  const prFiles = Object.fromEntries(
+    writes.map((w) => [
+      w.path,
+      { pageId: w.page.id, version: w.page.version, sha: w.sha, title: w.page.title, folder: w.page.folder },
+    ]),
+  );
+  await db
+    .update(wikiRepositories)
+    .set({ prNumber: made.number, prUrl: made.url, prState: "open", prSignature: signature, prFiles })
+    .where(eq(wikiRepositories.id, link.id));
+  return { head, count: writes.length + removes.size, more: false };
+}
+
+/**
+ * The wiki's pull request when it no longer proposes anything (its changes merged or undone, or the wiki stopped
+ * proposing): forgotten once merged or closed, and closed when still open (`close`).
+ */
+async function settleProposal(deps: WikiRepositoryDeps, link: Repository, remote: NoteRemote, close: boolean) {
+  if (!link.prNumber) return;
+  const state = await remote.proposal(link.prNumber);
+  if (state === "open" && close) await remote.withdraw(link.prNumber);
+  if (state !== "open" || close) {
+    await deps.db
+      .update(wikiRepositories)
+      .set({ prNumber: null, prUrl: null, prState: null, prSignature: null, prFiles: null })
+      .where(eq(wikiRepositories.id, link.id));
+    link.prNumber = null;
+    link.prUrl = null;
+    link.prState = null;
+    link.prSignature = null;
+    link.prFiles = null;
+  }
 }

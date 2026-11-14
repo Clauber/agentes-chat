@@ -342,6 +342,10 @@ export function createFakeWiki(ctx: MockContext, log: (method: string, ...args: 
         branch: "main",
         path: input.path ?? "",
         url: `https://github.com/${owner}/${repo}`,
+        writable: true,
+        commitMode: input.commitMode ?? "direct",
+        prBranch: input.prBranch ?? "agentes/wiki",
+        pullRequest: null,
         status: "active",
         errorCode: null,
         syncing: true,
@@ -350,6 +354,10 @@ export function createFakeWiki(ctx: MockContext, log: (method: string, ...args: 
         pending: 0,
         held: [],
       };
+    },
+    setRepositoryWriting: async (orgId, input) => {
+      log("wiki.setRepositoryWriting", orgId, input);
+      return null;
     },
     syncRepository: async (orgId) => {
       log("wiki.syncRepository", orgId);

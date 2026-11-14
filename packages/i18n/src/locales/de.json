@@ -11258,7 +11258,8 @@
         "upToDate": "{{repo}} · aktuell {{when}}",
         "syncing": "{{repo}} · wird aktualisiert…",
         "retrying": "{{repo}} · GitHub hat nicht geantwortet, neuer Versuch",
-        "stopped": "Aktualisiert sich nicht mehr mit {{repo}}"
+        "stopped": "Aktualisiert sich nicht mehr mit {{repo}}",
+        "readOnly": "{{repo}} · nur lesen · aktuell {{when}}"
       },
       "connect": {
         "title": "Das Wiki auf GitHub pflegen",
@@ -11266,8 +11267,11 @@
         "repository": "Repository",
         "repositoryPlaceholder": "Repository wählen",
         "repositoryHelp": "Nur die Repositorys, in denen die GitHub-App installiert ist, werden angezeigt.",
-        "noRepositories": "Die GitHub-App erreicht noch kein Repository.",
-        "openConnectors": "In Konnektoren installieren",
+        "byAddress": "Ein anderes Repository, über seine Adresse",
+        "address": "Adresse des Repositorys",
+        "addressPlaceholder": "https://github.com/besitzer/name",
+        "addressHelp": "Ein öffentliches Repository geht auch ohne die App: Das Wiki folgt ihm, und was sich hier ändert, bleibt hier.",
+        "openConnectors": "Um auch dorthin zu schreiben, oder für ein privates Repository, installiere die GitHub-App in Konnektoren.",
         "search": "Repositorys durchsuchen",
         "noResults": "Kein Repository mit diesem Namen.",
         "folder": "Ordner",
@@ -11292,12 +11296,31 @@
         "held_one": "{{count}} Notiz wurde keine Seite",
         "held_other": "{{count}} Notizen wurden keine Seiten",
         "retrying": "GitHub hat beim letzten Mal nicht geantwortet. Das Wiki versucht es von selbst erneut.",
+        "prOpen": "Pull Request #{{number}} auf GitHub offen",
+        "prDeclined": "Pull Request #{{number}} wurde ohne Merge geschlossen: Diese Änderungen warten hier, bis sie sich wieder ändern.",
+        "readOnly": "Die GitHub-App ist in {{repo}} nicht installiert oder darf es nur lesen: Das Wiki folgt ihm, und was sich hier ändert, bleibt hier. Installiere die App dort mit Schreibrecht, um auch die Änderungen von hier zu senden.",
         "noteDisconnect": "Trennen lässt die Seiten hier und die Notizen dort, wie sie sind.",
         "noteStopped": "Bis dahin bleibt, was hier geschrieben wird, hier und geht ins Repository, sobald es wieder da ist.",
         "disconnect": "Trennen",
         "open": "Auf GitHub öffnen",
         "syncNow": "Jetzt aktualisieren",
         "retry": "Erneut versuchen"
+      },
+      "writing": {
+        "label": "Wie das Wiki dort schreibt",
+        "direct": "Direkt im Branch",
+        "directDesc": "Jede Änderung ist ein Commit auf dem Branch, dem das Wiki folgt.",
+        "pullRequest": "Über einen Pull Request",
+        "pullRequestDesc": "Änderungen gehen auf einen eigenen Branch des Wikis, in einen Pull Request, den jemand auf GitHub annimmt.",
+        "none": "Nicht schreiben",
+        "noneDesc": "Das Wiki folgt dem Repository nur: Was sich hier ändert, bleibt hier.",
+        "branch": "Branch des Pull Requests",
+        "branchHelp": "Das Wiki baut ihn bei jeder Änderung neu: Bearbeite das Wiki, nicht diesen Branch.",
+        "now": {
+          "direct": "Das Wiki committet direkt auf {{branch}}.",
+          "pull_request": "Das Wiki schlägt seine Änderungen in einem Pull Request nach {{branch}} vor.",
+          "none": "Das Wiki folgt dem Repository nur: Was sich hier ändert, bleibt hier."
+        }
       },
       "held": {
         "tooLong": "Länger, als eine Seite sein kann",
@@ -11306,16 +11329,16 @@
         "other": "Konnte keine Seite werden"
       },
       "why": {
-        "not_installed": "Die GitHub-App erreicht {{repo}} nicht mehr. Ein Admin fügt das Repository auf GitHub zur App hinzu, und das Wiki folgt ihm wieder.",
-        "refused": "Die GitHub-App darf nicht in {{repo}} schreiben. Ein Admin akzeptiert die Berechtigungen der App auf GitHub, und das Wiki folgt ihm wieder.",
+        "not_installed": "Die GitHub-App erreicht {{repo}} nicht mehr, und es ist nicht öffentlich. Ein Admin fügt das Repository auf GitHub zur App hinzu, und das Wiki folgt ihm wieder.",
+        "refused": "Die GitHub-App darf {{repo}} nicht lesen. Ein Admin akzeptiert die Berechtigungen der App auf GitHub, und das Wiki folgt ihm wieder.",
         "branch_missing": "Der Branch, in dem das Wiki lag, ist aus {{repo}} verschwunden. Verbinde das Repository neu.",
         "empty": "{{repo}} hat noch keine Datei. Füge eine erste Datei hinzu und versuche es erneut.",
-        "missing": "{{repo}} ist weg, oder die GitHub-App sieht es nicht mehr.",
+        "missing": "{{repo}} ist weg oder kann nicht mehr gelesen werden.",
         "too_large": "{{repo}} hat zu viele Notizen, um ihnen zu folgen. Verbinde stattdessen einen seiner Ordner.",
         "owner_gone": "Wer {{repo}} verbunden hat, ist hier kein Admin mehr. Ein Admin startet es hier wieder.",
         "folder_missing": "Der Ordner des Wikis ist aus {{repo}} verschwunden oder leer. Hier wurde nichts gelöscht: Verbinde das Repository neu mit dem richtigen Ordner.",
-        "no_app": "Die GitHub-App, die {{repo}} erreicht hat, gibt es nicht mehr. Ein Admin richtet eine in Konnektoren ein, und das Wiki folgt ihm wieder.",
-        "protected": "{{repo}} nimmt auf diesem Branch keine direkten Commits an (er ist geschützt). Erlaube der GitHub-App, dorthin zu pushen, oder verbinde einen anderen Branch.",
+        "no_app": "{{repo}} ist nicht öffentlich, und keine GitHub-App ist eingerichtet, um es zu erreichen. Ein Admin richtet eine in Konnektoren ein, und das Wiki folgt ihm wieder.",
+        "protected": "{{repo}} nimmt auf diesem Branch keine direkten Commits an (er ist geschützt). Wähle „Über einen Pull Request“ oder erlaube der GitHub-App, dorthin zu pushen.",
         "other": "Das Wiki folgt {{repo}} nicht mehr. Versuche es erneut."
       },
       "page": {
@@ -11327,8 +11350,13 @@
         "notSentHint": "Das Wiki aktualisiert sich nicht mehr mit GitHub. Diese Version geht dorthin, sobald es wieder läuft.",
         "local": "Nur hier",
         "localHint": "Seiten, die nur für einige Personen sichtbar sind, gehen nie zu GitHub.",
+        "readOnlyHint": "Dem Repository wird nur lesend gefolgt: Diese Version bleibt hier, und die nächste Änderung seiner Notiz dort ersetzt sie.",
         "held": "Auf GitHub nicht aktualisiert",
-        "heldHint": "Ihre Notiz auf GitHub konnte hier nicht gelesen werden, deshalb wird diese Seite nicht darüber geschrieben."
+        "heldHint": "Ihre Notiz auf GitHub konnte hier nicht gelesen werden, deshalb wird diese Seite nicht darüber geschrieben.",
+        "review": "Im Pull Request",
+        "reviewHint": "Diese Version wartet im Pull Request des Wikis, bis jemand sie auf GitHub annimmt.",
+        "declined": "Auf GitHub abgelehnt",
+        "declinedHint": "Der Pull Request mit dieser Version wurde ohne Merge geschlossen: Sie bleibt hier, bis sie sich wieder ändert."
       }
     },
     "import": {
@@ -14587,9 +14615,11 @@
       "githubNoNotes": "Unter diesem Link gibt es keine Markdown-Notizen.",
       "githubTooLarge": "Zu viele Notizen, um sie über einen Link zu lesen. Lade das Repository als .zip herunter und importiere es unter Dateien.",
       "repoInvalid": "Gib das Repository als Besitzer/Name an.",
-      "repoNoApp": "Es ist noch keine GitHub-App eingerichtet, um Repositorys zu erreichen.",
-      "repoNotInstalled": "Die GitHub-App ist in diesem Repository nicht installiert.",
-      "repoRefused": "Die GitHub-App darf nicht in dieses Repository schreiben.",
+      "repoNoApp": "Dieses Repository ist privat oder existiert nicht, und keine GitHub-App ist eingerichtet, um es zu erreichen.",
+      "repoNotInstalled": "Die GitHub-App ist in diesem Repository nicht installiert, und es ist nicht öffentlich.",
+      "repoRefused": "Die GitHub-App darf dieses Repository nicht lesen.",
+      "repoMissing": "Dieses Repository ist weg oder kann nicht mehr gelesen werden.",
+      "repoBranchInvalid": "Das kann nicht der Branch des Pull Requests sein: Nutze Buchstaben, Zahlen, - und /, und nicht den Branch, dem das Wiki folgt.",
       "repoBranchMissing": "Diesen Branch gibt es im Repository nicht.",
       "repoEmpty": "Dieses Repository hat noch keine Datei. Füge eine erste Datei hinzu und versuche es erneut.",
       "repoPathInvalid": "Dieser Ordner kann das Wiki nicht aufnehmen.",

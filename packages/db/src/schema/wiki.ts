@@ -213,6 +213,32 @@ export const wikiRepositories = pgTable(
     path: text().notNull().default(""),
     /** The commit both sides agreed on last; null before the first sync. */
     headSha: text(),
+    /**
+     * The wiki writes there too: the GitHub App, installed on it, may write its contents. False: a public repository
+     * the app doesn't reach, which the wiki follows read-only.
+     */
+    writable: boolean().notNull().default(true),
+    /**
+     * How the wiki writes there: `direct`, commits on `branch`; `pull_request`, one pull request into `branch` from
+     * `prBranch`, rebuilt on `branch` at every change; `none`, never (it only follows the repository).
+     */
+    commitMode: text().notNull().default("direct"),
+    /** The wiki's own branch for its pull request. */
+    prBranch: text().notNull().default("agentes/wiki"),
+    /**
+     * The wiki's pull request: `open`, or `declined` (closed without merging: the same changes aren't proposed again),
+     * and what it holds (an unchanged one isn't sent again).
+     */
+    prNumber: integer(),
+    prUrl: text(),
+    prState: text(),
+    prSignature: text(),
+    /**
+     * The notes the pull request writes, by path (relative to `path`), and the page each comes from at which version,
+     * name and blob: merged, each note goes back to its page, never a new one.
+     */
+    prFiles:
+      jsonb().$type<Record<string, { pageId: string; version: number; sha: string; title: string; folder: string }>>(),
     /** `active`, or `error` with `errorCode` saying why it stopped (the app left the repository, the branch is gone). */
     status: text().notNull().default("active"),
     errorCode: text(),

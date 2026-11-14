@@ -284,6 +284,8 @@ const KNOWN = {
   "wiki.repo_branch_missing": "errors.wiki.repoBranchMissing",
   "wiki.repo_empty": "errors.wiki.repoEmpty",
   "wiki.repo_path_invalid": "errors.wiki.repoPathInvalid",
+  "wiki.repo_missing": "errors.wiki.repoMissing",
+  "wiki.repo_branch_invalid": "errors.wiki.repoBranchInvalid",
   "skill.no_skill_md": "errors.skill.noSkillMd",
   "skill.too_many_skills": "errors.skill.tooManySkills",
   "skill.invalid_name": "errors.skill.invalidName",

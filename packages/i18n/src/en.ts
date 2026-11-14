@@ -11590,6 +11590,7 @@ export const en = {
         syncing: "{{repo}} · updating…",
         retrying: "{{repo}} · GitHub didn't answer, trying again",
         stopped: "Stopped updating with {{repo}}",
+        readOnly: "{{repo}} · read only · up to date {{when}}",
       },
       connect: {
         title: "Keep the wiki on GitHub",
@@ -11598,8 +11599,12 @@ export const en = {
         repository: "Repository",
         repositoryPlaceholder: "Choose a repository",
         repositoryHelp: "Only the repositories the GitHub app is installed on show up.",
-        noRepositories: "The GitHub app doesn't reach any repository yet.",
-        openConnectors: "Install it in Connectors",
+        byAddress: "Another repository, by its address",
+        address: "Repository address",
+        addressPlaceholder: "https://github.com/owner/name",
+        addressHelp:
+          "A public repository works without the app: the wiki follows it, and what changes here stays here.",
+        openConnectors: "To write there too, or for a private repository, install the GitHub app in Connectors.",
         search: "Search repositories",
         noResults: "No repository with that name.",
         folder: "Folder",
@@ -11625,12 +11630,33 @@ export const en = {
         held_one: "{{count}} note didn't become a page",
         held_other: "{{count}} notes didn't become pages",
         retrying: "GitHub didn't answer the last time. The wiki tries again by itself.",
+        prOpen: "Pull request #{{number}} open on GitHub",
+        prDeclined:
+          "Pull request #{{number}} was closed without merging: those changes wait here until they change again.",
+        readOnly:
+          "The GitHub app isn't installed on {{repo}}, or may only read it: the wiki follows it, and what changes here stays here. Install the app on it, allowed to write, to send the changes from here too.",
         noteDisconnect: "Disconnecting leaves the pages here and the notes there, as they are.",
         noteStopped: "Meanwhile, what is written here stays here and goes to the repository once it is back.",
         disconnect: "Disconnect",
         open: "Open on GitHub",
         syncNow: "Update now",
         retry: "Try again",
+      },
+      writing: {
+        label: "How the wiki writes there",
+        direct: "Straight to the branch",
+        directDesc: "Each change is a commit on the branch the wiki follows.",
+        pullRequest: "Through a pull request",
+        pullRequestDesc: "Changes go to a branch of the wiki's own, in one pull request someone accepts on GitHub.",
+        none: "Don't write",
+        noneDesc: "The wiki only follows the repository: what changes here stays here.",
+        branch: "The pull request's branch",
+        branchHelp: "The wiki rebuilds it at every change: edit the wiki, not this branch.",
+        now: {
+          direct: "The wiki commits straight on {{branch}}.",
+          pull_request: "The wiki proposes its changes in a pull request into {{branch}}.",
+          none: "The wiki only follows the repository: what changes here stays here.",
+        },
       },
       held: {
         tooLong: "Longer than a page can be",
@@ -11640,20 +11666,20 @@ export const en = {
       },
       why: {
         not_installed:
-          "The GitHub app no longer reaches {{repo}}. An admin adds the repository to the app on GitHub, and the wiki follows it again.",
+          "The GitHub app no longer reaches {{repo}}, and it isn't public. An admin adds the repository to the app on GitHub, and the wiki follows it again.",
         refused:
-          "The GitHub app may not write to {{repo}}. An admin accepts the app's permissions on GitHub, and the wiki follows it again.",
+          "The GitHub app may not read {{repo}}. An admin accepts the app's permissions on GitHub, and the wiki follows it again.",
         branch_missing: "The branch the wiki was kept on is gone from {{repo}}. Connect the repository again.",
         empty: "{{repo}} has no file yet. Add a first file to it and try again.",
-        missing: "{{repo}} is gone, or the GitHub app no longer sees it.",
+        missing: "{{repo}} is gone, or can no longer be read.",
         too_large: "{{repo}} holds too many notes to follow. Connect one of its folders instead.",
         owner_gone: "Whoever connected {{repo}} is no longer an admin here. An admin starts it again here.",
         folder_missing:
           "The wiki's folder is gone from {{repo}}, or is empty. Nothing was deleted here: connect the repository again with the right folder.",
         no_app:
-          "The GitHub app that reached {{repo}} is gone. An admin sets one up in Connectors, and the wiki follows it again.",
+          "{{repo}} isn't public, and no GitHub app is set up to reach it. An admin sets one up in Connectors, and the wiki follows it again.",
         protected:
-          "{{repo}} takes no commits straight on that branch (it is protected). Let the GitHub app push to it, or connect another branch.",
+          "{{repo}} takes no commits straight on that branch (it is protected). Choose “Through a pull request”, or let the GitHub app push to it.",
         other: "The wiki stopped following {{repo}}. Try again.",
       },
       page: {
@@ -11665,8 +11691,15 @@ export const en = {
         notSentHint: "The wiki stopped updating with GitHub. This version goes there once it starts again.",
         local: "Only here",
         localHint: "Pages limited to some people never go to GitHub.",
+        readOnlyHint:
+          "The repository is followed read only: this version stays here, and the next change to its note there replaces it.",
         held: "Not updated on GitHub",
         heldHint: "Its note on GitHub couldn't be read here, so this page isn't written over it.",
+        review: "In the pull request",
+        reviewHint: "This version waits in the wiki's pull request, until someone accepts it on GitHub.",
+        declined: "Declined on GitHub",
+        declinedHint:
+          "The pull request with this version was closed without merging: it stays here until it changes again.",
       },
     },
     import: {
@@ -14767,9 +14800,12 @@ export const en = {
       githubNoNotes: "No Markdown notes in this link.",
       githubTooLarge: "Too many notes to read from a link. Download the repository as a .zip and import it in Files.",
       repoInvalid: "Name the repository as owner/name.",
-      repoNoApp: "No GitHub app is set up to reach repositories yet.",
-      repoNotInstalled: "The GitHub app isn't installed on that repository.",
-      repoRefused: "The GitHub app may not write to that repository.",
+      repoNoApp: "That repository is private or doesn't exist, and no GitHub app is set up to reach it.",
+      repoNotInstalled: "The GitHub app isn't installed on that repository, and it isn't public.",
+      repoRefused: "The GitHub app may not read that repository.",
+      repoMissing: "That repository is gone, or can no longer be read.",
+      repoBranchInvalid:
+        "That can't be the pull request's branch: use letters, numbers, - and /, and not the branch the wiki follows.",
       repoBranchMissing: "That branch doesn't exist in the repository.",
       repoEmpty: "That repository has no file yet. Add a first file to it and try again.",
       repoPathInvalid: "That folder can't hold the wiki.",

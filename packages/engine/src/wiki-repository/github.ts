@@ -100,6 +100,9 @@ async function rootTreeOf(api: GitHubRepoAccess, commit: string) {
   return sha;
 }
 
+/** One request's share of a commit's tree: GitHub takes a tree in parts, each on the one before. */
+const TREE_PART = { entries: 200, bytes: 8 * 1024 * 1024 };
+
 /** A git blob that is a file: links (`120000`) and submodules aren't notes. */
 const isFile = (e: TreeEntry) => e.type === "blob" && e.mode !== "120000";
 
@@ -116,7 +119,47 @@ export function githubRemote(api: GitHubRepoAccess): NoteRemote {
     roots.set(commit, sha);
     return sha;
   };
+  /**
+   * A commit on top of `parent` writing and removing those files, its tree made in parts (a part's entries and bytes
+   * bounded, each built on the one before), or `moved` when the parent no longer has a path to remove.
+   */
+  const commitOn = async (
+    parent: string,
+    message: string,
+    writes: { path: string; text: string }[],
+    removes: string[],
+  ): Promise<string | "moved"> => {
+    const entries = [
+      ...writes.map((w) => ({ path: w.path, mode: "100644", type: "blob", content: w.text })),
+      ...removes.map((path) => ({ path, mode: "100644", type: "blob", sha: null as string | null })),
+    ];
+    let base = await rootOf(parent);
+    for (let at = 0; at < entries.length || at === 0; ) {
+      const part: typeof entries = [];
+      let bytes = 0;
+      while (at < entries.length && part.length < TREE_PART.entries && bytes < TREE_PART.bytes) {
+        const entry = entries[at++];
+        if (!entry) break;
+        bytes += "content" in entry ? Buffer.byteLength(entry.content ?? "", "utf8") : 0;
+        part.push(entry);
+      }
+      const made = await call(api, "POST", "/git/trees", { base_tree: base, tree: part });
+      // 422: a path to remove that the parent no longer has; the branch moved under us, or what we remember is off.
+      if (made.status === 422) return "moved";
+      if (made.status !== 201 || typeof made.json.sha !== "string") throw refused(made.status);
+      base = made.json.sha;
+      if (at >= entries.length) break;
+    }
+    const commit = await call(api, "POST", "/git/commits", { message, tree: base, parents: [parent] });
+    if (commit.status !== 201 || typeof commit.json.sha !== "string") throw refused(commit.status);
+    return commit.json.sha;
+  };
   return {
+    async about() {
+      const facts = await githubRepoFacts(api);
+      if (!facts) throw new RepoRefusal("wiki.repo_missing");
+      return facts;
+    },
     head: (branch) => branchHead(api, branch),
 
     // The whole tree at once; a repository too large for that is walked down to the folder and listed from there.
@@ -156,34 +199,60 @@ export function githubRemote(api: GitHubRepoAccess): NoteRemote {
     },
 
     async commit(input) {
-      const made = await call(api, "POST", "/git/trees", {
-        base_tree: await rootOf(input.parent),
-        tree: [
-          ...input.writes.map((w) => ({ path: w.path, mode: "100644", type: "blob", content: w.text })),
-          ...input.removes.map((path) => ({ path, mode: "100644", type: "blob", sha: null })),
-        ],
-      });
-      const treeSha = made.json.sha;
-      // 422: a path to remove that the parent no longer has; the branch moved under us, or what we remember is off.
-      if (made.status === 422) return "moved";
-      if (made.status !== 201 || typeof treeSha !== "string") throw refused(made.status);
-      const commit = await call(api, "POST", "/git/commits", {
-        message: input.message,
-        tree: treeSha,
-        parents: [input.parent],
-      });
-      const commitSha = commit.json.sha;
-      if (commit.status !== 201 || typeof commitSha !== "string") throw refused(commit.status);
-      const ref = await call(api, "PATCH", `/git/refs/heads/${segments(input.branch)}`, {
-        sha: commitSha,
-        force: false,
-      });
-      if (ref.status === 200) return commitSha;
+      const made = await commitOn(input.parent, input.message, input.writes, input.removes);
+      if (made === "moved") return "moved";
+      const ref = await call(api, "PATCH", `/git/refs/heads/${segments(input.branch)}`, { sha: made, force: false });
+      if (ref.status === 200) return made;
       if (ref.status !== 422 && ref.status !== 409) throw refused(ref.status);
       // Not a fast-forward because someone pushed first, or the branch takes no direct commit (protected, a rule).
       const now = await branchHead(api, input.branch);
       if (now !== input.parent) return "moved";
       throw new RepoRefusal("wiki.repo_protected");
+    },
+
+    async propose(input) {
+      const made = await commitOn(input.parent, input.message, input.writes, input.removes);
+      if (made === "moved") return "moved";
+      // The wiki's branch is its own: rebuilt on the base each time, whatever it held.
+      const ref = await call(api, "PATCH", `/git/refs/heads/${segments(input.branch)}`, { sha: made, force: true });
+      if (ref.status === 404 || ref.status === 422) {
+        const created = await call(api, "POST", "/git/refs", { ref: `refs/heads/${input.branch}`, sha: made });
+        if (created.status !== 201) throw refused(created.status);
+      } else if (ref.status !== 200) throw refused(ref.status);
+      const head = encodeURIComponent(`${api.owner}:${input.branch}`);
+      const found = await call(
+        api,
+        "GET",
+        `/pulls?state=open&head=${head}&base=${encodeURIComponent(input.base)}&per_page=1`,
+      );
+      const open = Array.isArray(found.json) ? (found.json as { number?: number; html_url?: string }[])[0] : undefined;
+      if (open?.number) {
+        await call(api, "PATCH", `/pulls/${open.number}`, { title: input.title, body: input.body });
+        return { number: open.number, url: String(open.html_url ?? "") };
+      }
+      const pull = await call(api, "POST", "/pulls", {
+        title: input.title,
+        body: input.body,
+        head: input.branch,
+        base: input.base,
+        maintainer_can_modify: true,
+      });
+      const number = pull.json.number;
+      if (pull.status !== 201 || typeof number !== "number") throw refused(pull.status);
+      return { number, url: String(pull.json.html_url ?? "") };
+    },
+
+    async proposal(number) {
+      const { status, json } = await call(api, "GET", `/pulls/${number}`);
+      if (status === 404) return "missing";
+      if (status !== 200) throw refused(status);
+      if (json.merged === true || typeof json.merged_at === "string") return "merged";
+      return json.state === "open" ? "open" : "closed";
+    },
+
+    async withdraw(number) {
+      const { status } = await call(api, "PATCH", `/pulls/${number}`, { state: "closed" });
+      if (status !== 200 && status !== 404 && status !== 422) throw refused(status);
     },
   };
 }
