@@ -11655,7 +11655,6 @@ export const en = {
         pullRequestDescAny: "Changes here go in a pull request, for someone to accept on GitHub.",
         none: "Just follow",
         noneDesc: "The wiki gets what changes on GitHub, and what changes here stays here.",
-        needsApp: "Needs the GitHub app on this repository, allowed to write.",
         branch: "The pull request's branch",
         branchHelp: "The wiki rebuilds it at every change: edit the wiki, not this branch.",
         now: {

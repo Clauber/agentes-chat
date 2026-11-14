@@ -27695,9 +27695,6 @@
   "wiki.repo.writing.noneDesc": {
     "value": "The wiki gets what changes on GitHub, and what changes here stays here."
   },
-  "wiki.repo.writing.needsApp": {
-    "value": "Needs the GitHub app on this repository, allowed to write."
-  },
   "wiki.repo.writing.branch": {
     "value": "The pull request's branch"
   },

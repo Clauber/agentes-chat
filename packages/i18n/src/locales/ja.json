@@ -10878,7 +10878,6 @@
         "pullRequestDescAny": "ここでの変更はプルリクエストに入り、GitHub で誰かが承認します。",
         "none": "追従のみ",
         "noneDesc": "Wiki は GitHub での変更を受け取ります。ここでの変更はここに残ります。",
-        "needsApp": "このリポジトリに、書き込み権限付きの GitHub アプリが必要です。",
         "branch": "プルリクエストのブランチ",
         "branchHelp": "Wiki は変更のたびにこのブランチを作り直します。このブランチではなく Wiki を編集してください。",
         "now": {

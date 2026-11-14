@@ -203,7 +203,7 @@ const PR_BRANCH = "agentes/wiki";
 
 /**
  * How the wiki writes in its repository: straight on the branch, through a pull request, or not at all. A repository
- * the wiki may only read leaves the last one: the others say why.
+ * the wiki may only read leaves the last one (the note above the choice says why).
  */
 function WritingChoice({
   mode,
@@ -220,7 +220,6 @@ function WritingChoice({
   disabled?: boolean;
 }) {
   const { t } = useTranslation();
-  const needsApp = readOnly ? t("wiki.repo.writing.needsApp") : null;
   return (
     <Field label={t("wiki.repo.writing.label")} group>
       <OptionList
@@ -232,17 +231,15 @@ function WritingChoice({
           {
             value: "direct",
             title: t("wiki.repo.writing.direct"),
-            description:
-              needsApp ??
-              (branch ? t("wiki.repo.writing.directDesc", { branch }) : t("wiki.repo.writing.directDescAny")),
+            description: branch ? t("wiki.repo.writing.directDesc", { branch }) : t("wiki.repo.writing.directDescAny"),
             disabled: readOnly,
           },
           {
             value: "pull_request",
             title: t("wiki.repo.writing.pullRequest"),
-            description:
-              needsApp ??
-              (branch ? t("wiki.repo.writing.pullRequestDesc", { branch }) : t("wiki.repo.writing.pullRequestDescAny")),
+            description: branch
+              ? t("wiki.repo.writing.pullRequestDesc", { branch })
+              : t("wiki.repo.writing.pullRequestDescAny"),
             disabled: readOnly,
           },
           { value: "none", title: t("wiki.repo.writing.none"), description: t("wiki.repo.writing.noneDesc") },
@@ -447,7 +444,8 @@ function Connect({ onClose }: { onClose: () => void }) {
             </div>
           </details>
           <div>
-            <SettingNote icon="refresh">{cadenceOf(t, { writable: !readOnly })}</SettingNote>
+            {/* How changes arrive depends on the repository: said once it has been checked. */}
+            {found && <SettingNote icon="refresh">{cadenceOf(t, { writable: found.writable })}</SettingNote>}
             <SettingNote icon="clock">{t("wiki.repo.connect.noteConflict")}</SettingNote>
             <SettingNote icon="lock">{t("wiki.repo.connect.noteRestricted")}</SettingNote>
           </div>

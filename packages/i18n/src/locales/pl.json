@@ -12148,7 +12148,6 @@
         "pullRequestDescAny": "Zmiany stąd trafiają do pull requesta, który ktoś akceptuje na GitHubie.",
         "none": "Tylko podążaj",
         "noneDesc": "Wiki dostaje to, co zmienia się na GitHubie, a to, co zmienia się tutaj, zostaje tutaj.",
-        "needsApp": "Wymaga aplikacji GitHub w tym repozytorium, z prawem zapisu.",
         "branch": "Gałąź pull requesta",
         "branchHelp": "Wiki odbudowuje ją przy każdej zmianie: edytuj wiki, nie tę gałąź.",
         "now": {

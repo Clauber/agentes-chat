@@ -11264,7 +11264,6 @@
         "pullRequestDescAny": "Buradaki değişiklikler, birinin GitHub'da kabul edeceği bir pull request ile gider.",
         "none": "Sadece takip et",
         "noneDesc": "Wiki GitHub'da değişeni alır, burada değişen ise burada kalır.",
-        "needsApp": "Bu depoda yazma izni olan GitHub uygulaması gerekir.",
         "branch": "Pull request'in dalı",
         "branchHelp": "Wiki bu dalı her değişiklikte yeniden kurar: bu dalı değil, wiki'yi düzenleyin.",
         "now": {

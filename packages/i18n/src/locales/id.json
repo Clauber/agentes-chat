@@ -10931,7 +10931,6 @@
         "pullRequestDescAny": "Perubahan dari sini masuk ke pull request, untuk diterima seseorang di GitHub.",
         "none": "Hanya mengikuti",
         "noneDesc": "Wiki menerima yang berubah di GitHub, dan yang berubah di sini tetap di sini.",
-        "needsApp": "Perlu aplikasi GitHub di repositori ini, dengan izin menulis.",
         "branch": "Branch pull request",
         "branchHelp": "Wiki membangun ulang branch ini setiap ada perubahan: edit wiki, bukan branch ini.",
         "now": {

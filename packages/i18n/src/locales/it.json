@@ -11758,7 +11758,6 @@
         "pullRequestDescAny": "Le modifiche da qui vanno in una pull request, che qualcuno accetta su GitHub.",
         "none": "Solo seguire",
         "noneDesc": "La wiki riceve quello che cambia su GitHub, e quello che cambia qui resta qui.",
-        "needsApp": "Serve l'app di GitHub in questo repository, con il permesso di scrivere.",
         "branch": "Branch della pull request",
         "branchHelp": "La wiki lo ricostruisce a ogni modifica: modifica la wiki, non questo branch.",
         "now": {

@@ -11696,7 +11696,6 @@ export const ptBR = {
         pullRequestDescAny: "As mudanças daqui vão num pull request, e alguém aceita no GitHub.",
         none: "Só acompanhar",
         noneDesc: "A wiki recebe o que muda no GitHub, e o que muda aqui fica aqui.",
-        needsApp: "Precisa do app do GitHub nesse repositório, com permissão para escrever.",
         branch: "Branch do pull request",
         branchHelp: "A wiki refaz essa branch a cada mudança: edite a wiki, não essa branch.",
         now: {

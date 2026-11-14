@@ -10945,7 +10945,6 @@
         "pullRequestDescAny": "这里的改动会进入一个拉取请求，由有人在 GitHub 上接受。",
         "none": "仅跟随",
         "noneDesc": "Wiki 会收到 GitHub 上的改动，而这里的改动会留在这里。",
-        "needsApp": "需要在这个仓库上安装有写入权限的 GitHub 应用。",
         "branch": "拉取请求的分支",
         "branchHelp": "Wiki 每次改动都会重建这个分支：请编辑 Wiki，不要编辑这个分支。",
         "now": {
