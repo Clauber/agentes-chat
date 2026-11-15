@@ -1799,6 +1799,10 @@ button.wiki-repo-mark:hover {
   flex-direction: column;
   gap: 18px;
 }
+/* A note among the fields takes the stack's gap as the room above it, as in the kit's stacks (`.ac-form`). */
+.wiki-repo-form > .ac-setnote {
+  margin: 0;
+}
 .wiki-repo-sub {
   margin: 0 0 6px;
   font-size: 14px;

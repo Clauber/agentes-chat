@@ -622,6 +622,8 @@ export function WikiImportDialog({
 
   let body: ReactNode;
   let footer: ReactNode;
+  // The footer's words before its buttons: the kit's note, so a row too narrow for both keeps the buttons together.
+  let footNote: ReactNode | undefined;
   if (done && missing > 0) {
     body = (
       <>
@@ -788,22 +790,26 @@ export function WikiImportDialog({
             )}
           </div>
           {report.conflicts.length > 0 && dest === "merge" && (
-            <div className="vault-row vault-row--wrap">
+            // The icon on the words' first line, the choice beside the words while they fit on one line, else under
+            // them from their edge: never words squeezed beside it.
+            <div className="vault-row vault-row--lead ac-iconline">
               <Icon name="alert" size={16} />
-              <span className="vault-row__name">
-                {t("wiki.import.conflicts", { count: report.conflicts.length })}
-                <small>{report.conflicts.slice(0, 6).join(", ")}</small>
-              </span>
-              <Segmented
-                size="sm"
-                label={t("wiki.import.conflictsLabel")}
-                value={conflict}
-                onValueChange={setConflict}
-                options={[
-                  { value: "keep_both", label: t("wiki.import.keepBoth") },
-                  { value: "skip", label: t("wiki.import.skip") },
-                ]}
-              />
+              <div className="ac-actline">
+                <span className="vault-row__name">
+                  {t("wiki.import.conflicts", { count: report.conflicts.length })}
+                  <small>{report.conflicts.slice(0, 6).join(", ")}</small>
+                </span>
+                <Segmented
+                  size="sm"
+                  label={t("wiki.import.conflictsLabel")}
+                  value={conflict}
+                  onValueChange={setConflict}
+                  options={[
+                    { value: "keep_both", label: t("wiki.import.keepBoth") },
+                    { value: "skip", label: t("wiki.import.skip") },
+                  ]}
+                />
+              </div>
             </div>
           )}
         </section>
@@ -815,9 +821,9 @@ export function WikiImportDialog({
         </section>
       </>
     );
+    footNote = t("wiki.import.versionHint");
     footer = (
       <>
-        <span className="small muted vault-foot-hint">{t("wiki.import.versionHint")}</span>
         <Button onClick={reader.reset}>
           {t(report.source === "github" ? "wiki.import.anotherLink" : "wiki.import.another")}
         </Button>
@@ -915,10 +921,10 @@ export function WikiImportDialog({
       ) : (
         <VaultDropZone plain onFiles={(f, n) => void read(f, n, "files")} />
       );
+    footNote = from === null ? undefined : t("wiki.import.nothingYet");
     footer =
       from === null ? null : (
         <>
-          <span className="small muted vault-foot-hint">{t("wiki.import.nothingYet")}</span>
           <Button onClick={backToSources}>{t("common.back")}</Button>
           {from === "github" && (
             <Button
@@ -962,7 +968,7 @@ export function WikiImportDialog({
           <DialogBody>
             <div className="vault-dialog">{body}</div>
           </DialogBody>
-          {footer && <DialogFooter>{footer}</DialogFooter>}
+          {footer && <DialogFooter note={footNote}>{footer}</DialogFooter>}
         </>
       )}
       <ConnectFlow
