@@ -530,13 +530,16 @@ function Manage({ repository, onClose }: { repository: WikiRepository; onClose: 
           {!stopped && !repository.writable && (
             <Alert tone="neutral">{t("wiki.repo.manage.readOnly", { repo: nameOf(repository) })}</Alert>
           )}
+          {/* Two even columns under the repository's line: where the notes are, then how fresh they are. */}
           <FactStrip
+            columns={2}
             facts={[
               {
                 key: "repository",
                 icon: <GitHubMark size={16} />,
                 label: t("wiki.repo.connect.repository"),
                 value: `${nameOf(repository)} · ${repository.branch}`,
+                wide: true,
               },
               {
                 key: "folder",
