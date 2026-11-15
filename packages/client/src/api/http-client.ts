@@ -1861,10 +1861,11 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
             json: input,
           })
         ).repository,
-      syncRepository: async (orgId) =>
+      syncRepository: async (orgId, input) =>
         (
           await request<{ repository: WikiRepository | null }>(`${org(orgId)}/wiki/repository/sync`, {
             method: "POST",
+            json: input ?? {},
           })
         ).repository,
       disconnectRepository: (orgId) => request<void>(`${org(orgId)}/wiki/repository`, { method: "DELETE" }),

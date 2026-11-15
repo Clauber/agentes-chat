@@ -61,13 +61,17 @@ async function call(api: GitHubRepoAccess, method: string, path: string, body?: 
 const refused = (status: number) =>
   new RepoRefusal(status === 404 || status === 301 ? "wiki.repo_missing" : "wiki.repo_refused");
 
-/** The repository as GitHub names it, and its default branch; null when the token doesn't reach it. */
+/**
+ * The repository as GitHub names it, its default branch, and whether anyone may read it (an `internal` one is its
+ * enterprise's only); null when the token doesn't reach it.
+ */
 export async function githubRepoFacts(api: GitHubRepoAccess) {
   const { status, json } = await call(api, "GET", "");
   if (status !== 200) return null;
   const [owner, repo] = String(json.full_name ?? "").split("/");
   if (!owner || !repo || typeof json.default_branch !== "string") return null;
-  return { owner, repo, defaultBranch: json.default_branch };
+  const open = typeof json.visibility === "string" ? json.visibility === "public" : json.private === false;
+  return { owner, repo, defaultBranch: json.default_branch, public: open };
 }
 
 async function branchHead(api: GitHubRepoAccess, branch: string): Promise<string | "missing" | "empty"> {

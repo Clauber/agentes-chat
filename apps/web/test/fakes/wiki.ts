@@ -342,6 +342,7 @@ export function createFakeWiki(ctx: MockContext, log: (method: string, ...args: 
         defaultBranch: "main",
         path: input.path ?? "",
         writable: true,
+        public: false,
         url: `https://github.com/${owner}/${repo}`,
       };
     },
@@ -356,6 +357,7 @@ export function createFakeWiki(ctx: MockContext, log: (method: string, ...args: 
         path: input.path ?? "",
         url: `https://github.com/${owner}/${repo}`,
         writable: true,
+        public: false,
         commitMode: input.commitMode ?? "direct",
         prBranch: input.prBranch ?? "agentes/wiki",
         pullRequest: null,
@@ -367,14 +369,15 @@ export function createFakeWiki(ctx: MockContext, log: (method: string, ...args: 
         notes: 0,
         pending: 0,
         held: [],
+        removalsWaiting: null,
       };
     },
     setRepositoryWriting: async (orgId, input) => {
       log("wiki.setRepositoryWriting", orgId, input);
       return null;
     },
-    syncRepository: async (orgId) => {
-      log("wiki.syncRepository", orgId);
+    syncRepository: async (orgId, input) => {
+      log("wiki.syncRepository", orgId, input);
       return null;
     },
     disconnectRepository: async (orgId) => {

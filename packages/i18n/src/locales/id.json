@@ -10861,6 +10861,7 @@
     },
     "repo": {
       "stopped": "Berhenti memperbarui dengan GitHub",
+      "conflictNotice": "Versi GitHub dari {{name}} menggantikan suntingan yang dibuat di sini (keduanya mengubah baris yang sama). Suntingan Anda adalah versi {{version}} di riwayat halaman.",
       "menu": {
         "name": "GitHub",
         "connect": "Simpan di GitHub",
@@ -10897,7 +10898,8 @@
         "branch": "Branch",
         "branchPlaceholder": "Branch bawaan",
         "branchHelp": "Opsional. Catatan dibaca dari dan ditulis ke branch ini.",
-        "noteConflict": "Jika catatan berubah di kedua sisi, yang dari repositori tetap dipakai. Yang dari sini masuk ke riwayat halaman.",
+        "noteConflict": "Jika catatan berubah di kedua sisi, kedua suntingan digabungkan. Jika keduanya mengubah baris yang sama, yang dari GitHub tetap dipakai, yang dari sini masuk ke riwayat halaman, dan penulisnya diberi tahu.",
+        "publicWrite": "{{repo}} bersifat publik: siapa pun bisa membaca apa yang ditulis wiki di sana, termasuk yang ditulis agen.",
         "noteRestricted": "Halaman yang dibatasi untuk beberapa orang tidak pernah keluar dari sini.",
         "submit": "Hubungkan"
       },
@@ -10916,6 +10918,7 @@
         "readOnly": "Aplikasi GitHub tidak terpasang di {{repo}}, atau hanya bisa membacanya: wiki mengikutinya, dan yang berubah di sini tetap di sini. Pasang aplikasi di sana dengan izin menulis untuk mengirim perubahan dari sini juga.",
         "noteDisconnect": "Memutus sambungan membiarkan halaman di sini dan catatan di sana apa adanya.",
         "noteStopped": "Sementara itu, yang ditulis di sini tetap di sini dan dikirim ke repositori saat kembali.",
+        "allowRemovals": "Kirim halaman-halaman itu ke sampah",
         "disconnect": "Putuskan",
         "open": "Buka di GitHub",
         "syncNow": "Perbarui sekarang",
@@ -10966,6 +10969,7 @@
         "folder_missing": "Folder wiki sudah hilang dari {{repo}}, atau kosong. Tidak ada yang dihapus di sini: hubungkan repositori lagi dengan folder yang benar.",
         "no_app": "{{repo}} tidak publik, dan belum ada aplikasi GitHub yang disiapkan untuk menjangkaunya. Admin menyiapkannya di Konektor, lalu wiki mengikutinya lagi.",
         "protected": "{{repo}} tidak menerima commit langsung di branch itu (branch dilindungi). Pilih “Lewat pull request”, atau izinkan aplikasi GitHub melakukan push ke sana.",
+        "mass_removal": "Banyak catatan dihapus dari {{repo}} sekaligus ({{count}}), jadi wiki berhenti sebelum mengirim halamannya ke sampah. Jika memang disengaja, kirim ke sampah. Jika tidak, kembalikan catatannya di GitHub lalu coba lagi.",
         "other": "Wiki berhenti mengikuti {{repo}}. Coba lagi."
       },
       "page": {
@@ -10977,7 +10981,9 @@
         "notSentHint": "Wiki berhenti memperbarui dengan GitHub. Versi ini dikirim ke sana saat berjalan lagi.",
         "local": "Hanya di sini",
         "localHint": "Halaman yang dibatasi untuk beberapa orang tidak pernah dikirim ke GitHub.",
-        "readOnlyHint": "Repositori diikuti hanya baca: versi ini tetap di sini, dan perubahan berikutnya pada catatannya di sana akan menggantikannya.",
+        "readOnlyHint": "Repositori diikuti hanya baca: versi ini tetap di sini. Perubahan catatannya di sana juga masuk, dan menggantikan versi ini di baris yang sama-sama diubah.",
+        "replaced": "Digantikan oleh GitHub",
+        "replacedHint": "Kedua sisi mengubah baris yang sama. Versi dari GitHub yang tetap dipakai, dan versi dari sini menjadi versi {{version}} di riwayat.",
         "held": "Belum diperbarui di GitHub",
         "heldHint": "Catatannya di GitHub tidak bisa dibaca di sini, jadi halaman ini tidak menimpanya.",
         "review": "Di pull request",
@@ -11116,7 +11122,9 @@
       "saved_message": "menyimpan pesan",
       "created_from_message": "dibuat dari pesan",
       "imported": "diimpor dari \"{{source}}\"",
-      "repository": "datang dari repositori ({{commit}})"
+      "repository": "datang dari repositori ({{commit}})",
+      "repository_over": "datang dari repositori ({{commit}}) menimpa versi {{version}}",
+      "repository_merged": "menggabungkan versi {{version}} dengan perubahan dari repositori"
     }
   },
   "run": {
@@ -14155,6 +14163,7 @@
       "repoMissing": "Repositori itu sudah hilang, atau tidak bisa dibaca lagi.",
       "repoBranchInvalid": "Nama itu tidak bisa menjadi branch pull request: pakai huruf, angka, - dan /, dan bukan branch yang diikuti wiki.",
       "repoBranchMissing": "Branch itu tidak ada di repositori.",
+      "repoBranchName": "Itu bukan nama branch yang diterima GitHub.",
       "repoEmpty": "Repositori itu belum punya file. Tambahkan file pertama lalu coba lagi.",
       "repoPathInvalid": "Folder itu tidak bisa menyimpan wiki.",
       "noAccess": "Kamu tidak punya akses ke halaman ini.",

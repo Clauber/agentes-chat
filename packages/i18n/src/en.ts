@@ -11580,6 +11580,9 @@ export const en = {
     },
     repo: {
       stopped: "Stopped updating with GitHub",
+      /** The inbox's notice to whoever wrote an edit GitHub's version replaced: `name` is the page's title. */
+      conflictNotice:
+        "GitHub's version of {{name}} replaced an edit made here (both changed the same lines). Your edit is version {{version}} in the page's history.",
       menu: {
         name: "GitHub",
         connect: "Keep on GitHub",
@@ -11617,7 +11620,8 @@ export const en = {
         branchPlaceholder: "The default branch",
         branchHelp: "Optional. The notes are read from and written to this branch.",
         noteConflict:
-          "If a note changed on both sides, the repository's stays. The one from here goes to the page's history.",
+          "If a note changed on both sides, the two edits are joined. Where both changed the same lines, GitHub's stays, the one from here goes to the page's history, and whoever wrote it is told.",
+        publicWrite: "{{repo}} is public: anyone can read what the wiki writes there, agents' edits included.",
         noteRestricted: "Pages limited to some people never leave here.",
         submit: "Connect",
       },
@@ -11640,6 +11644,7 @@ export const en = {
           "The GitHub app isn't installed on {{repo}}, or may only read it: the wiki follows it, and what changes here stays here. Install the app on it, allowed to write, to send the changes from here too.",
         noteDisconnect: "Disconnecting leaves the pages here and the notes there, as they are.",
         noteStopped: "Meanwhile, what is written here stays here and goes to the repository once it is back.",
+        allowRemovals: "Send those pages to the trash",
         disconnect: "Disconnect",
         open: "Open on GitHub",
         syncNow: "Update now",
@@ -11695,6 +11700,8 @@ export const en = {
           "{{repo}} isn't public, and no GitHub app is set up to reach it. An admin sets one up in Connectors, and the wiki follows it again.",
         protected:
           "{{repo}} takes no commits straight on that branch (it is protected). Choose “Through a pull request”, or let the GitHub app push to it.",
+        mass_removal:
+          "Many notes were removed from {{repo}} at once ({{count}}), so the wiki stopped before sending their pages to the trash. If it was on purpose, send them to the trash. If not, put the notes back on GitHub and try again.",
         other: "The wiki stopped following {{repo}}. Try again.",
       },
       page: {
@@ -11707,7 +11714,10 @@ export const en = {
         local: "Only here",
         localHint: "Pages limited to some people never go to GitHub.",
         readOnlyHint:
-          "The repository is followed read only: this version stays here, and the next change to its note there replaces it.",
+          "The repository is followed read only: this version stays here. A change to its note there comes in too, and replaces this one where both changed the same lines.",
+        replaced: "Replaced by GitHub",
+        replacedHint:
+          "Both sides changed the same lines. GitHub's version stayed, and the one from here is version {{version}} in the history.",
         held: "Not updated on GitHub",
         heldHint: "Its note on GitHub couldn't be read here, so this page isn't written over it.",
         review: "In the pull request",
@@ -11865,6 +11875,8 @@ export const en = {
       created_from_message: "created from a message",
       imported: 'imported from "{{source}}"',
       repository: "came from the repository ({{commit}})",
+      repository_over: "came from the repository ({{commit}}) over version {{version}}",
+      repository_merged: "joined version {{version}} with the repository's changes",
     },
   },
   run: {
@@ -14822,6 +14834,7 @@ export const en = {
       repoBranchInvalid:
         "That can't be the pull request's branch: use letters, numbers, - and /, and not the branch the wiki follows.",
       repoBranchMissing: "That branch doesn't exist in the repository.",
+      repoBranchName: "That isn't a branch name GitHub takes.",
       repoEmpty: "That repository has no file yet. Add a first file to it and try again.",
       repoPathInvalid: "That folder can't hold the wiki.",
       noAccess: "You don't have access to this page.",

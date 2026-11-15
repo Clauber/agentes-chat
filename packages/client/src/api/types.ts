@@ -5449,6 +5449,11 @@ export interface WikiPageRepository {
   readOnly: boolean;
   /** The note's address, once it has one; for `review` and `declined`, the pull request's. */
   url: string | null;
+  /**
+   * The version made here that GitHub's text replaced (both changed the same lines), while the page is still at
+   * GitHub's version: it is in the page's history.
+   */
+  replaced: number | null;
 }
 
 /** How the wiki writes in its repository: straight on the branch, through a pull request, or never. */
@@ -5470,6 +5475,8 @@ export interface WikiRepository {
   url: string;
   /** The wiki may write there. False: a public repository the GitHub App doesn't reach, followed read-only. */
   writable: boolean;
+  /** Anyone may read it: what the wiki writes there is public. */
+  public: boolean;
   commitMode: WikiCommitMode;
   /** The wiki's own branch for its pull request. */
   prBranch: string;
@@ -5487,8 +5494,10 @@ export interface WikiRepository {
   notes: number;
   /** Pages whose last version is still to be written there. */
   pending: number;
-  /** Notes that couldn't become pages, with why (`wiki.body_too_long`…). */
+  /** Notes that couldn't become pages, with why (`wiki.body_too_long`…); administrators only. */
   held: { path: string; code: string }[];
+  /** Stopped with `wiki.repo_mass_removal`: how many notes were removed there at once. */
+  removalsWaiting: number | null;
 }
 
 /** What connecting a repository would do, before it is connected. */
@@ -5502,6 +5511,8 @@ export interface WikiRepositoryCheck {
   path: string;
   /** The wiki may write there; false: a public repository followed read-only. */
   writable: boolean;
+  /** Anyone may read it: what the wiki would write there is public. */
+  public: boolean;
   url: string;
 }
 
@@ -6782,7 +6793,13 @@ export type NotificationKind =
    * `latest.names` the first things it is about and `count` how many, `latest.text` the whole sentence in the
    * person's language. `source.agentId`, `machineId` or `accountId` when it is about one. Done once fixed.
    */
-  | "team_watch";
+  | "team_watch"
+  /**
+   * ADR 0186: GitHub's version of a wiki page replaced an edit made here (both changed the same lines). Who wrote that
+   * edit, one row per page while unread, no actor. `source.wikiPageId` and `source.slug` the page, its title in
+   * `source.label`, the edit's version in the page's history in `latest.version`. Inbox only. Opens the page.
+   */
+  | "wiki_conflict";
 
 /** "O Gerente aprova por você" (ADR 0139 §2): what the person let the workspace's right hand approve. */
 export interface RightHandApprovals {
@@ -6869,6 +6886,10 @@ export interface NotificationSource {
   routineId?: string;
   /** `skill_update`: the skill. */
   skillId?: string;
+  /** `wiki_conflict`: the wiki page, its title in `label`. */
+  wikiPageId?: string;
+  /** `wiki_conflict`: the wiki page's slug, the address it opens at. */
+  slug?: string;
   /** `plan_lent`: the plan's account. */
   accountId?: string;
   /** `machine_connected`: the computer. */
@@ -6958,6 +6979,8 @@ export interface NotificationLatest {
   share?: number;
   /** A reminder of what was left unread: how many things still wait on the person, this one included. */
   still?: number;
+  /** `wiki_conflict`: the version in the page's history that keeps the edit GitHub's version replaced. */
+  version?: number;
 }
 
 /** A run a `run_failed` row lists: its agent and where it failed (`key` names both). */

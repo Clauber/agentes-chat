@@ -34,6 +34,8 @@ export interface WikiRepositoryView {
    * wiki follows read-only: what changes here stays here.
    */
   writable: boolean;
+  /** Anyone may read it: what the wiki writes there is public (commits then name nobody). */
+  public: boolean;
   /** How the wiki writes there: straight on the branch, through a pull request, or never. */
   commitMode: WikiCommitMode;
   /** The wiki's own branch for its pull request. */
@@ -55,14 +57,19 @@ export interface WikiRepositoryView {
   notes: number;
   /** Pages whose last version is still to be written there (none while read-only). */
   pending: number;
-  /** Notes that couldn't become pages (too long, no usable name), by path with why. */
+  /** Notes that couldn't become pages (too long, no usable name), by path with why; administrators only. */
   held: { path: string; code: string }[];
+  /**
+   * Stopped with `wiki.repo_mass_removal`: how many notes were removed there at once. Their pages stay here until an
+   * administrator starts the sync again saying they may go to the trash (`resumeWikiRepository`'s `allowRemovals`).
+   */
+  removalsWaiting: number | null;
 }
 
 /** The most notes held aside the app lists. */
 const HELD_SHOWN = 50;
 
-async function viewOf(db: Database, row: Repository): Promise<WikiRepositoryView> {
+async function viewOf(db: Database, row: Repository, admin: boolean): Promise<WikiRepositoryView> {
   const [count] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(wikiRepositoryFiles)
@@ -86,12 +93,15 @@ async function viewOf(db: Database, row: Repository): Promise<WikiRepositoryView
         ),
       ),
     );
-  const held = await db
-    .select({ path: wikiRepositoryFiles.path, code: wikiRepositoryFiles.issue })
-    .from(wikiRepositoryFiles)
-    .where(and(eq(wikiRepositoryFiles.repositoryId, row.id), isNotNull(wikiRepositoryFiles.issue)))
-    .orderBy(wikiRepositoryFiles.path)
-    .limit(HELD_SHOWN);
+  // Paths of a repository members may not reach on GitHub: only who keeps the wiki there sees them.
+  const held = admin
+    ? await db
+        .select({ path: wikiRepositoryFiles.path, code: wikiRepositoryFiles.issue })
+        .from(wikiRepositoryFiles)
+        .where(and(eq(wikiRepositoryFiles.repositoryId, row.id), isNotNull(wikiRepositoryFiles.issue)))
+        .orderBy(wikiRepositoryFiles.path)
+        .limit(HELD_SHOWN)
+    : [];
   return {
     provider: row.provider,
     owner: row.owner,
@@ -100,6 +110,7 @@ async function viewOf(db: Database, row: Repository): Promise<WikiRepositoryView
     path: row.path,
     url: repositoryUrl(row),
     writable: row.writable,
+    public: row.public,
     commitMode: commitModeOf(row.commitMode),
     prBranch: row.prBranch,
     pullRequest:
@@ -114,6 +125,7 @@ async function viewOf(db: Database, row: Repository): Promise<WikiRepositoryView
     notes: count?.n ?? 0,
     pending: row.writable && row.commitMode !== "none" ? (waiting?.n ?? 0) : 0,
     held: held.map((h) => ({ path: h.path, code: h.code ?? "" })),
+    removalsWaiting: row.status === "error" ? row.removalsWaiting : null,
   };
 }
 
@@ -124,7 +136,12 @@ const rowOf = async (db: Database, orgId: string) =>
 export async function getWikiRepository(db: Database, userId: string, orgId: string) {
   await requireActiveMembership(db, userId, orgId);
   const row = await rowOf(db, orgId);
-  return row ? viewOf(db, row) : null;
+  if (!row) return null;
+  const admin = await requirePermission(db, userId, orgId, WIKI_REPOSITORY_PERMISSION).then(
+    () => true,
+    () => false,
+  );
+  return viewOf(db, row, admin);
 }
 
 /** `notes/wiki` from ` /notes//wiki/ `; a path that climbs out or names a hidden folder is refused. */
@@ -150,6 +167,24 @@ const commitModeOf = (mode: string): WikiCommitMode =>
 
 /** The branch the wiki's pull request comes from, unless someone names another. */
 export const WIKI_PR_BRANCH = "agentes/wiki";
+
+/**
+ * A branch someone named for the wiki to follow, as git takes one (`git check-ref-format`): no space, control
+ * character or `~^:?*[\`, no `..`, `@{` or `//`, no part starting with `.` or ending in `.lock`, not starting with `-`
+ * or `/`, not ending in `/` or `.`. It goes into GitHub's addresses and git's own requests, so nothing else passes.
+ */
+function followedBranch(name: string) {
+  const branch = name.trim();
+  const ok =
+    branch.length > 0 &&
+    branch.length <= 250 &&
+    branch !== "@" &&
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: control characters are what this refuses.
+    !/[\x00-\x20\x7f~^:?*[\\]/.test(branch) &&
+    !/(^[-/]|\.\.|@\{|\/\/|(^|\/)\.|\.lock(\/|$)|[/.]$)/.test(branch);
+  if (!ok) throw new ValidationError("That isn't a branch name", "wiki.repo_branch_name");
+  return branch;
+}
 
 /**
  * A branch name git takes (letters, digits, `.`, `_`, `-` and `/`; no `..` or `//`, not starting with `-`, `/` or `.`,
@@ -240,7 +275,8 @@ async function resolveRepository(
   );
   if ("miss" in reached) throw refused(reached.miss);
   const facts = await answered(reached.remote.about());
-  const branch = input.branch?.trim() || named.branch || facts.defaultBranch;
+  const asked = input.branch?.trim() || named.branch;
+  const branch = asked ? followedBranch(asked) : facts.defaultBranch;
   const empty = () =>
     new ValidationError("That repository has no commit yet: add a first file to it", "wiki.repo_empty");
   if (!branch) throw empty();
@@ -261,6 +297,8 @@ export interface WikiRepositoryCheck {
   path: string;
   /** The wiki may write there (the GitHub App, allowed to); false: a public repository followed read-only. */
   writable: boolean;
+  /** Anyone may read it: what the wiki would write there is public. */
+  public: boolean;
   url: string;
 }
 
@@ -280,6 +318,7 @@ export async function checkWikiRepository(
     defaultBranch: found.facts.defaultBranch,
     path: found.path,
     writable: found.writable,
+    public: found.facts.public,
     url: repositoryUrl({ provider: "github", ...found.facts, branch: found.branch, path: found.path }),
   };
 }
@@ -322,6 +361,7 @@ export async function connectWikiRepository(
               errorCode: null,
               dirty: false,
               writable,
+              public: facts.public,
               commitMode,
               prBranch,
               createdByUserId: userId,
@@ -339,6 +379,7 @@ export async function connectWikiRepository(
               branch,
               path,
               writable,
+              public: facts.public,
               commitMode,
               prBranch,
               createdByUserId: userId,
@@ -356,13 +397,14 @@ export async function connectWikiRepository(
         branch,
         path,
         writable,
+        public: facts.public,
         commitMode,
       },
     });
     await requestWikiRepositorySync(tx, orgId);
     return saved;
   });
-  return viewOf(db, { ...row, dirty: true });
+  return viewOf(db, { ...row, dirty: true }, true);
 }
 
 /**
@@ -399,7 +441,7 @@ export async function setWikiRepositoryWriting(
     await requestWikiRepositorySync(tx, orgId);
     return saved ?? null;
   });
-  return row ? viewOf(db, row) : null;
+  return row ? viewOf(db, row, true) : null;
 }
 
 /** Stops keeping the wiki in its repository: the pages stay here and the notes stay there, as they are. */
@@ -426,17 +468,31 @@ export async function disconnectWikiRepository(deps: WikiRepositoryDeps, userId:
 
 /**
  * Syncs now, and starts a stopped sync again (an administrator): what stopped it is tried once more, with that person
- * as who the repository's changes are saved for.
+ * as who the repository's changes are saved for. `allowRemovals`: stopped because many notes were removed there at
+ * once, their pages may now go to the trash (once: a later mass removal asks again).
  */
-export async function resumeWikiRepository(deps: WikiRepositoryDeps, userId: string, orgId: string) {
+export async function resumeWikiRepository(
+  deps: WikiRepositoryDeps,
+  userId: string,
+  orgId: string,
+  options: { allowRemovals?: boolean } = {},
+) {
   const { db } = deps;
   await requirePermission(db, userId, orgId, WIKI_REPOSITORY_PERMISSION);
   const row = await db.transaction(async (tx) => {
     const [before] = await tx.select().from(wikiRepositories).where(eq(wikiRepositories.orgId, orgId));
     if (!before) return null;
+    const allowRemovals = options.allowRemovals === true && before.errorCode === "wiki.repo_mass_removal";
     const [saved] = await tx
       .update(wikiRepositories)
-      .set({ status: "active", errorCode: null, createdByUserId: userId, dirty: false, updatedAt: new Date() })
+      .set({
+        status: "active",
+        errorCode: null,
+        createdByUserId: userId,
+        dirty: false,
+        updatedAt: new Date(),
+        ...(allowRemovals ? { removalsAllowed: true } : {}),
+      })
       .where(eq(wikiRepositories.id, before.id))
       .returning();
     if (before.status === "error") {
@@ -445,11 +501,15 @@ export async function resumeWikiRepository(deps: WikiRepositoryDeps, userId: str
         actor: { type: "person", id: userId },
         action: "wiki.repository_resumed",
         target: { type: "wiki", id: orgId },
-        details: { repository: `${before.owner}/${before.repo}`, stoppedWith: before.errorCode },
+        details: {
+          repository: `${before.owner}/${before.repo}`,
+          stoppedWith: before.errorCode,
+          ...(allowRemovals ? { removalsAllowed: before.removalsWaiting ?? 0 } : {}),
+        },
       });
     }
     await requestWikiRepositorySync(tx, orgId);
     return saved ?? null;
   });
-  return row ? viewOf(db, { ...row, dirty: true }) : null;
+  return row ? viewOf(db, { ...row, dirty: true }, true) : null;
 }

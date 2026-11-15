@@ -27506,6 +27506,9 @@
   "wiki.repo.stopped": {
     "value": "Stopped updating with GitHub"
   },
+  "wiki.repo.conflictNotice": {
+    "value": "GitHub's version of {{name}} replaced an edit made here (both changed the same lines). Your edit is version {{version}} in the page's history."
+  },
   "wiki.repo.menu.name": {
     "value": "GitHub"
   },
@@ -27600,7 +27603,10 @@
     "value": "Optional. The notes are read from and written to this branch."
   },
   "wiki.repo.connect.noteConflict": {
-    "value": "If a note changed on both sides, the repository's stays. The one from here goes to the page's history."
+    "value": "If a note changed on both sides, the two edits are joined. Where both changed the same lines, GitHub's stays, the one from here goes to the page's history, and whoever wrote it is told."
+  },
+  "wiki.repo.connect.publicWrite": {
+    "value": "{{repo}} is public: anyone can read what the wiki writes there, agents' edits included."
   },
   "wiki.repo.connect.noteRestricted": {
     "value": "Pages limited to some people never leave here."
@@ -27655,6 +27661,9 @@
   },
   "wiki.repo.manage.noteStopped": {
     "value": "Meanwhile, what is written here stays here and goes to the repository once it is back."
+  },
+  "wiki.repo.manage.allowRemovals": {
+    "value": "Send those pages to the trash"
   },
   "wiki.repo.manage.disconnect": {
     "value": "Disconnect"
@@ -27770,6 +27779,9 @@
   "wiki.repo.why.protected": {
     "value": "{{repo}} takes no commits straight on that branch (it is protected). Choose “Through a pull request”, or let the GitHub app push to it."
   },
+  "wiki.repo.why.mass_removal": {
+    "value": "Many notes were removed from {{repo}} at once ({{count}}), so the wiki stopped before sending their pages to the trash. If it was on purpose, send them to the trash. If not, put the notes back on GitHub and try again."
+  },
   "wiki.repo.why.other": {
     "value": "The wiki stopped following {{repo}}. Try again."
   },
@@ -27798,7 +27810,13 @@
     "value": "Pages limited to some people never go to GitHub."
   },
   "wiki.repo.page.readOnlyHint": {
-    "value": "The repository is followed read only: this version stays here, and the next change to its note there replaces it."
+    "value": "The repository is followed read only: this version stays here. A change to its note there comes in too, and replaces this one where both changed the same lines."
+  },
+  "wiki.repo.page.replaced": {
+    "value": "Replaced by GitHub"
+  },
+  "wiki.repo.page.replacedHint": {
+    "value": "Both sides changed the same lines. GitHub's version stayed, and the one from here is version {{version}} in the history."
   },
   "wiki.repo.page.held": {
     "value": "Not updated on GitHub"
@@ -28213,6 +28231,12 @@
   },
   "wiki.note.repository": {
     "value": "came from the repository ({{commit}})"
+  },
+  "wiki.note.repository_over": {
+    "value": "came from the repository ({{commit}}) over version {{version}}"
+  },
+  "wiki.note.repository_merged": {
+    "value": "joined version {{version}} with the repository's changes"
   },
   "run.steeredStep": {
     "value": "New message from {{name}}"
@@ -35968,6 +35992,9 @@
   },
   "errors.wiki.repoBranchMissing": {
     "value": "That branch doesn't exist in the repository."
+  },
+  "errors.wiki.repoBranchName": {
+    "value": "That isn't a branch name GitHub takes."
   },
   "errors.wiki.repoEmpty": {
     "value": "That repository has no file yet. Add a first file to it and try again."

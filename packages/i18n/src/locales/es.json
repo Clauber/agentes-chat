@@ -11597,6 +11597,7 @@
     },
     "repo": {
       "stopped": "Dejó de actualizarse con GitHub",
+      "conflictNotice": "La versión de GitHub de {{name}} reemplazó una edición hecha aquí (los dos cambiaron las mismas líneas). Tu edición es la versión {{version}} en el historial de la página.",
       "menu": {
         "name": "GitHub",
         "connect": "Mantener en GitHub",
@@ -11633,7 +11634,8 @@
         "branch": "Rama",
         "branchPlaceholder": "La rama principal",
         "branchHelp": "Opcional. Las notas se leen y se escriben en esta rama.",
-        "noteConflict": "Si una nota cambió en los dos lados, se queda la del repositorio. La de aquí va al historial de la página.",
+        "noteConflict": "Si una nota cambió en los dos lados, las dos ediciones se juntan. Donde los dos cambiaron las mismas líneas, se queda la de GitHub, la de aquí va al historial de la página y se avisa a quien la escribió.",
+        "publicWrite": "{{repo}} es público: cualquiera puede leer lo que la wiki escribe allá, también lo que escriben los agentes.",
         "noteRestricted": "Las páginas limitadas a algunas personas nunca salen de aquí.",
         "submit": "Conectar"
       },
@@ -11656,6 +11658,7 @@
         "readOnly": "La app de GitHub no está instalada en {{repo}}, o solo puede leerlo: la wiki lo sigue, y lo que cambia aquí se queda aquí. Instala la app en él, con permiso para escribir, para enviar también los cambios de aquí.",
         "noteDisconnect": "Desconectar deja las páginas aquí y las notas allá, tal como están.",
         "noteStopped": "Mientras tanto, lo que se escriba aquí se queda aquí y va al repositorio cuando vuelva.",
+        "allowRemovals": "Enviar esas páginas a la papelera",
         "disconnect": "Desconectar",
         "open": "Abrir en GitHub",
         "syncNow": "Actualizar ahora",
@@ -11706,6 +11709,7 @@
         "folder_missing": "La carpeta de la wiki ya no está en {{repo}}, o está vacía. No se borró nada aquí: conecta el repositorio de nuevo con la carpeta correcta.",
         "no_app": "{{repo}} no es público, y no hay una app de GitHub configurada para llegar a él. Un Admin configura una en Conectores, y la wiki vuelve a seguirlo.",
         "protected": "{{repo}} no acepta commits directos en esa rama (está protegida). Elige “Por pull request”, o deja que la app de GitHub envíe a ella.",
+        "mass_removal": "Se quitaron muchas notas de {{repo}} de una vez ({{count}}), así que la wiki se detuvo antes de enviar sus páginas a la papelera. Si fue a propósito, envíalas a la papelera. Si no, vuelve a poner las notas en GitHub e inténtalo de nuevo.",
         "other": "La wiki dejó de seguir {{repo}}. Intenta de nuevo."
       },
       "page": {
@@ -11717,7 +11721,9 @@
         "notSentHint": "La wiki dejó de actualizarse con GitHub. Esta versión va allá cuando vuelva.",
         "local": "Solo aquí",
         "localHint": "Las páginas limitadas a algunas personas nunca van a GitHub.",
-        "readOnlyHint": "El repositorio se sigue solo en lectura: esta versión se queda aquí, y el próximo cambio de su nota allá la reemplaza.",
+        "readOnlyHint": "El repositorio se sigue solo en lectura: esta versión se queda aquí. Un cambio de su nota allá también llega, y reemplaza esta donde las dos cambiaron las mismas líneas.",
+        "replaced": "Reemplazada por GitHub",
+        "replacedHint": "Los dos lados cambiaron las mismas líneas. Se quedó la versión de GitHub, y la de aquí es la versión {{version}} del historial.",
         "held": "No actualizada en GitHub",
         "heldHint": "Su nota en GitHub no se pudo leer aquí, así que esta página no se escribe encima de ella.",
         "review": "En el pull request",
@@ -11896,7 +11902,9 @@
       "saved_message": "guardó un mensaje",
       "created_from_message": "creada a partir de un mensaje",
       "imported": "importada desde “{{source}}”",
-      "repository": "vino del repositorio ({{commit}})"
+      "repository": "vino del repositorio ({{commit}})",
+      "repository_over": "vino del repositorio ({{commit}}) sobre la versión {{version}}",
+      "repository_merged": "juntó la versión {{version}} con los cambios del repositorio"
     }
   },
   "run": {
@@ -15069,6 +15077,7 @@
       "repoMissing": "Ese repositorio ya no existe, o ya no se puede leer.",
       "repoBranchInvalid": "Ese nombre no sirve para la rama del pull request: usa letras, números, - y /, y no la rama que sigue la wiki.",
       "repoBranchMissing": "Esa rama no existe en el repositorio.",
+      "repoBranchName": "Ese no es un nombre de rama que GitHub acepte.",
       "repoEmpty": "Ese repositorio todavía no tiene ningún archivo. Agrégale un primer archivo e intenta de nuevo.",
       "repoPathInvalid": "Esa carpeta no puede guardar la wiki.",
       "noAccess": "No tienes acceso a esta página.",

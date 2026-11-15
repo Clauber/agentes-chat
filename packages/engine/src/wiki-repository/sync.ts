@@ -1,11 +1,12 @@
 import { createHash } from "node:crypto";
 import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, isNull, lt, or, schema } from "@agenteschat/db";
+import { and, type Database, eq, gt, inArray, isNull, lt, lte, or, schema } from "@agenteschat/db";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "../errors";
 import { publishOrgEvent } from "../events";
 import { type AppPermissions, appRepoToken } from "../git/github-app";
 import type { GitHubAppAccess } from "../git/github-call";
 import type { ResolveHost } from "../net-guard";
+import { notifyWikiConflict } from "../notification-producers";
 import { requirePermission } from "../organizations";
 import { closedRefusal, orgStanding } from "../standing";
 import {
@@ -20,15 +21,18 @@ import {
   type WikiActor,
   type WikiDeps,
   WikiVersionConflictError,
+  wikiNoteDetail,
+  wikiRepositoryMergeNote,
   wikiRepositoryNote,
 } from "../wiki";
-import { gitBlobSha, noteFileText, notePath, pageOfPath, parseNoteFile, pathKey } from "./file";
+import { gitBlobSha, noteFileText, notePath, pageOfPath, parseNoteFile, pathKey, tagKey } from "./file";
 import { GitHubBusy, githubRemote } from "./github";
+import { mergeTags, mergeText } from "./merge";
 import { publicBranch, publicRemote } from "./public";
 import { queueWikiRepositorySync } from "./queue";
 import { NOTE_MAX_BYTES, type NoteRemote, type RemoteNote, RepoRefusal } from "./remote";
 
-const { wikiPages, wikiRepositories, wikiRepositoryFiles, users, agents } = schema;
+const { wikiPages, wikiPageVersions, wikiRepositories, wikiRepositoryFiles, users, agents } = schema;
 
 type Repository = typeof wikiRepositories.$inferSelect;
 type FileRow = typeof wikiRepositoryFiles.$inferSelect;
@@ -58,6 +62,11 @@ const ROUNDS = 3;
  * the rest.
  */
 export const WIKI_REPOSITORY_BATCH = { read: 300, write: 200, bytes: 8 * 1024 * 1024 };
+/**
+ * Pages one sync sends to the trash without asking: more than this many, and more than half of the wiki's notes, is a
+ * folder emptied or a branch rewritten by mistake as often as on purpose, so the sync stops and an administrator says.
+ */
+export const WIKI_REPOSITORY_REMOVALS_ASKED = 20;
 
 export type WikiRepositorySync =
   /** Not connected, stopped, or the workspace is closed. */
@@ -91,6 +100,8 @@ interface Sync {
   /** Every note the repository lists (after a pull: as the wiki now has them), by path. */
   files: Map<string, RemoteNote>;
   rows: Map<string, FileRow>;
+  /** Whether the wiki's pull request was merged, asked once per sync and only when a note of it changed. */
+  merged?: Promise<boolean>;
 }
 
 /** Whoever keeps the wiki in a repository: connects it, starts it again, and is who its changes are saved for. */
@@ -100,7 +111,8 @@ export const WIKI_REPOSITORY_PERMISSION = "administrator" as const;
  * One sync of a workspace's wiki with its repository (job `wiki.repository.sync`, ADR 0186). First what the repository
  * changed comes in: a new note is a new page, a changed one a new version, a removed one goes to the trash, a moved or
  * renamed one moves or renames its page. Then what the wiki changed goes out as one commit. Where both changed a note,
- * the repository's text stays and ours is the version before it in the page's history.
+ * the two edits are merged when they changed different lines; when they changed the same ones, the repository's text
+ * stays, ours is the version before it in the page's history, and whoever wrote it is told.
  *
  * Left alone: a page limited to some people, which never goes to the repository (one that was there leaves it).
  */
@@ -160,7 +172,7 @@ export async function syncWikiRepository(
         updatedAt: at,
         ...(stop ? { status: "error", errorCode: stop, dirty: false } : {}),
         ...(unreachable ? { errorCode: "wiki.repo_unreachable" } : {}),
-        ...(done ? { syncedAt: at, errorCode: null } : {}),
+        ...(done ? { syncedAt: at, errorCode: null, removalsWaiting: null } : {}),
       })
       .where(eq(wikiRepositories.id, link.id))
       .returning({ status: wikiRepositories.status, errorCode: wikiRepositories.errorCode });
@@ -184,13 +196,13 @@ export async function syncWikiRepository(
 /**
  * The repository's host, reached as the workspace, and whether the wiki writes there: GitHub through the server's app
  * installed on that repository (writing, else reading), else, for a public repository, without credentials and
- * read-only. Neither: why not (`miss`).
+ * read-only (`open`: it is public, known without asking). Neither: why not (`miss`).
  */
 export async function reachRepository(
   deps: WikiRepositoryDeps,
   orgId: string,
   place: { provider: string; owner: string; repo: string; commitMode?: string },
-): Promise<{ remote: NoteRemote; writable: boolean } | { miss: string }> {
+): Promise<{ remote: NoteRemote; writable: boolean; open?: true } | { miss: string }> {
   if (place.provider !== "github") return { miss: "wiki.repo_provider" };
   const github = deps.github;
   const app = github?.app();
@@ -220,7 +232,7 @@ export async function reachRepository(
     resolveHost: deps.resolveHost,
   };
   if (!(await publicBranch(access, null))) return { miss };
-  return { remote: publicRemote(access), writable: false };
+  return { remote: publicRemote(access), writable: false, open: true };
 }
 
 async function remoteOf(deps: WikiRepositoryDeps, link: Repository) {
@@ -238,9 +250,13 @@ async function run(deps: WikiRepositoryDeps, link: Repository) {
   await requirePermission(db, userId, orgId, WIKI_REPOSITORY_PERMISSION).catch(() => {
     throw new RepoRefusal("wiki.repo_owner_gone");
   });
-  const { remote, writable } = await remoteOf(deps, link);
-  if (writable !== link.writable) {
-    await db.update(wikiRepositories).set({ writable }).where(eq(wikiRepositories.id, link.id));
+  const { remote, writable, open } = await remoteOf(deps, link);
+  // Read without credentials: it is public. Through the app, whether it is gets asked when the wiki writes there.
+  const isOpen = open ?? link.public;
+  if (writable !== link.writable || isOpen !== link.public) {
+    await db.update(wikiRepositories).set({ writable, public: isOpen }).where(eq(wikiRepositories.id, link.id));
+    link.writable = writable;
+    link.public = isOpen;
   }
   // What the workspace chose: straight on the branch, through a pull request, or never.
   const writing = writable && link.commitMode !== "none";
@@ -372,8 +388,11 @@ async function createFromNote(sync: Sync, path: string, sha: string, text: strin
   }
 }
 
-/** A page takes its note's text and tags as a new version: the repository's wins over an edit made here meanwhile. */
-async function updateFromNote(sync: Sync, row: FileRow, page: Page, sha: string, text: string) {
+/**
+ * A page takes its note's text and tags as a new version. `over`: the version made here that it replaces, both sides
+ * having changed the same lines (the version's note says so, and the page shows it until it changes again).
+ */
+async function updateFromNote(sync: Sync, row: FileRow, page: Page, sha: string, text: string, over?: number) {
   const { link, wiki, actor } = sync;
   const note = parseNoteFile(text);
   try {
@@ -381,7 +400,7 @@ async function updateFromNote(sync: Sync, row: FileRow, page: Page, sha: string,
       baseVersion: page.version,
       body: note.body,
       tags: note.tags,
-      note: wikiRepositoryNote(sync.head),
+      note: wikiRepositoryNote(sync.head, over),
     });
     if (note.aliases.length) await addWikiPageAliases(wiki.db, link.orgId, view.id, note.aliases);
     // The name both sides agreed on stays: a page renamed or moved here meanwhile still moves its note.
@@ -393,12 +412,130 @@ async function updateFromNote(sync: Sync, row: FileRow, page: Page, sha: string,
       folder: row.folder,
       head: note.head,
     });
+    return true;
   } catch (error) {
     // Someone saved the page this instant: the job runs again and reads it fresh.
     if (error instanceof WikiVersionConflictError) throw new Error("the page changed while syncing");
     const code = refusal(error);
     if (!code) throw error;
     await saveRow(sync, { ...row, blobSha: sha, issue: code });
+    return false;
+  }
+}
+
+const versionOf = async (db: Database, pageId: string, version: number) =>
+  (
+    await db
+      .select({ body: wikiPageVersions.body, tags: wikiPageVersions.tags })
+      .from(wikiPageVersions)
+      .where(and(eq(wikiPageVersions.pageId, pageId), eq(wikiPageVersions.version, version)))
+  )[0] ?? null;
+
+/**
+ * A note the repository changed, for a page that may have changed here too since `base`, the version both sides last
+ * held. Only there: the page takes the note. Both, on different lines: the repository's version, then one that joins
+ * the edit made here back in (which then goes there too). Both, on the same lines: the repository's version wins, the
+ * edit made here is the version before it, and whoever wrote it is told.
+ */
+async function takeNote(sync: Sync, row: FileRow, page: Page, sha: string, text: string, base: number) {
+  const { link, wiki, actor } = sync;
+  const note = parseNoteFile(text);
+  const tied = { path: row.path, blobSha: sha, title: row.title, folder: row.folder, head: note.head };
+  // The same text on both sides (a pull request merged as proposed, one edit made twice): nothing to write.
+  if (note.body === page.body && tagKey(note.tags) === tagKey(page.tags)) {
+    await saveRow(sync, { ...tied, pageId: page.id, pageVersion: page.version });
+    return;
+  }
+  if (page.version <= base) {
+    await updateFromNote(sync, row, page, sha, text);
+    return;
+  }
+  const before = await versionOf(sync.deps.db, page.id, base);
+  // The note still holds the version both last had (a pull request merged, edited here since): what waits goes there.
+  if (before && before.body === note.body && tagKey(before.tags) === tagKey(note.tags)) {
+    await saveRow(sync, { ...tied, pageId: page.id, pageVersion: base });
+    return;
+  }
+  const body = before ? mergeText(before.body, page.body, note.body) : null;
+  if (body === null || !before) {
+    if (await updateFromNote(sync, row, page, sha, text, page.version)) await tellReplaced(sync, page, base);
+    return;
+  }
+  const tags = mergeTags(before.tags, page.tags, note.tags);
+  // A note the wiki can't take (kept aside with why) isn't merged either.
+  if (!(await updateFromNote(sync, row, page, sha, text))) return;
+  // What changed here was already there, or wasn't in the text (a new name moves the note anyway).
+  if (body === note.body && tagKey(tags) === tagKey(note.tags)) return;
+  const theirs = await pageById(sync.deps.db, link.orgId, page.id);
+  if (!theirs || theirs.deletedAt) return;
+  try {
+    await updateWikiPage(wiki, actor, link.orgId, page.id, {
+      baseVersion: theirs.version,
+      body,
+      tags,
+      note: wikiRepositoryMergeNote(page.version),
+    });
+  } catch (error) {
+    if (error instanceof WikiVersionConflictError) throw new Error("the page changed while syncing");
+    // Refused here (a body past the limit once joined): the repository's version stands, as on a conflict.
+    if (!refusal(error)) throw error;
+    await tellReplaced(sync, page, base);
+  }
+}
+
+/**
+ * The version a note that changed there is compared with: while the wiki's pull request held the page, its proposed
+ * version once that request is merged (what was proposed is then the repository's); else the one the row remembers.
+ */
+async function baseOf(sync: Sync, path: string, row: FileRow, page: Page, sha: string) {
+  const proposed = sync.link.prFiles?.[path];
+  if (!proposed || proposed.pageId !== page.id || proposed.version <= row.pageVersion) return row.pageVersion;
+  if (proposed.sha === sha) return proposed.version;
+  const number = sync.link.prNumber;
+  sync.merged ??= number ? sync.remote.proposal(number).then((state) => state === "merged") : Promise.resolve(false);
+  return (await sync.merged) ? proposed.version : row.pageVersion;
+}
+
+/**
+ * The repository's text replaced edits made here (versions after `base`): the people who made them, and those agents
+ * made them for, are told, best effort. The repository's own versions name nobody.
+ */
+async function tellReplaced(sync: Sync, page: Page, base: number) {
+  const { db, pubsub } = sync.deps;
+  try {
+    const versions = await db
+      .select({
+        note: wikiPageVersions.note,
+        authorType: wikiPageVersions.authorType,
+        authorId: wikiPageVersions.authorId,
+        requestedByUserId: wikiPageVersions.requestedByUserId,
+      })
+      .from(wikiPageVersions)
+      .where(
+        and(
+          eq(wikiPageVersions.pageId, page.id),
+          gt(wikiPageVersions.version, base),
+          lte(wikiPageVersions.version, page.version),
+        ),
+      );
+    const people = new Set<string>();
+    for (const v of versions) {
+      if (wikiNoteDetail(v.note)?.noteCode.startsWith("repository")) continue;
+      const who = v.authorType === "person" ? v.authorId : v.requestedByUserId;
+      if (who) people.add(who);
+    }
+    if (people.size === 0) return;
+    await notifyWikiConflict(
+      { db, pubsub },
+      {
+        orgId: sync.link.orgId,
+        page: { id: page.id, slug: page.slug, title: page.title },
+        replaced: page.version,
+        userIds: [...people],
+      },
+    );
+  } catch {
+    // A notice that didn't go out never undoes the sync: the page's history and its mark still say it.
   }
 }
 
@@ -495,7 +632,7 @@ async function pull(sync: Sync) {
     count++;
     if (row && page && !page.deletedAt) {
       if (page.restricted) await saveRow(sync, { ...row, blobSha: file.sha, detached: true });
-      else await updateFromNote(sync, row, page, file.sha, text);
+      else await takeNote(sync, row, page, file.sha, text, await baseOf(sync, path, row, page, file.sha));
       continue;
     }
     if (row && page?.deletedAt && !page.restricted && (await restoreFromNote(sync, row, page, file.sha, text))) {
@@ -517,7 +654,7 @@ async function pull(sync: Sync) {
         head: parseNoteFile(text).head,
       });
       waiting.delete(pathKey(path));
-      if (tied && file.sha !== proposed.sha) await updateFromNote(sync, tied, mine, file.sha, text);
+      if (tied && file.sha !== proposed.sha) await takeNote(sync, tied, mine, file.sha, text, proposed.version);
       continue;
     }
     // The first sync of a wiki that already had this page: the two are tied, and the note's text is the page's.
@@ -540,18 +677,33 @@ async function pull(sync: Sync) {
   // Notes the repository no longer has: their pages go to the trash, where they wait as any deleted page does. Not a
   // page another note now holds (it moved).
   const held = new Set([...rows.values()].filter((r) => files.has(r.path) && r.pageId).map((r) => r.pageId));
-  for (const row of [...rows.values()]) {
-    if (files.has(row.path)) continue;
+  const gone = [...rows.values()].filter((r) => !files.has(r.path));
+  const doomed: { row: FileRow; page: Page }[] = [];
+  for (const row of gone) {
     const page = row.pageId && !row.detached ? await pageById(db, link.orgId, row.pageId) : null;
-    if (page && !page.deletedAt && !page.restricted && !held.has(page.id)) {
-      try {
-        await deleteWikiPage(sync.wiki, sync.actor, link.orgId, page.id);
-        count++;
-      } catch (error) {
-        if (!refusal(error)) throw error;
-      }
+    if (page && !page.deletedAt && !page.restricted && !held.has(page.id)) doomed.push({ row, page });
+  }
+  // Many at once is asked first (`WIKI_REPOSITORY_REMOVALS_ASKED`): nothing goes to the trash until someone says.
+  const tied = [...rows.values()].filter((r) => r.pageId && !r.detached).length;
+  if (doomed.length > WIKI_REPOSITORY_REMOVALS_ASKED && doomed.length * 2 > tied && !link.removalsAllowed) {
+    await db.update(wikiRepositories).set({ removalsWaiting: doomed.length }).where(eq(wikiRepositories.id, link.id));
+    throw new RepoRefusal("wiki.repo_mass_removal");
+  }
+  for (const { page } of doomed) {
+    try {
+      await deleteWikiPage(sync.wiki, sync.actor, link.orgId, page.id);
+      count++;
+    } catch (error) {
+      if (!refusal(error)) throw error;
     }
-    await dropRow(sync, row);
+  }
+  for (const row of gone) await dropRow(sync, row);
+  if (link.removalsAllowed) {
+    await db
+      .update(wikiRepositories)
+      .set({ removalsAllowed: false, removalsWaiting: null })
+      .where(eq(wikiRepositories.id, link.id));
+    link.removalsAllowed = false;
   }
   return { count, more };
 }
@@ -671,13 +823,31 @@ async function changesOf(sync: Sync, cap: boolean): Promise<Changes> {
   return changes;
 }
 
-/** The commit's (and the pull request's) words: what it writes and removes, and who last wrote each page. */
+/**
+ * Whether anyone may read the repository, asked as the wiki is about to write there (it can change on GitHub any
+ * time): kept on the link for the app and for what agents read.
+ */
+async function isPublic(sync: Sync) {
+  const open = (await sync.remote.about()).public;
+  if (open !== sync.link.public) {
+    await sync.deps.db.update(wikiRepositories).set({ public: open }).where(eq(wikiRepositories.id, sync.link.id));
+    sync.link.public = open;
+  }
+  return open;
+}
+
+/**
+ * The commit's (and the pull request's) words: what it writes and removes, and who last wrote each page; in a public
+ * repository nobody is named, since anyone may read its history.
+ */
 async function messageOf(sync: Sync, changes: Changes) {
   const { writes, removes } = changes;
-  const names = await writers(
-    sync.deps.db,
-    writes.map((w) => w.page),
-  );
+  const names = (await isPublic(sync))
+    ? new Map<string, string>()
+    : await writers(
+        sync.deps.db,
+        writes.map((w) => w.page),
+      );
   const lines = [
     ...writes.map((w) => `- ${w.path}${names.has(w.page.updatedById) ? ` (${names.get(w.page.updatedById)})` : ""}`),
     ...[...removes].map((path) => `- removed ${path}`),

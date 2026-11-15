@@ -12072,6 +12072,7 @@
     },
     "repo": {
       "stopped": "Przestało się aktualizować z GitHubem",
+      "conflictNotice": "Wersja z GitHuba strony {{name}} zastąpiła zmianę zrobioną tutaj (obie zmieniły te same wiersze). Twoja zmiana to wersja {{version}} w historii strony.",
       "menu": {
         "name": "GitHub",
         "connect": "Trzymaj na GitHubie",
@@ -12108,7 +12109,8 @@
         "branch": "Gałąź",
         "branchPlaceholder": "Domyślna gałąź",
         "branchHelp": "Opcjonalnie. Notatki są czytane z tej gałęzi i do niej zapisywane.",
-        "noteConflict": "Jeśli notatka zmieniła się po obu stronach, zostaje ta z repozytorium. Ta stąd trafia do historii strony.",
+        "noteConflict": "Jeśli notatka zmieniła się po obu stronach, obie zmiany zostają połączone. Tam, gdzie obie strony zmieniły te same wiersze, zostaje wersja z GitHuba, ta stąd trafia do historii strony, a osoba, która ją napisała, dostaje powiadomienie.",
+        "publicWrite": "{{repo}} jest publiczne: każdy może przeczytać, co wiki tam zapisuje, także to, co piszą agenci.",
         "noteRestricted": "Strony ograniczone do kilku osób nigdy stąd nie wychodzą.",
         "submit": "Połącz"
       },
@@ -12133,6 +12135,7 @@
         "readOnly": "Aplikacja GitHub nie jest zainstalowana w {{repo}} albo może je tylko czytać: wiki za nim podąża, a to, co zmienia się tutaj, zostaje tutaj. Zainstaluj tam aplikację z prawem zapisu, aby wysyłać też zmiany stąd.",
         "noteDisconnect": "Rozłączenie zostawia strony tutaj, a notatki tam, takie, jakie są.",
         "noteStopped": "W międzyczasie to, co zostanie tu napisane, zostaje tutaj i trafi do repozytorium, gdy ono wróci.",
+        "allowRemovals": "Przenieś te strony do kosza",
         "disconnect": "Rozłącz",
         "open": "Otwórz na GitHubie",
         "syncNow": "Aktualizuj teraz",
@@ -12183,6 +12186,7 @@
         "folder_missing": "Folder wiki zniknął z {{repo}} albo jest pusty. Nic tu nie zostało usunięte: połącz repozytorium ponownie z właściwym folderem.",
         "no_app": "{{repo}} nie jest publiczne i nie skonfigurowano aplikacji GitHub, by je sięgnąć. Administrator konfiguruje ją w Konektorach, a wiki znów za nim podąża.",
         "protected": "{{repo}} nie przyjmuje bezpośrednich commitów na tej gałęzi (jest chroniona). Wybierz „Przez pull request” albo pozwól aplikacji GitHub wypychać do niej.",
+        "mass_removal": "Z {{repo}} usunięto naraz wiele notatek ({{count}}), więc wiki zatrzymała się przed przeniesieniem ich stron do kosza. Jeśli to było celowe, przenieś je do kosza. Jeśli nie, przywróć notatki na GitHubie i spróbuj ponownie.",
         "other": "Wiki przestała podążać za {{repo}}. Spróbuj ponownie."
       },
       "page": {
@@ -12194,7 +12198,9 @@
         "notSentHint": "Wiki przestała się aktualizować z GitHubem. Ta wersja trafi tam, gdy znów ruszy.",
         "local": "Tylko tutaj",
         "localHint": "Strony ograniczone do kilku osób nigdy nie trafiają na GitHuba.",
-        "readOnlyHint": "Repozytorium jest śledzone tylko do odczytu: ta wersja zostaje tutaj, a następna zmiana jego notatki tam ją zastąpi.",
+        "readOnlyHint": "Repozytorium jest śledzone tylko do odczytu: ta wersja zostaje tutaj. Zmiana jego notatki tam też tu trafia i zastępuje tę wersję tam, gdzie obie zmieniły te same wiersze.",
+        "replaced": "Zastąpiona przez GitHub",
+        "replacedHint": "Obie strony zmieniły te same wiersze. Została wersja z GitHuba, a ta stąd jest wersją {{version}} w historii.",
         "held": "Nieaktualna na GitHubie",
         "heldHint": "Jej notatki na GitHubie nie udało się tu odczytać, więc ta strona jej nie nadpisuje.",
         "review": "W pull requeście",
@@ -12405,7 +12411,9 @@
       "saved_message": "zapisano wiadomość",
       "created_from_message": "utworzono z wiadomości",
       "imported": "zaimportowano z „{{source}}”",
-      "repository": "przyszło z repozytorium ({{commit}})"
+      "repository": "przyszło z repozytorium ({{commit}})",
+      "repository_over": "przyszło z repozytorium ({{commit}}) w miejsce wersji {{version}}",
+      "repository_merged": "połączyło wersję {{version}} ze zmianami z repozytorium"
     }
   },
   "run": {
@@ -15649,6 +15657,7 @@
       "repoMissing": "To repozytorium zniknęło albo nie da się go już odczytać.",
       "repoBranchInvalid": "Ta nazwa nie może być gałęzią pull requesta: użyj liter, cyfr, - i /, i nie gałęzi, za którą podąża wiki.",
       "repoBranchMissing": "Ta gałąź nie istnieje w repozytorium.",
+      "repoBranchName": "To nie jest nazwa gałęzi, którą GitHub przyjmuje.",
       "repoEmpty": "To repozytorium nie ma jeszcze żadnego pliku. Dodaj pierwszy plik i spróbuj ponownie.",
       "repoPathInvalid": "Ten folder nie może przechowywać wiki.",
       "noAccess": "Nie masz dostępu do tej strony.",

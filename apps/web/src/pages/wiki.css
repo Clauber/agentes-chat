@@ -1773,7 +1773,15 @@ html:not([data-pointer]) .wiki-graph__node:focus-visible {
   font-size: var(--control-fs-sm);
   text-decoration: none;
 }
-a.wiki-repo-mark:hover {
+button.wiki-repo-mark {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+a.wiki-repo-mark:hover,
+button.wiki-repo-mark:hover {
   color: var(--ink);
 }
 .wiki-repo-mark[data-warn] {

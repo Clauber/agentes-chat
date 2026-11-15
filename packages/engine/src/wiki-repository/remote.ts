@@ -6,7 +6,8 @@
  */
 export interface NoteRemote {
   /** The repository as its host names it, and its default branch (null: it has none yet). */
-  about(): Promise<{ owner: string; repo: string; defaultBranch: string | null }>;
+  /** Its name as the host has it, its default branch, and whether anyone may read it. */
+  about(): Promise<{ owner: string; repo: string; defaultBranch: string | null; public: boolean }>;
   /** The commit a branch is at: `missing` when there is no such branch, `empty` when the repository has no commit. */
   head(branch: string): Promise<string | "missing" | "empty">;
   /** The Markdown notes of a commit under `folder` (hidden folders left out), by their path relative to it. */

@@ -5,14 +5,17 @@
 - Date: 2026-11-14
 - Amends: ADR 0023 (the wiki's pages lived in Postgres alone). Builds on ADR 0156 (the GitHub App is the workspace's
   identity on GitHub)
-- Code: `packages/engine/src/wiki-repository/` (`sync.ts` the sync, `remote.ts` the host as the sync sees it,
-  `github.ts` GitHub's git data API and pull requests, `public.ts` a public repository read without credentials,
-  `file.ts` the note format, `queue.ts` the jobs and the `push` webhook, `state.ts`
-  each page's note, `index.ts` connect, start again and disconnect); hooks in `wiki.ts` (`followRepository`,
-  `wikiRepositoryNote`, `addWikiPageAliases`, `WikiPageView.repository`); routes `apps/server/src/routes/app/wiki.ts`
+- Code: `packages/engine/src/wiki-repository/` (`sync.ts` the sync, `merge.ts` two edits of a note joined, `remote.ts`
+  the host as the sync sees it, `github.ts` GitHub's git data API and pull requests, `public.ts` a public repository
+  read without credentials, `file.ts` the note format, `queue.ts` the jobs and the `push` webhook, `state.ts` each
+  page's note and the pages that are outside text, `index.ts` connect, start again and disconnect); hooks in `wiki.ts`
+  (`followRepository`, `wikiRepositoryNote`, `wikiRepositoryMergeNote`, `addWikiPageAliases`,
+  `WikiPageView.repository`, `retrieveWikiForRun`), `wiki-tools.ts` and `context/tools.ts` (outside text);
+  `notifyWikiConflict` in `notification-producers.ts`; routes `apps/server/src/routes/app/wiki.ts`
   (`/organizations/{orgId}/wiki/repository`), the webhook in `apps/server/src/routes/github-app.ts`, the periodic look
   in `apps/server/src/workers.ts`; web `apps/web/src/components/wiki/WikiRepository.tsx`; tables
-  `wiki_repositories`, `wiki_repository_files` (migration 0275); tests `packages/engine/test/wiki-repository.test.ts`
+  `wiki_repositories`, `wiki_repository_files` (migrations 0275, 0276); tests
+  `packages/engine/test/wiki-repository.test.ts`
 
 ## Context
 
@@ -29,11 +32,22 @@ never reaches the repository. Teams don't want a second copy of what they know t
    gives the branch and the folder). Connecting another repository, branch or folder replaces the one before;
    disconnecting leaves the pages here and the notes there as they are. Administrators only: connecting writes every
    page that isn't limited to some people into a place everyone with access to the repository reads.
-2. **The repository is the source.** Each side follows the other. When both changed a note since they last agreed,
-   the repository's text is the page's new version and the one written here is the version before it, in the page's
-   history: nothing is lost, and the repository is never written over. A locked page follows the repository too: the
-   lock says who edits here. A page sent to the trash here whose note changed there comes back, with its history and
-   links.
+2. **The repository is the source, and two edits are joined when they can be.** Each side follows the other. When
+   both changed a note since they last agreed (the version both last held: the row's, or the one the wiki's pull
+   request proposed once it is merged), the two are merged line by line, as git merges a file (`merge.ts`):
+   - changed lines apart: the repository's text becomes the page's next version, then a version that joins the edit
+     made here back in (`merged version N with the repository's`, noteCode `repository_merged`), which goes there as
+     any edit does. Tags are joined too: one either side added comes in, one either side took off goes.
+   - the same lines, or lines that touch (git's rule: a merge never guesses which of two touching changes reads
+     right): the repository's text wins, as the page's next version (`synced from the repository at <commit>, over
+     version N`, noteCode `repository_over`). The edit made here is the version before it, in the history: nothing is
+     lost, and the repository is never written over. The page says so ("Replaced by GitHub", opening the history)
+     until it changes again, and the people who wrote the replaced versions, or those agents wrote them for, get a
+     `wiki_conflict` notice. Conflict markers are never written into a page: agents and people read pages as they
+     are.
+   The same text on both sides (one edit made twice, a pull request merged as proposed) is no conflict and writes
+   nothing. A locked page follows the repository too: the lock says who edits here. A page sent to the trash here
+   whose note changed there comes back, with its history and links.
 3. **A note is a page.** Every `.md`/`.markdown` file under the folder is a page: its path is the page's folder and
    title, its frontmatter is kept as written, and its `tags` and `aliases` are the page's tags and extra names.
    Hidden folders and files (`.git`, `.obsidian`) and `node_modules` are never read. A page's file name is one every
@@ -57,13 +71,18 @@ never reaches the repository. Teams don't want a second copy of what they know t
    again (`wiki.repo_not_installed`, `wiki.repo_refused`, `wiki.repo_missing`, `wiki.repo_branch_missing`,
    `wiki.repo_empty`, `wiki.repo_protected` for a branch that takes no direct commits, `wiki.repo_folder_missing` for a
    folder that lists no note while pages came from it, so a renamed folder never empties the wiki,
-   `wiki.repo_too_large`, `wiki.repo_owner_gone`, `wiki.repo_no_app`). GitHub not answering or asking to wait (5xx,
+   `wiki.repo_mass_removal` for more than 20 notes removed there at once that are also more than half of the wiki's,
+   `wiki.repo_too_large`, `wiki.repo_owner_gone`, `wiki.repo_no_app`). On `wiki.repo_mass_removal` no page went to the
+   trash: the administrator either puts the notes back on GitHub and tries again, or starts the sync again saying
+   those pages may go (`allowRemovals`, used once: `removals_allowed`). GitHub not answering or asking to wait (5xx,
    429, a 403 over a rate limit) keeps it on: the job retries with the outbox's backoff and the app says it is trying
    again (`wiki.repo_unreachable` while `active`). Meanwhile saves stay here and go out when it runs again.
 9. **Whose changes.** What comes from the repository is saved with the rights of the administrator who connected the
    repository, or started it again, with a version note naming the commit (`synced from the repository at <commit>`,
    noteCode `repository`). If they are no longer an administrator, the sync stops (`wiki.repo_owner_gone`) until
-   another one starts it again. Commits are the GitHub App's; their message names each file and who last wrote it.
+   another one starts it again. Commits are the GitHub App's; their message names each file and who last wrote it,
+   except in a public repository, whose history anyone reads: there it names nobody (`wiki_repositories.public`,
+   asked of GitHub whenever the wiki writes there).
 10. **Each page says where its note stands**, in its line of facts: on GitHub (a link to the file), going to GitHub,
     not on GitHub yet (stopped), only here (limited), or not updated on GitHub (held).
 11. **How the wiki writes there, the administrator's choice** (`commitMode`):
@@ -88,15 +107,27 @@ never reaches the repository. Teams don't want a second copy of what they know t
     of its pushes, so it is looked at every minute. Installing the app on it, allowed to write, makes the wiki write
     there too at the next sync; an app that may only read keeps it read-only. A repository that is neither public nor
     reached by the app is refused with why (`wiki.repo_not_installed`, or `wiki.repo_no_app` on a server without the
-    app).
+    app). Its archive is read by at most two syncs at once per process, and its notes may hold 128 MiB at most once
+    inflated: only the archive stays in memory, each note inflated when it is read.
 13. **One host today, more later.** The sync talks to the host only through `NoteRemote` (a branch's head, the notes
     of a commit with their git blobs, a note's text, one commit); `wiki_repositories.provider` says which host.
     GitHub's is the git data API with the app's installation token, so the server runs no git and keeps no clone: the
     self-host still needs only Postgres.
 14. **What is remembered.** `wiki_repositories` (one per workspace: the repository, the commit both sides agreed on,
-    state, how it writes, the wiki's pull request) and `wiki_repository_files` (per note: the git blob and the page's version both sides last agreed on, the
+    state, how it writes, the wiki's pull request, whether it is public, removals waiting for an administrator) and `wiki_repository_files` (per note: the git blob and the page's version both sides last agreed on, the
     title and folder that note was written under, its frontmatter): a later change on either side is told apart by
     comparing with them.
+15. **What the team didn't write is outside text.** Pages that follow a public repository the workspace doesn't write
+    to are written by whoever keeps it on GitHub: what agents read of them (the run's wiki context, `search_wiki`,
+    `read_wiki_page`, the workspace search) goes in the outside-text envelope (`untrustedBlock`, ADR 0053), as an email
+    does, never as the team's instructions. A repository the workspace writes to through the app is its own: its
+    pages are read as the team's, like the rest of the wiki (ADR 0167).
+16. **Writing to a public repository is said before it happens.** What the wiki writes there, agents' edits
+    included, anyone can read: the dialog says so beside the choice of how the wiki writes, and offers a pull request
+    first for a public repository, so a person reads what is published.
+17. **Names someone types are checked.** The followed branch must be a name git takes (`git check-ref-format`'s
+    rules, `wiki.repo_branch_name`): it goes into GitHub's addresses and git's own requests. The list of notes held
+    aside, paths of a repository members may not reach on GitHub, goes to administrators only.
 
 ## Consequences
 
@@ -107,6 +138,10 @@ never reaches the repository. Teams don't want a second copy of what they know t
 - A note renamed and edited in the same push there reads as one note removed and another added: the old page goes to
   the trash and a new one takes the text, without the old one's history.
 - A first sync of a large repository or wiki takes several jobs; the dialog shows it updating meanwhile.
+- Edits are joined by lines, as git joins them: two edits of one long paragraph (one line of Markdown) are a conflict
+  even when they change different words, and GitHub's text wins there.
+- A merge that joins two edits writes two versions (the repository's, then the join), so the history shows what came
+  from where.
 - A rule on the branch that refuses the app's commits (protection, required reviews, signed commits) stops the sync
   with `wiki.repo_protected`, until the wiki writes through a pull request or the app may push to it.
 - The wiki's pull request branch is the wiki's: what someone pushes to it is replaced at the next change. Review

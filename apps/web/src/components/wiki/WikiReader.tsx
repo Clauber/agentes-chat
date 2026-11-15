@@ -389,7 +389,7 @@ function PageMeta({
           {t("wiki.locked")}
         </Chip>
       )}
-      <WikiRepositoryMark page={page} />
+      <WikiRepositoryMark page={page} onHistory={onHistory} />
       {/* Kept in the wiki's repository: the mark above already says GitHub. */}
       {isImportedPage(page.source?.type) && !(page.repository && page.source?.type === "github") && (
         <span className="wiki-chip">

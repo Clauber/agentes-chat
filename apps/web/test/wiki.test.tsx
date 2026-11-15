@@ -212,6 +212,7 @@ describe("the wiki kept on GitHub", () => {
         defaultBranch: "main",
         path: "",
         writable: false,
+        public: true,
         url: "https://github.com/acme/notas",
       };
     };
@@ -236,6 +237,83 @@ describe("the wiki kept on GitHub", () => {
       repository: "acme/notas",
       commitMode: "none",
     });
+  });
+
+  test("a public repository the app writes to: a pull request first, and the dialog says anyone reads what the wiki writes there", async () => {
+    const { state, api } = await go("wiki/onboarding");
+    api.wiki.checkRepository = async (_orgId, input) => {
+      state.calls.push({ method: "wiki.checkRepository", args: [ORG_ID, input] });
+      return {
+        owner: "acme",
+        repo: "aberto",
+        branch: "main",
+        defaultBranch: "main",
+        path: "",
+        writable: true,
+        public: true,
+        url: "https://github.com/acme/aberto",
+      };
+    };
+    const d = await openKeepOnGitHub();
+    await type(within(d).getByLabelText("Repositório"), "acme/aberto");
+    await waitCheck();
+    expect(
+      within(d)
+        .getByRole("radio", { name: /Por pull request/ })
+        .getAttribute("aria-checked"),
+    ).toBe("true");
+    expect(d.textContent).toContain(
+      "acme/aberto é público: qualquer pessoa pode ler o que a wiki escreve lá, inclusive o que os agentes escrevem.",
+    );
+    // Only following it: nothing is written there, so nothing to say.
+    await click(within(d).getByRole("radio", { name: /Só acompanhar/ }));
+    expect(d.textContent).not.toContain("qualquer pessoa pode ler");
+    await click(within(d).getByRole("radio", { name: /Por pull request/ }));
+    await click(within(d).getByRole("button", { name: "Conectar" }));
+    expect(state.calls.find((c) => c.method === "wiki.connectRepository")?.args[1]).toMatchObject({
+      repository: "acme/aberto",
+      commitMode: "pull_request",
+    });
+  });
+
+  test("stopped because many notes left GitHub at once: why, and a way to let their pages go to the trash", async () => {
+    const { state, api } = await go("wiki/onboarding");
+    api.wiki.repository = async () => ({
+      provider: "github",
+      owner: "acme",
+      repo: "notas",
+      branch: "main",
+      path: "",
+      url: "https://github.com/acme/notas",
+      writable: true,
+      public: false,
+      commitMode: "direct",
+      prBranch: "agentes/wiki",
+      pullRequest: null,
+      status: "error",
+      errorCode: "wiki.repo_mass_removal",
+      syncing: false,
+      syncedAt: null,
+      notifiedAt: null,
+      notes: 40,
+      pending: 0,
+      held: [],
+      removalsWaiting: 30,
+    });
+    await settle(2);
+    const more = screen().getByRole("button", { name: "Mais ações: Wiki" });
+    more.focus();
+    await act(async () => {
+      fireEvent.keyDown(more, { key: "Enter" });
+      fireEvent.keyUp(more, { key: "Enter" });
+    });
+    await settle(2);
+    await click(within(screen().getByRole("menu")).getByRole("menuitem", { name: /^GitHub/ }));
+    await settle(2);
+    const d = screen().getByRole("dialog", { name: "Wiki no GitHub" });
+    expect(d.textContent).toContain("Muitas notas foram removidas de acme/notas de uma vez (30)");
+    await click(within(d).getByRole("button", { name: "Mandar essas páginas para a lixeira" }));
+    expect(state.calls.find((c) => c.method === "wiki.syncRepository")?.args[1]).toEqual({ allowRemovals: true });
   });
 
   test("a repository GitHub hides: why, under its name, and nothing to connect", async () => {

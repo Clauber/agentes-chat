@@ -219,6 +219,11 @@ export const wikiRepositories = pgTable(
      */
     writable: boolean().notNull().default(true),
     /**
+     * Anyone may read it on GitHub: what the wiki writes there is public, so commits name nobody; followed read-only,
+     * its text is outside text for the agents (ADR 0186).
+     */
+    public: boolean().notNull().default(false),
+    /**
      * How the wiki writes there: `direct`, commits on `branch`; `pull_request`, one pull request into `branch` from
      * `prBranch`, rebuilt on `branch` at every change; `none`, never (it only follows the repository).
      */
@@ -249,6 +254,12 @@ export const wikiRepositories = pgTable(
     syncedAt: timestamp({ withTimezone: true }),
     /** The last push GitHub told of (its webhook reaches this server): changes there then arrive at once. */
     notifiedAt: timestamp({ withTimezone: true }),
+    /**
+     * Notes removed there at once, more than the sync takes without asking (`wiki.repo_mass_removal`): their pages
+     * stay out of the trash until an administrator lets the next sync remove them (`removalsAllowed`, used once).
+     */
+    removalsWaiting: integer(),
+    removalsAllowed: boolean().notNull().default(false),
     /** Who connected it, or started it again: what comes from the repository is saved with their rights. */
     createdByUserId: text().references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),

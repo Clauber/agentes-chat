@@ -2,7 +2,7 @@ import type { Database } from "@agenteschat/db";
 import { TooManyError, ValidationError } from "../errors";
 import { assertPublicHttpsUrl, type ResolveHost } from "../net-guard";
 import { GithubMissingError, linkedRepository } from "../skills";
-import { inflateZipEntry } from "../zip";
+import { inflateZipEntry, type ZipListing } from "../zip";
 import { gitBlobSha, LEFT_OUT_PATH, NOTE_FILE } from "./file";
 import { GitHubBusy } from "./github";
 import { NOTE_MAX_BYTES, NOTES_MAX, type NoteRemote, type RemoteNote, RepoRefusal } from "./remote";
@@ -124,14 +124,37 @@ function asSync(error: unknown): never {
   throw error;
 }
 
-/** The repository as a read-only `NoteRemote`: one archive read per sync, its notes kept for `read`. */
+/** Archives read at once by this process: each is up to 50 MB in memory while its sync runs. */
+const ARCHIVES_AT_ONCE = 2;
+/** The most a commit's notes may hold once inflated, all together: past it the repository is too large to follow. */
+export const PUBLIC_NOTES_MAX_BYTES = 128 * 1024 * 1024;
+let reading = 0;
+const queue: (() => void)[] = [];
+
+/** One of the process's archive reads: waits its turn, and hands it to the next one waiting when `run` ends. */
+async function oneArchiveAtATime<T>(run: () => Promise<T>): Promise<T> {
+  if (reading >= ARCHIVES_AT_ONCE) await new Promise<void>((go) => queue.push(go));
+  else reading++;
+  try {
+    return await run();
+  } finally {
+    const next = queue.shift();
+    if (next) next();
+    else reading--;
+  }
+}
+
+/**
+ * The repository as a read-only `NoteRemote`: one archive read per sync. A note is inflated to tell its blob, and
+ * again when `read`: only the archive stays in memory, never every note's text.
+ */
 export function publicRemote(access: PublicRepoAccess): NoteRemote {
-  const texts = new Map<string, string>();
+  let archive: { zip: Uint8Array; entries: Map<string, ZipListing> } | null = null;
   return {
     async about() {
       const found = await publicBranch(access, null);
       if (!found) throw new RepoRefusal("wiki.repo_missing");
-      return { owner: access.owner, repo: access.repo, defaultBranch: found.defaultBranch };
+      return { owner: access.owner, repo: access.repo, defaultBranch: found.defaultBranch, public: true };
     },
 
     async head(branch) {
@@ -140,37 +163,44 @@ export function publicRemote(access: PublicRepoAccess): NoteRemote {
       return found.head;
     },
 
-    async list(commit, folder) {
-      const url = `https://github.com/${encodeURIComponent(access.owner)}/${encodeURIComponent(access.repo)}/tree/${commit}`;
-      const { zip, files: all } = await linkedRepository(
-        { db: access.db, fetch: access.fetch, resolveHost: access.resolveHost },
-        access.orgId,
-        url,
-      ).catch(asSync);
-      const prefix = folder ? `${folder}/` : "";
-      const files = new Map<string, RemoteNote>();
-      for (const [full, entry] of all) {
-        if (!full.startsWith(prefix)) continue;
-        const path = full.slice(prefix.length);
-        if (!NOTE_FILE.test(path) || LEFT_OUT_PATH.test(path)) continue;
-        if (files.size >= NOTES_MAX) throw new RepoRefusal("wiki.repo_too_large");
-        if (entry.size > NOTE_MAX_BYTES) {
-          // Never read: what tells it changed is its size and where it sits in the archive.
-          files.set(path, { sha: `large:${entry.size}:${entry.compressed}`, size: entry.size });
-          continue;
+    list(commit, folder) {
+      return oneArchiveAtATime(async () => {
+        const url = `https://github.com/${encodeURIComponent(access.owner)}/${encodeURIComponent(access.repo)}/tree/${commit}`;
+        const { zip, files: all } = await linkedRepository(
+          { db: access.db, fetch: access.fetch, resolveHost: access.resolveHost },
+          access.orgId,
+          url,
+        ).catch(asSync);
+        const prefix = folder ? `${folder}/` : "";
+        const files = new Map<string, RemoteNote>();
+        const entries = new Map<string, ZipListing>();
+        let bytes = 0;
+        for (const [full, entry] of all) {
+          if (!full.startsWith(prefix)) continue;
+          const path = full.slice(prefix.length);
+          if (!NOTE_FILE.test(path) || LEFT_OUT_PATH.test(path)) continue;
+          if (files.size >= NOTES_MAX) throw new RepoRefusal("wiki.repo_too_large");
+          if (entry.size > NOTE_MAX_BYTES) {
+            // Never read: what tells it changed is its size and where it sits in the archive.
+            files.set(path, { sha: `large:${entry.size}:${entry.compressed}`, size: entry.size });
+            continue;
+          }
+          // The sizes are the archive's word, and inflating stops at them: a lie can't take more memory than this.
+          bytes += entry.size;
+          if (bytes > PUBLIC_NOTES_MAX_BYTES) throw new RepoRefusal("wiki.repo_too_large");
+          const sha = gitBlobSha(inflateZipEntry(zip, entry));
+          entries.set(sha, entry);
+          files.set(path, { sha, size: entry.size });
         }
-        const bytes = inflateZipEntry(zip, entry);
-        const sha = gitBlobSha(bytes);
-        texts.set(sha, Buffer.from(bytes).toString("utf8"));
-        files.set(path, { sha, size: bytes.byteLength });
-      }
-      return { files };
+        archive = { zip, entries };
+        return { files };
+      });
     },
 
     async read(blob) {
-      const text = texts.get(blob);
-      if (text === undefined) throw new Error(`note ${blob} isn't in the archive read`);
-      return text;
+      const entry = archive?.entries.get(blob);
+      if (!archive || !entry) throw new Error(`note ${blob} isn't in the archive read`);
+      return Buffer.from(inflateZipEntry(archive.zip, entry)).toString("utf8");
     },
 
     commit() {

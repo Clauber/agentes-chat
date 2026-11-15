@@ -10875,6 +10875,7 @@
     },
     "repo": {
       "stopped": "已停止与 GitHub 同步更新",
+      "conflictNotice": "{{name}} 在 GitHub 上的版本替换了这里的一次修改（两边改了同样的行）。你的修改是页面历史中的第 {{version}} 版。",
       "menu": {
         "name": "GitHub",
         "connect": "保存在 GitHub",
@@ -10911,7 +10912,8 @@
         "branch": "分支",
         "branchPlaceholder": "默认分支",
         "branchHelp": "可选。笔记从这个分支读取并写入这个分支。",
-        "noteConflict": "如果一条笔记两边都改了，保留仓库中的版本。这里的版本会进入页面历史。",
+        "noteConflict": "如果一条笔记两边都改了，两处修改会合并。两边改了同样的行时，保留 GitHub 的版本，这里的版本进入页面历史，并通知写它的人。",
+        "publicWrite": "{{repo}} 是公开仓库：Wiki 在那里写的内容，包括智能体写的，任何人都能读到。",
         "noteRestricted": "仅部分人可见的页面永远不会离开这里。",
         "submit": "连接"
       },
@@ -10930,6 +10932,7 @@
         "readOnly": "{{repo}} 没有安装 GitHub 应用，或者应用只能读取它：Wiki 会跟随它，这里的改动会留在这里。在该仓库上安装有写入权限的应用，这里的改动也会同步过去。",
         "noteDisconnect": "断开连接后，页面留在这里，笔记留在那边，保持原样。",
         "noteStopped": "在此期间，这里写的内容会留在这里，仓库恢复后再同步过去。",
+        "allowRemovals": "把这些页面移到回收站",
         "disconnect": "断开连接",
         "open": "在 GitHub 上打开",
         "syncNow": "立即更新",
@@ -10980,6 +10983,7 @@
         "folder_missing": "Wiki 的文件夹已从 {{repo}} 中消失，或者是空的。这里没有删除任何内容：请用正确的文件夹重新连接仓库。",
         "no_app": "{{repo}} 不是公开的，也没有设置可以访问它的 GitHub 应用。管理员在连接器中设置后，Wiki 会重新同步。",
         "protected": "{{repo}} 不接受直接提交到这个分支（它受保护）。请选择“通过拉取请求”，或允许 GitHub 应用推送到该分支。",
+        "mass_removal": "{{repo}} 一次删除了很多笔记（{{count}} 条），所以 Wiki 在把这些页面移到回收站之前停了下来。如果是有意的，就把它们移到回收站。如果不是，请在 GitHub 上恢复这些笔记后重试。",
         "other": "Wiki 已停止同步 {{repo}}。请重试。"
       },
       "page": {
@@ -10991,7 +10995,9 @@
         "notSentHint": "Wiki 已停止与 GitHub 同步更新。恢复后这个版本会同步过去。",
         "local": "仅在这里",
         "localHint": "仅部分人可见的页面永远不会同步到 GitHub。",
-        "readOnlyHint": "这个仓库以只读方式跟随：这个版本留在这里，那边笔记的下一次改动会替换它。",
+        "readOnlyHint": "这个仓库以只读方式跟随：这个版本留在这里。那边笔记的改动也会同步过来，并在两边改了同样的行时替换这个版本。",
+        "replaced": "已被 GitHub 的版本替换",
+        "replacedHint": "两边改了同样的行。保留了 GitHub 的版本，这里的版本是历史中的第 {{version}} 版。",
         "held": "GitHub 上未更新",
         "heldHint": "无法在这里读取它在 GitHub 上的笔记，所以这个页面不会覆盖它。",
         "review": "在拉取请求中",
@@ -11130,7 +11136,9 @@
       "saved_message": "保存了一条消息",
       "created_from_message": "从一条消息创建",
       "imported": "从“{{source}}”导入",
-      "repository": "来自仓库（{{commit}}）"
+      "repository": "来自仓库（{{commit}}）",
+      "repository_over": "来自仓库（{{commit}}），替换了第 {{version}} 版",
+      "repository_merged": "将第 {{version}} 版与仓库的改动合并"
     }
   },
   "run": {
@@ -14165,6 +14173,7 @@
       "repoMissing": "这个仓库已不存在，或者已无法读取。",
       "repoBranchInvalid": "这个名称不能用作拉取请求的分支：请使用字母、数字、- 和 /，并且不要使用 Wiki 所跟随的分支。",
       "repoBranchMissing": "仓库中没有这个分支。",
+      "repoBranchName": "GitHub 不接受这个分支名。",
       "repoEmpty": "这个仓库还没有任何文件。添加第一个文件后再试一次。",
       "repoPathInvalid": "这个文件夹不能存放 Wiki。",
       "noAccess": "你无权访问此页面。",

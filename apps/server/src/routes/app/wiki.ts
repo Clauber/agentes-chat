@@ -187,6 +187,10 @@ const Page = Summary.extend({
         description: "The repository is followed read-only: what changes here stays here (`local`).",
       }),
       url: z.string().nullable().openapi({ description: "The note's address, once it has one." }),
+      replaced: z.number().nullable().openapi({
+        description:
+          "The version made here that the repository's text replaced (both changed the same lines), while the page is still at the repository's version; it is in the history.",
+      }),
     })
     .nullable()
     .openapi({ description: "Its note in the repository the wiki is kept in (ADR 0186); null when there is none." }),
@@ -984,6 +988,9 @@ export function wikiRoutes(deps: AppDeps) {
         description:
           "The wiki may write there. False: a public repository the GitHub App doesn't reach, followed read-only.",
       }),
+      public: z.boolean().openapi({
+        description: "Anyone may read it: what the wiki writes there is public, and its commits name nobody.",
+      }),
       commitMode: z.enum(["direct", "pull_request", "none"]).openapi({
         description: "How the wiki writes there: straight on the branch, through a pull request, or never.",
       }),
@@ -1004,9 +1011,13 @@ export function wikiRoutes(deps: AppDeps) {
       }),
       notes: z.number().openapi({ description: "Notes that are pages." }),
       pending: z.number().openapi({ description: "Pages whose last version is still to be written there." }),
-      held: z
-        .array(z.object({ path: z.string(), code: z.string() }))
-        .openapi({ description: "Notes that couldn't become pages, with why (`wiki.body_too_long`…)." }),
+      held: z.array(z.object({ path: z.string(), code: z.string() })).openapi({
+        description: "Notes that couldn't become pages, with why (`wiki.body_too_long`…); administrators only.",
+      }),
+      removalsWaiting: z.number().nullable().openapi({
+        description:
+          "Stopped with `wiki.repo_mass_removal`: how many notes were removed there at once. Their pages stay until an administrator syncs with `allowRemovals`.",
+      }),
     })
     .openapi("WikiRepository");
   const RepositoryState = z.object({ repository: Repository.nullable() }).openapi("WikiRepositoryState");
@@ -1032,7 +1043,7 @@ export function wikiRoutes(deps: AppDeps) {
       security,
       summary: "Keep the wiki in a GitHub repository (replaces the one before; the pages stay)",
       description:
-        "Administrators. Through the GitHub App installed on it; a public one it doesn't reach is followed read-only. `wiki.repo_invalid`, `wiki.repo_no_app`, `wiki.repo_not_installed`, `wiki.repo_refused`, `wiki.repo_missing`, `wiki.repo_branch_missing`, `wiki.repo_empty`, `wiki.repo_path_invalid`, `github.unreachable`.",
+        "Administrators. Through the GitHub App installed on it; a public one it doesn't reach is followed read-only. `wiki.repo_invalid`, `wiki.repo_no_app`, `wiki.repo_not_installed`, `wiki.repo_refused`, `wiki.repo_missing`, `wiki.repo_branch_missing`, `wiki.repo_branch_name`, `wiki.repo_empty`, `wiki.repo_path_invalid`, `github.unreachable`.",
       request: {
         params: OrgParams,
         body: body(
@@ -1087,6 +1098,9 @@ export function wikiRoutes(deps: AppDeps) {
               defaultBranch: z.string().nullable(),
               path: z.string(),
               writable: z.boolean(),
+              public: z
+                .boolean()
+                .openapi({ description: "Anyone may read it: what the wiki would write there is public." }),
               url: z.string(),
             })
             .openapi("WikiRepositoryCheck"),
@@ -1139,11 +1153,26 @@ export function wikiRoutes(deps: AppDeps) {
       tags,
       security,
       summary: "Sync with the repository now, and start a stopped sync again (administrators)",
-      request: { params: OrgParams },
+      request: {
+        params: OrgParams,
+        body: {
+          ...body(
+            z.object({
+              allowRemovals: z.boolean().optional().openapi({
+                description:
+                  "Stopped with `wiki.repo_mass_removal`: the pages of the notes removed there may go to the trash, once.",
+              }),
+            }),
+          ),
+          required: false,
+        },
+      },
       responses: { 200: json(RepositoryState), ...errors },
     }),
     async (c) => {
-      const view = await resumeWikiRepository(repository(), c.get("user").id, c.req.valid("param").orgId);
+      const view = await resumeWikiRepository(repository(), c.get("user").id, c.req.valid("param").orgId, {
+        allowRemovals: c.req.valid("json")?.allowRemovals === true,
+      });
       deps.wakeWorkers?.();
       return c.json({ repository: view }, 200);
     },

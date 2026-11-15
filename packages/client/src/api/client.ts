@@ -1710,8 +1710,11 @@ export interface ApiClient {
     connectRepository(orgId: string, input: WikiRepositoryInput): Promise<WikiRepository>;
     /** How the wiki writes there: straight on the branch, through a pull request, or never (administrators). */
     setRepositoryWriting(orgId: string, input: WikiRepositoryWriting): Promise<WikiRepository | null>;
-    /** Syncs now, and starts a stopped sync again (administrators). */
-    syncRepository(orgId: string): Promise<WikiRepository | null>;
+    /**
+     * Syncs now, and starts a stopped sync again (administrators); `allowRemovals`, stopped because many notes were
+     * removed there at once: their pages may go to the trash.
+     */
+    syncRepository(orgId: string, input?: { allowRemovals?: boolean }): Promise<WikiRepository | null>;
     /** Stops keeping the wiki in its repository: pages and notes stay as they are. */
     disconnectRepository(orgId: string): Promise<void>;
     /** Appends a block (e.g. a chat message) with a link back to where it came from. */

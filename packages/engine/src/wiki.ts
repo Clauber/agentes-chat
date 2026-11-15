@@ -29,6 +29,7 @@ import { can, type Membership, requireActiveMembership } from "./organizations";
 import { maySql } from "./permissions";
 import { enqueueIndex, registerDocumentBuilder, registerReindexSource, type SearchDeps, searchVisible } from "./search";
 import { type Audience, adminChannelSql, taskSeenSql } from "./task-access";
+import { untrustedBlock } from "./untrusted";
 import {
   pagesBySlug,
   parseWikiLinks,
@@ -39,7 +40,7 @@ import {
   wikiSlug,
 } from "./wiki-links";
 import { requestWikiRepositorySync } from "./wiki-repository/queue";
-import { type WikiPageRepository, wikiPageRepository } from "./wiki-repository/state";
+import { outsideWikiPages, type WikiPageRepository, wikiPageRepository } from "./wiki-repository/state";
 
 const {
   wikiPages,
@@ -1348,10 +1349,19 @@ const NOTE_PATTERNS: [RegExp, string, string[]][] = [
   [/^created from a message$/, "created_from_message", []],
   [/^imported from "(.*)"$/, "imported", ["source"]],
   [/^synced from the repository at (\S+)$/, "repository", ["commit"]],
+  [/^synced from the repository at (\S+), over version (\d+)$/, "repository_over", ["commit", "version"]],
+  [/^merged version (\d+) with the repository's$/, "repository_merged", ["version"]],
 ];
 
-/** The note of a version the wiki's repository brought (ADR 0186): a note that changed there, at that commit. */
-export const wikiRepositoryNote = (commit: string) => `synced from the repository at ${commit.slice(0, 7)}`;
+/**
+ * The note of a version the wiki's repository brought (ADR 0186): a note that changed there, at that commit; `over`,
+ * the version made here that it replaced, both having changed the same lines.
+ */
+export const wikiRepositoryNote = (commit: string, over?: number) =>
+  `synced from the repository at ${commit.slice(0, 7)}${over ? `, over version ${over}` : ""}`;
+
+/** The note of the version that joins an edit made here (`version`) with what the repository changed elsewhere. */
+export const wikiRepositoryMergeNote = (version: number) => `merged version ${version} with the repository's`;
 
 /**
  * Names a page also answers to (a note's frontmatter `aliases`), added to the ones it has: `[[Alias]]` links reach
@@ -2840,9 +2850,11 @@ export async function createPageFromSource(
 
 /**
  * Wiki pages relevant to the trigger message, for the run's prompt (a trusted
- * source written by the team). Pages marked "Sempre no contexto" and the pages
- * the message links with `[[…]]` come first, then the search's matches that
- * pass `WIKI_MIN_RANK`. An org without a wiki costs one cached lookup.
+ * source written by the team; a page that follows a repository the workspace
+ * doesn't write to comes as outside text, ADR 0186). Pages marked "Sempre no
+ * contexto" and the pages the message links with `[[…]]` come first, then the
+ * search's matches that pass `WIKI_MIN_RANK`. An org without a wiki costs one
+ * cached lookup.
  */
 export async function retrieveWikiForRun(
   deps: WikiDeps,
@@ -2904,6 +2916,11 @@ export async function retrieveWikiForRun(
   const lines: string[] = [];
   const ids: string[] = [];
   let used = 0;
+  const outside = await outsideWikiPages(
+    db,
+    input.orgId,
+    [...namedSeen, ...found].map((p) => p.id),
+  );
   // Context on demand (ADR 0043): pages the message names and the best match go in (cut at `WIKI_PAGE_CHARS`);
   // the other matches only as an index line, read with read_wiki_page when the run needs them.
   const full = new Set([...namedSeen.map((p) => p.id), ...found.slice(0, 1).map((p) => p.id)]);
@@ -2913,9 +2930,11 @@ export async function retrieveWikiForRun(
     if (room < 120) break;
     const body = p.body.trim();
     const where = `${p.folder ? `${p.folder}/` : ""}${p.slug}, v${p.version}`;
-    const text = full.has(p.id)
+    const said = full.has(p.id)
       ? `## [[${p.title}]] (${where})\n${body.length > room ? `${cutText(body, room)}\n[… continues: read it with read_wiki_page]` : body}`
       : `- [[${p.title}]] (${where}): ${cutText(body.replace(/\s+/g, " "), room)}${body.length > room ? "… [read it with read_wiki_page]" : ""}`;
+    // Written on GitHub by whoever keeps that repository, not by the team.
+    const text = outside.has(p.id) ? untrustedBlock("wiki page from a public repository", said, room + 400) : said;
     lines.push(text);
     ids.push(p.id);
     used += text.length;

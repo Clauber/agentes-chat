@@ -51,9 +51,13 @@ const WHY = {
   "wiki.repo_folder_missing": "wiki.repo.why.folder_missing",
   "wiki.repo_no_app": "wiki.repo.why.no_app",
   "wiki.repo_protected": "wiki.repo.why.protected",
+  "wiki.repo_mass_removal": "wiki.repo.why.mass_removal",
 } as const;
 const whyText = (t: TFunction, r: WikiRepository) =>
-  t(WHY[(r.errorCode ?? "") as keyof typeof WHY] ?? "wiki.repo.why.other", { repo: nameOf(r) });
+  t(WHY[(r.errorCode ?? "") as keyof typeof WHY] ?? "wiki.repo.why.other", {
+    repo: nameOf(r),
+    count: r.removalsWaiting ?? 0,
+  });
 
 /** Why a note isn't a page. */
 const HELD = {
@@ -120,11 +124,28 @@ export function WikiRepositoryStopped({ onOpen }: { onOpen: () => void }) {
   );
 }
 
-/** Where a page's note stands on GitHub, in the page's line of facts: a link once it is there, else a word. */
-export function WikiRepositoryMark({ page }: { page: WikiPage }) {
+/**
+ * Where a page's note stands on GitHub, in the page's line of facts: a link once it is there, else a word. Right after
+ * GitHub's version replaced an edit made here, that says so first, and opens the page's history.
+ */
+export function WikiRepositoryMark({ page, onHistory }: { page: WikiPage; onHistory: () => void }) {
   const { t } = useTranslation();
   const r = page.repository;
   if (!r) return null;
+  if (r.replaced) {
+    return (
+      <button
+        type="button"
+        className="wiki-repo-mark"
+        data-warn
+        title={t("wiki.repo.page.replacedHint", { version: r.replaced })}
+        onClick={onHistory}
+      >
+        <GitHubMark size={14} />
+        {t("wiki.repo.page.replaced")}
+      </button>
+    );
+  }
   if ((r.state === "review" || r.state === "declined") && r.url) {
     const declined = r.state === "declined";
     return (
@@ -292,9 +313,10 @@ function Connect({ onClose }: { onClose: () => void }) {
   const branchRefused = errorCode(refusal) === "wiki.repo_branch_missing";
   const readOnly = found ? !found.writable : false;
   const chosenMode: WikiCommitMode = readOnly ? "none" : mode;
-  // What the wiki may do there sets the choice, until someone makes one.
+  // What the wiki may do there sets the choice, until someone makes one: a public repository gets a pull request, so
+  // a person reads what the wiki publishes before anyone can.
   useEffect(() => {
-    if (found && !modeTouched) setMode(found.writable ? "direct" : "none");
+    if (found && !modeTouched) setMode(found.writable ? (found.public ? "pull_request" : "direct") : "none");
   }, [found, modeTouched]);
   const status = !named
     ? undefined
@@ -389,6 +411,11 @@ function Connect({ onClose }: { onClose: () => void }) {
             branch={found?.branch ?? null}
             readOnly={readOnly}
           />
+          {found?.public && !readOnly && chosenMode !== "none" && (
+            <SettingNote icon="globe">
+              {t("wiki.repo.connect.publicWrite", { repo: `${found.owner}/${found.repo}` })}
+            </SettingNote>
+          )}
           <details
             className="cflow__more"
             open={more || branchRefused}
@@ -486,6 +513,19 @@ function Manage({ repository, onClose }: { repository: WikiRepository; onClose: 
       <DialogBody>
         <div className="wiki-repo-form">
           {stopped && <Alert>{whyText(t, repository)}</Alert>}
+          {stopped && admin && repository.errorCode === "wiki.repo_mass_removal" && (
+            <div>
+              <Button
+                size="sm"
+                icon="trash"
+                disabled={sync.isPending}
+                loading={sync.isPending}
+                onClick={() => sync.mutate({ allowRemovals: true }, { onError: fail })}
+              >
+                {t("wiki.repo.manage.allowRemovals")}
+              </Button>
+            </div>
+          )}
           {retrying(repository) && <Alert tone="neutral">{t("wiki.repo.manage.retrying")}</Alert>}
           {!stopped && !repository.writable && (
             <Alert tone="neutral">{t("wiki.repo.manage.readOnly", { repo: nameOf(repository) })}</Alert>
@@ -540,6 +580,11 @@ function Manage({ repository, onClose }: { repository: WikiRepository; onClose: 
                 branch={repository.branch}
                 readOnly={!repository.writable}
               />
+              {repository.public && repository.writable && mode !== "none" && (
+                <SettingNote icon="globe">
+                  {t("wiki.repo.connect.publicWrite", { repo: nameOf(repository) })}
+                </SettingNote>
+              )}
               {mode === "pull_request" && repository.writable && (
                 <Field
                   label={t("wiki.repo.writing.branch")}
@@ -619,7 +664,7 @@ function Manage({ repository, onClose }: { repository: WikiRepository; onClose: 
             icon="refresh"
             disabled={sync.isPending || (repository.syncing && !stopped)}
             loading={sync.isPending}
-            onClick={() => sync.mutate(undefined, { onError: fail })}
+            onClick={() => sync.mutate({}, { onError: fail })}
           >
             {stopped ? t("wiki.repo.manage.retry") : t("wiki.repo.manage.syncNow")}
           </Button>

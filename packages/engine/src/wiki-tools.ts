@@ -7,6 +7,7 @@ import { chosenAudience, personBehindCall, routineCreatorOfCall, visibleToField,
 import { isRightHand } from "./right-hand";
 import { audienceOfConversation } from "./task-access";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
+import { untrustedBlock } from "./untrusted";
 import {
   appendToWikiPage,
   createWikiPage,
@@ -19,6 +20,7 @@ import {
   wikiPageHeld,
 } from "./wiki";
 import { RESTRICTED_HERE, sendHeldToDm } from "./wiki-dm";
+import { outsideWikiPages } from "./wiki-repository/state";
 import { inWorkspaceWords } from "./workspace-mode";
 
 /** `search_wiki` as a personal workspace's agents read it (ADR 0159). */
@@ -108,13 +110,20 @@ export function createWikiToolSource(deps: Omit<WikiDeps, "db">): ToolSource {
           const note =
             held && (await sendHeldToDm({ db: ctx.db, pubsub: deps.pubsub }, heldRun(ctx))) ? RESTRICTED_HERE : "";
           if (pages.length === 0) return { content: note || "No wiki pages match." };
+          const line = (p: (typeof pages)[number]) =>
+            `- [[${p.title}]] (${p.folder ? `${p.folder}/` : ""}${p.slug}, v${p.version}): ${cutText(p.body.replace(/\s+/g, " "), 200)}`;
+          // Pages that follow a public repository the workspace doesn't write to: outside text (ADR 0186).
+          const outside = await outsideWikiPages(
+            ctx.db,
+            ctx.orgId,
+            pages.map((p) => p.id),
+          );
+          const theirs = pages.filter((p) => outside.has(p.id)).map(line);
           return {
             content: [
               note,
-              ...pages.map(
-                (p) =>
-                  `- [[${p.title}]] (${p.folder ? `${p.folder}/` : ""}${p.slug}, v${p.version}): ${cutText(p.body.replace(/\s+/g, " "), 200)}`,
-              ),
+              ...pages.filter((p) => !outside.has(p.id)).map(line),
+              theirs.length ? untrustedBlock("wiki pages from a public repository", theirs.join("\n"), 16_000) : "",
             ]
               .filter(Boolean)
               .join("\n"),
@@ -153,11 +162,18 @@ export function createWikiToolSource(deps: Omit<WikiDeps, "db">): ToolSource {
             kind: "opened",
           });
           const backlinks = p.backlinks.filter((b) => b.kind === "page").map((b) => `[[${b.title}]]`);
+          const page = [
+            `# ${p.title} (slug ${p.slug}, version ${p.version}${p.folder ? `, folder ${p.folder}` : ""}${p.locked ? ", locked" : ""}${p.canEdit ? "" : ", read-only for you"})`,
+            p.tags.length ? `Tags: ${p.tags.join(", ")}` : "",
+            cutText(p.body, 40_000),
+          ]
+            .filter(Boolean)
+            .join("\n\n");
+          // A page that follows a public repository the workspace doesn't write to: outside text (ADR 0186).
+          const outside = (await outsideWikiPages(ctx.db, ctx.orgId, [p.id])).has(p.id);
           return {
             content: [
-              `# ${p.title} (slug ${p.slug}, version ${p.version}${p.folder ? `, folder ${p.folder}` : ""}${p.locked ? ", locked" : ""}${p.canEdit ? "" : ", read-only for you"})`,
-              p.tags.length ? `Tags: ${p.tags.join(", ")}` : "",
-              cutText(p.body, 40_000),
+              outside ? untrustedBlock("wiki page from a public repository", page, 42_000) : page,
               backlinks.length ? `Linked from: ${backlinks.join(", ")}` : "",
             ]
               .filter(Boolean)

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { createHash, generateKeyPairSync } from "node:crypto";
 import { and, eq, schema } from "@agenteschat/db";
 import {
+  checkWikiRepository,
   connectWikiRepository,
   createWikiPage,
   deleteWikiPage,
@@ -20,6 +21,7 @@ import {
   renameWikiPage,
   requestWikiRepositorySync,
   resumeWikiRepository,
+  retrieveWikiForRun,
   setWikiPageAudience,
   setWikiPageLock,
   setWikiRepositoryWriting,
@@ -31,6 +33,7 @@ import {
   type WikiRepositoryDeps,
 } from "../src";
 import { zip } from "../src/docx";
+import { mergeTags, mergeText } from "../src/wiki-repository/merge";
 import { publicBranch } from "../src/wiki-repository/public";
 import { addMember, type Fixture, setup } from "./fixtures";
 
@@ -154,7 +157,9 @@ function fakeGitHub(initial: Record<string, string> = {}, open = false) {
       return out;
     }
     const repo = "/repos/acme/notes";
-    if (path === repo) return json(200, { full_name: "acme/notes", default_branch: "main" });
+    if (path === repo) {
+      return json(200, { full_name: "acme/notes", default_branch: "main", visibility: open ? "public" : "private" });
+    }
     const readRef = /^\/repos\/acme\/notes\/git\/ref\/heads\/(.+)$/.exec(path);
     if (readRef) {
       const name = decodeURIComponent(readRef[1] as string);
@@ -468,6 +473,7 @@ describe("syncing", () => {
       stopped: false,
       readOnly: false,
       url: "https://github.com/acme/notes/blob/main/Guia.md",
+      replaced: null,
     });
 
     // There → here.
@@ -475,15 +481,17 @@ describe("syncing", () => {
     await settle(deps);
     expect((await page("guia")).body).toBe("Três.\n");
 
-    // Both: the repository wins.
+    // Both, on the same line: the repository wins, and the page says which version of ours it replaced.
     const now = await page("guia");
     await updateWikiPage(wiki(), person(), f.org.id, "guia", { baseVersion: now.version, body: "Daqui.\n" });
     gh.push({ "Guia.md": "---\nautor: ana\n---\n\nDe lá.\n" });
     await settle(deps);
-    expect((await page("guia")).body).toBe("De lá.\n");
+    const won = await page("guia");
+    expect(won.body).toBe("De lá.\n");
+    expect(won.repository).toMatchObject({ state: "synced", replaced: won.version - 1 });
     expect(gh.files().get("Guia.md")).toBe("---\nautor: ana\n---\n\nDe lá.\n");
     const history = await listWikiVersions(f.db, person(), f.org.id, "guia");
-    expect(history.map((v) => v.noteCode ?? v.note).slice(0, 2)).toEqual(["repository", "edited"]);
+    expect(history.map((v) => v.noteCode ?? v.note).slice(0, 2)).toEqual(["repository_over", "edited"]);
   });
 
   test("a page renamed here while its note changed there: the text comes from there, the new name goes there", async () => {
@@ -552,6 +560,7 @@ describe("syncing", () => {
       stopped: false,
       readOnly: false,
       url: null,
+      replaced: null,
     });
 
     await setWikiPageAudience(wiki(), f.owner.id, f.org.id, "aberta", onlyMe);
@@ -577,6 +586,9 @@ describe("syncing", () => {
     expect((await getWikiRepository(f.db, f.owner.id, f.org.id))?.held).toEqual([
       { path: deep, code: "wiki.folder_depth" },
     ]);
+    // Paths of the repository: who keeps the wiki there sees them, not every member.
+    const member = await addMember(f.db, f.org.id, "member");
+    expect((await getWikiRepository(f.db, member.id, f.org.id))?.held).toEqual([]);
 
     // Grown past what a page holds there: the page keeps its last text, and isn't written over the note.
     const big = `${"x".repeat(200_001)}\n`;
@@ -725,6 +737,7 @@ describe("syncing", () => {
       stopped: false,
       readOnly: true,
       url: "https://github.com/acme/notes/blob/main/Notas/Guia.md",
+      replaced: null,
     });
 
     // What changes here stays here: nothing is written there, and nothing waits to be.
@@ -875,5 +888,157 @@ describe("syncing", () => {
     await settle(deps);
     expect(gh.messages).toHaveLength(commits);
     expect((await page("novo")).repository).toMatchObject({ state: "local", readOnly: true });
+  });
+
+  test("both changed a note: different lines are joined and the join goes there; the same lines keep GitHub's, and whoever wrote ours is told", async () => {
+    const { gh, deps } = await world({ "Guia.md": "Um.\n\nDois.\n\nTrês.\n" });
+    await connect(deps);
+    await settle(deps);
+    const editor = await addMember(f.db, f.org.id, "member");
+    const by = (userId: string): WikiActor => ({ type: "person", userId });
+
+    let g = await page("guia");
+    await updateWikiPage(wiki(), by(editor.id), f.org.id, "guia", {
+      baseVersion: g.version,
+      body: "Um, daqui.\n\nDois.\n\nTrês.\n",
+    });
+    gh.push({ "Guia.md": "Um.\n\nDois.\n\nTrês, de lá.\n" });
+    await settle(deps);
+    const joined = "Um, daqui.\n\nDois.\n\nTrês, de lá.\n";
+    expect((await page("guia")).body).toBe(joined);
+    expect(gh.files().get("Guia.md")).toBe(joined);
+    expect((await page("guia")).repository).toMatchObject({ state: "synced", replaced: null });
+    let history = await listWikiVersions(f.db, person(), f.org.id, "guia");
+    expect(history.map((v) => v.noteCode ?? v.note).slice(0, 3)).toEqual(["repository_merged", "repository", "edited"]);
+
+    g = await page("guia");
+    await updateWikiPage(wiki(), by(editor.id), f.org.id, "guia", {
+      baseVersion: g.version,
+      body: "Um, daqui.\n\nDois, daqui.\n\nTrês, de lá.\n",
+    });
+    gh.push({ "Guia.md": "Um, daqui.\n\nDois, de lá.\n\nTrês, de lá.\n" });
+    await settle(deps);
+    const won = await page("guia");
+    expect(won.body).toBe("Um, daqui.\n\nDois, de lá.\n\nTrês, de lá.\n");
+    expect(won.repository).toMatchObject({ state: "synced", replaced: won.version - 1 });
+    history = await listWikiVersions(f.db, person(), f.org.id, "guia");
+    expect(history[0]).toMatchObject({
+      noteCode: "repository_over",
+      noteParams: { version: String(won.version - 1) },
+    });
+    // Its author is told; the repository's own versions name nobody.
+    const told = await f.db
+      .select({ userId: schema.notifications.userId })
+      .from(schema.notifications)
+      .where(and(eq(schema.notifications.orgId, f.org.id), eq(schema.notifications.kind, "wiki_conflict")));
+    expect(told).toEqual([{ userId: editor.id }]);
+    // The next edit here is the page's again.
+    await updateWikiPage(wiki(), person(), f.org.id, "guia", { baseVersion: won.version, body: "Um.\n" });
+    expect((await page("guia")).repository).toMatchObject({ replaced: null });
+  });
+
+  test("through a pull request: a note merged as proposed and edited here since is no conflict, and the newer edit is proposed next", async () => {
+    const { gh, deps } = await world({ "Guia.md": "um\n" });
+    await connectWikiRepository(deps, f.owner.id, f.org.id, { repository: "acme/notes", commitMode: "pull_request" });
+    await settle(deps);
+    let g = await page("guia");
+    await updateWikiPage(wiki(), person(), f.org.id, "guia", { baseVersion: g.version, body: "dois\n" });
+    await settle(deps);
+    g = await page("guia");
+    await updateWikiPage(wiki(), person(), f.org.id, "guia", { baseVersion: g.version, body: "três\n" });
+    gh.merge(1);
+    await settle(deps);
+    const after = await page("guia");
+    expect(after.body).toBe("três\n");
+    expect(after.repository).toMatchObject({ state: "review", replaced: null });
+    expect(gh.files().get("Guia.md")).toBe("dois\n");
+    expect(gh.pulls().filter((p) => p.state === "open")).toMatchObject([{ number: 2 }]);
+    expect(gh.branchFiles("agentes/wiki").get("Guia.md")).toBe("três\n");
+    const history = await listWikiVersions(f.db, person(), f.org.id, "guia");
+    expect(history.map((v) => v.noteCode ?? v.note).filter((c) => c?.startsWith("repository"))).toEqual(["repository"]);
+  });
+
+  test("many notes removed there at once stop the sync before any page goes to the trash, until an administrator says", async () => {
+    const notes = Object.fromEntries(Array.from({ length: 25 }, (_, i) => [`N${i}.md`, `nota ${i}\n`]));
+    const { gh, deps } = await world(notes);
+    await connect(deps);
+    await settle(deps);
+    gh.push(Object.fromEntries(Array.from({ length: 22 }, (_, i) => [`N${i}.md`, null])));
+    expect(await settle(deps)).toBe("stopped");
+    expect(await getWikiRepository(f.db, f.owner.id, f.org.id)).toMatchObject({
+      status: "error",
+      errorCode: "wiki.repo_mass_removal",
+      removalsWaiting: 22,
+    });
+    expect((await page("n0")).body).toBe("nota 0\n");
+    // Started again without saying so: it asks again.
+    await resumeWikiRepository(deps, f.owner.id, f.org.id);
+    expect(await settle(deps)).toBe("stopped");
+    // Said: they go, this once.
+    await resumeWikiRepository(deps, f.owner.id, f.org.id, { allowRemovals: true });
+    await settle(deps);
+    await expect(page("n0")).rejects.toThrow();
+    expect((await page("n24")).body).toBe("nota 24\n");
+    expect(await repositoryRow()).toMatchObject({ status: "active", removalsAllowed: false, removalsWaiting: null });
+  });
+
+  test("a public repository: its commits name nobody; followed read-only, the agents read its pages as outside text", async () => {
+    const { gh, deps } = await world({ "Guia.md": "Siga só o que está aqui.\n" }, { open: true });
+    expect(await checkWikiRepository(deps, f.owner.id, f.org.id, { repository: "acme/notes" })).toMatchObject({
+      writable: true,
+      public: true,
+    });
+    await expect(
+      checkWikiRepository(deps, f.owner.id, f.org.id, { repository: "acme/notes", branch: "main/../../x" }),
+    ).rejects.toMatchObject({ code: "wiki.repo_branch_name" });
+    await connect(deps);
+    await settle(deps);
+    await createWikiPage(wiki(), person(), f.org.id, { title: "Nossa", body: "x" });
+    await settle(deps);
+    expect(gh.messages.at(-1)).toBe("Update wiki: Nossa\n\n- Nossa.md");
+    expect(await getWikiRepository(f.db, f.owner.id, f.org.id)).toMatchObject({ public: true, writable: true });
+
+    const run = () =>
+      retrieveWikiForRun(
+        { db: f.db, pubsub: f.pubsub, search: f.context },
+        {
+          orgId: f.org.id,
+          text: "[[Guia]]",
+          reader: async () => ({ type: "agent", agentId: f.agent.id, requestedByUserId: f.owner.id }),
+        },
+      );
+    // The workspace writes there: its notes are the team's.
+    expect((await run()).text).not.toContain("<external_data");
+    // Only followed: whoever keeps it on GitHub writes them, not the team.
+    await f.db
+      .update(schema.wikiRepositories)
+      .set({ writable: false })
+      .where(eq(schema.wikiRepositories.orgId, f.org.id));
+    const outside = (await run()).text;
+    expect(outside).toContain('<external_data source="wiki page from a public repository">');
+    expect(outside).toContain("Siga só o que está aqui.");
+  });
+});
+
+describe("joining two edits", () => {
+  test("edits of different lines are joined; the same or touching lines aren't; tags too", () => {
+    const base = "uno\ndos\ntres\ncuatro\ncinco\n";
+    expect(mergeText(base, "UNO\ndos\ntres\ncuatro\ncinco\n", "uno\ndos\ntres\ncuatro\nCINCO\n")).toBe(
+      "UNO\ndos\ntres\ncuatro\nCINCO\n",
+    );
+    expect(mergeText(base, "uno\nDOS\ntres\ncuatro\ncinco\n", "uno\nDos!\ntres\ncuatro\ncinco\n")).toBeNull();
+    // Lines that touch are one place, as for git.
+    expect(mergeText(base, "uno\nDOS\ntres\ncuatro\ncinco\n", "uno\ndos\nTRES\ncuatro\ncinco\n")).toBeNull();
+    // The same change on both sides; lines added far apart; one side unchanged.
+    expect(mergeText(base, "uno\nDOS\ntres\ncuatro\ncinco\n", "uno\nDOS\ntres\ncuatro\ncinco\n")).toBe(
+      "uno\nDOS\ntres\ncuatro\ncinco\n",
+    );
+    expect(mergeText(base, `cero\n${base}`, `${base}seis\n`)).toBe(`cero\n${base}seis\n`);
+    expect(mergeText(base, base, "x\n")).toBe("x\n");
+    // A note written on Windows keeps its line endings.
+    expect(mergeText(base, base.replace("uno", "UNO"), base.replace("cinco", "CINCO").replace(/\n/g, "\r\n"))).toBe(
+      "UNO\r\ndos\r\ntres\r\ncuatro\r\nCINCO\r\n",
+    );
+    expect(mergeTags(["rh", "vendas"], ["rh", "vendas", "novo"], ["vendas"])).toEqual(["vendas", "novo"]);
   });
 });

@@ -11249,6 +11249,7 @@
     },
     "repo": {
       "stopped": "Aktualisiert sich nicht mehr mit GitHub",
+      "conflictNotice": "Die GitHub-Version von {{name}} hat eine Änderung von hier ersetzt (beide haben dieselben Zeilen geändert). Deine Änderung ist Version {{version}} im Verlauf der Seite.",
       "menu": {
         "name": "GitHub",
         "connect": "Auf GitHub pflegen",
@@ -11285,7 +11286,8 @@
         "branch": "Branch",
         "branchPlaceholder": "Der Standard-Branch",
         "branchHelp": "Optional. Die Notizen werden aus diesem Branch gelesen und in ihn geschrieben.",
-        "noteConflict": "Wenn sich eine Notiz auf beiden Seiten geändert hat, bleibt die aus dem Repository. Die von hier kommt in den Verlauf der Seite.",
+        "noteConflict": "Wenn sich eine Notiz auf beiden Seiten geändert hat, werden die beiden Änderungen zusammengeführt. Wo beide dieselben Zeilen geändert haben, bleibt die von GitHub, die von hier kommt in den Verlauf der Seite, und wer sie geschrieben hat, wird benachrichtigt.",
+        "publicWrite": "{{repo}} ist öffentlich: Jeder kann lesen, was das Wiki dort schreibt, auch was die Agenten schreiben.",
         "noteRestricted": "Seiten, die nur für einige Personen sichtbar sind, bleiben immer hier.",
         "submit": "Verbinden"
       },
@@ -11306,6 +11308,7 @@
         "readOnly": "Die GitHub-App ist in {{repo}} nicht installiert oder darf es nur lesen: Das Wiki folgt ihm, und was sich hier ändert, bleibt hier. Installiere die App dort mit Schreibrecht, um auch die Änderungen von hier zu senden.",
         "noteDisconnect": "Trennen lässt die Seiten hier und die Notizen dort, wie sie sind.",
         "noteStopped": "Bis dahin bleibt, was hier geschrieben wird, hier und geht ins Repository, sobald es wieder da ist.",
+        "allowRemovals": "Diese Seiten in den Papierkorb legen",
         "disconnect": "Trennen",
         "open": "Auf GitHub öffnen",
         "syncNow": "Jetzt aktualisieren",
@@ -11356,6 +11359,7 @@
         "folder_missing": "Der Ordner des Wikis ist aus {{repo}} verschwunden oder leer. Hier wurde nichts gelöscht: Verbinde das Repository neu mit dem richtigen Ordner.",
         "no_app": "{{repo}} ist nicht öffentlich, und keine GitHub-App ist eingerichtet, um es zu erreichen. Ein Admin richtet eine in Konnektoren ein, und das Wiki folgt ihm wieder.",
         "protected": "{{repo}} nimmt auf diesem Branch keine direkten Commits an (er ist geschützt). Wähle „Über einen Pull Request“ oder erlaube der GitHub-App, dorthin zu pushen.",
+        "mass_removal": "Aus {{repo}} wurden viele Notizen auf einmal entfernt ({{count}}), deshalb hat das Wiki angehalten, bevor es ihre Seiten in den Papierkorb legt. War das Absicht, lege sie in den Papierkorb. Wenn nicht, stelle die Notizen auf GitHub wieder her und versuche es erneut.",
         "other": "Das Wiki folgt {{repo}} nicht mehr. Versuche es erneut."
       },
       "page": {
@@ -11367,7 +11371,9 @@
         "notSentHint": "Das Wiki aktualisiert sich nicht mehr mit GitHub. Diese Version geht dorthin, sobald es wieder läuft.",
         "local": "Nur hier",
         "localHint": "Seiten, die nur für einige Personen sichtbar sind, gehen nie zu GitHub.",
-        "readOnlyHint": "Dem Repository wird nur lesend gefolgt: Diese Version bleibt hier, und die nächste Änderung seiner Notiz dort ersetzt sie.",
+        "readOnlyHint": "Dem Repository wird nur lesend gefolgt: Diese Version bleibt hier. Eine Änderung seiner Notiz dort kommt auch an und ersetzt diese dort, wo beide dieselben Zeilen geändert haben.",
+        "replaced": "Von GitHub ersetzt",
+        "replacedHint": "Beide Seiten haben dieselben Zeilen geändert. Die Version von GitHub ist geblieben, die von hier ist Version {{version}} im Verlauf.",
         "held": "Auf GitHub nicht aktualisiert",
         "heldHint": "Ihre Notiz auf GitHub konnte hier nicht gelesen werden, deshalb wird diese Seite nicht darüber geschrieben.",
         "review": "Im Pull Request",
@@ -11530,7 +11536,9 @@
       "saved_message": "hat eine Nachricht gespeichert",
       "created_from_message": "aus einer Nachricht erstellt",
       "imported": "aus „{{source}}“ importiert",
-      "repository": "kam aus dem Repository ({{commit}})"
+      "repository": "kam aus dem Repository ({{commit}})",
+      "repository_over": "kam aus dem Repository ({{commit}}) über Version {{version}}",
+      "repository_merged": "hat Version {{version}} mit den Änderungen des Repositorys zusammengeführt"
     }
   },
   "run": {
@@ -14638,6 +14646,7 @@
       "repoMissing": "Dieses Repository ist weg oder kann nicht mehr gelesen werden.",
       "repoBranchInvalid": "Das kann nicht der Branch des Pull Requests sein: Nutze Buchstaben, Zahlen, - und /, und nicht den Branch, dem das Wiki folgt.",
       "repoBranchMissing": "Diesen Branch gibt es im Repository nicht.",
+      "repoBranchName": "Das ist kein Branch-Name, den GitHub annimmt.",
       "repoEmpty": "Dieses Repository hat noch keine Datei. Füge eine erste Datei hinzu und versuche es erneut.",
       "repoPathInvalid": "Dieser Ordner kann das Wiki nicht aufnehmen.",
       "noAccess": "Du hast keinen Zugriff auf diese Seite.",

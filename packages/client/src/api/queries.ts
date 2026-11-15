@@ -5453,7 +5453,7 @@ export function useWikiRepositoryActions(orgId: string) {
     }),
     sync: useMutation({
       meta: { silent: true },
-      mutationFn: () => api.wiki.syncRepository(orgId),
+      mutationFn: (input: { allowRemovals?: boolean }) => api.wiki.syncRepository(orgId, input),
       onSuccess: done,
     }),
     writing: useMutation({
