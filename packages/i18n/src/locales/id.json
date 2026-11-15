@@ -378,6 +378,12 @@
       "short": "bicara",
       "say": "berbicara dengan agen"
     },
+    "view_all_agents": {
+      "title": "Lihat semua agen",
+      "desc": "Di Tim dan bilah samping. Tanpa ini, hanya agen yang menjawab orang itu.",
+      "short": "lihat semua agen",
+      "say": "melihat semua agen"
+    },
     "assign_work": {
       "title": "Beri agen misi",
       "desc": "Minta pekerjaan panjang yang berjalan sendiri.",
@@ -684,7 +690,9 @@
     },
     "desktopOwner": {
       "continue": "Lanjutkan di {{device}} ini",
-      "text": "Kamu memasang agentes.chat di {{device}} ini: tidak perlu kata sandi."
+      "text": "Kamu memasang agentes.chat di {{device}} ini: tidak perlu kata sandi.",
+      "gone": "Pemilik server ini menghapus akunnya, jadi Lanjutkan di {{device}} ini tidak bisa memasukkan siapa pun. Masuk dengan emailmu sendiri.",
+      "none": "Tidak ada akun yang tersisa di agentes.chat pada {{device}} ini. Buat pemilik barunya di jendela yang terbuka."
     },
     "server": {
       "into": "Masuk ke <b>{{server}}</b>",
@@ -1717,6 +1725,12 @@
     "use": "Gunakan ikon ini",
     "inUse": "Sedang dipakai",
     "sky": "Latar",
+    "pose": "Posisi",
+    "poses": {
+      "front": "Menghadap depan",
+      "peek": "Mengintip"
+    },
+    "peekBare": "Saat mengintip, ia tidak memakai aksesori.",
     "expression": "Ekspresi",
     "ready": "Ikon siap pakai",
     "oneOrOther": "Dengan aksesori, ekspresinya tetap yang biasa.",
@@ -4768,6 +4782,7 @@
     "summaryAllRead": "semua sudah dibaca",
     "summaryNothing": "Tidak ada yang baru di sini.",
     "readAll": "Tandai semua sudah dibaca",
+    "doneAll": "Selesaikan semua",
     "filters": "Filter notifikasi",
     "filter": {
       "all": "Semua",
@@ -4981,6 +4996,7 @@
       "restored": "Kembali ke kotak masukmu",
       "undo": "Urungkan",
       "readAll_other": "{{count}} ditandai sudah dibaca",
+      "doneAll_other": "{{count}} dipindahkan ke Selesai",
       "sent": "Balasan terkirim",
       "see": "Lihat",
       "answered": "{{name}} menerima jawabanmu",
@@ -11186,7 +11202,6 @@
       "open": "Ganti model {{agent}}",
       "ownSignIn": "Akun komputer ini",
       "apiKey": "{{provider}} dengan kunci API",
-      "default": "bawaan",
       "refused": "Ditolak untuk kunci ini",
       "textOnly": "Hanya membaca teks",
       "search": "Cari model",
@@ -11781,8 +11796,8 @@
       "agentes": "penyimpanan agentes.chat",
       "server": "server ini"
     },
-    "s3": "Bucket milikmu sendiri",
-    "s3Text": "S3, R2, MinIO, dan lainnya yang kompatibel dengan S3.",
+    "s3": "Penyimpanan milikmu sendiri",
+    "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2, atau lainnya yang kompatibel dengan S3.",
     "current": "Sedang dipakai",
     "usage": {
       "files": "{{size}} file",
@@ -11832,7 +11847,139 @@
     "backText": "File baru kembali disimpan di {{place}}. Yang sudah ada di bucket-mu tetap di sana.",
     "backDone": "Penyimpanan dialihkan ke {{place}}.",
     "required": "Isi kolom ini.",
-    "keysRequired": "Masukkan kunci akses dan kunci rahasia."
+    "keysRequired": "Masukkan kunci akses dan kunci rahasia.",
+    "connect": {
+      "open": "Hubungkan penyimpanan",
+      "edit": "Ubah koneksi",
+      "pickTitle": "Di mana penyimpananmu?",
+      "pickText": "Pilih layanannya. Kami tunjukkan apa yang diklik di sana dan apa yang ditempel di sini.",
+      "provider": {
+        "r2": "Cloudflare R2",
+        "s3": "Amazon S3",
+        "b2": "Backblaze B2",
+        "other": "Lainnya"
+      },
+      "providerText": {
+        "r2": "Paling mudah disiapkan dari nol",
+        "s3": "Untuk yang sudah pakai AWS",
+        "b2": "Untuk yang sudah punya akun di sana",
+        "other": "MinIO, Wasabi, dan lainnya yang kompatibel dengan S3"
+      },
+      "title": {
+        "r2": "Hubungkan Cloudflare R2",
+        "s3": "Hubungkan Amazon S3",
+        "b2": "Hubungkan Backblaze B2",
+        "other": "Hubungkan penyimpanan lain"
+      },
+      "editTitle": {
+        "r2": "Ubah Cloudflare R2",
+        "s3": "Ubah Amazon S3",
+        "b2": "Ubah Backblaze B2",
+        "other": "Ubah penyimpanan"
+      },
+      "lede": {
+        "r2": "Dua langkah di Cloudflare. Lalu kami uji sebelum beralih.",
+        "s3": "Tiga langkah di AWS. Lalu kami uji sebelum beralih.",
+        "b2": "Dua langkah di Backblaze. Lalu kami uji sebelum beralih.",
+        "other": "Layanan apa pun yang kompatibel dengan S3. Lalu kami uji sebelum beralih."
+      },
+      "editLede": "Ubah yang berubah saja. Biarkan kunci kosong untuk tetap memakai yang tersimpan.",
+      "bucketName": "Nama bucket",
+      "accessKeyId": "ID kunci akses",
+      "secret": "Kunci akses rahasia",
+      "r2Endpoint": "Alamat R2",
+      "b2Endpoint": "Endpoint bucket",
+      "region": "Wilayah",
+      "regionPick": "Pilih wilayah",
+      "regionOption": "{{name}} · {{code}}",
+      "theirName": {
+        "r2Key": "Di Cloudflare: Access Key ID",
+        "r2Secret": "Di Cloudflare: Secret Access Key",
+        "r2Endpoint": "Di Cloudflare: endpoint yang berakhiran r2.cloudflarestorage.com.",
+        "s3Key": "Di AWS: Access key",
+        "s3Secret": "Di AWS: Secret access key",
+        "b2Key": "Di Backblaze: keyID",
+        "b2Secret": "Di Backblaze: applicationKey",
+        "b2Endpoint": "Wilayahnya diambil dari sini."
+      },
+      "step": {
+        "bucketTitle": "Buat bucket",
+        "keyTitle": "Buat kunci akses",
+        "userTitle": "Buat pengguna khusus untuk agentes.chat",
+        "r2Bucket": "Di dasbor Cloudflare, buka <b>R2</b> lalu klik <b>Create bucket</b>. Nama apa pun boleh.",
+        "r2Key": "Di halaman R2, pada <b>API Tokens</b>, klik <b>Manage</b> lalu <b>Create API Token</b>. Pilih izin <b>Object Read & Write</b> dan bucket-mu. Di akhir, Cloudflare menampilkan tiga nilai di bawah ini hanya sekali.",
+        "s3Bucket": "Di konsol AWS, buka <b>S3</b> lalu klik <b>Create bucket</b>. Catat wilayah yang kamu pilih.",
+        "s3User": "Di <b>IAM</b>, buka <b>Users</b> lalu klik <b>Create user</b>. Di bagian izin, buat kebijakan dengan teks yang disalin di bawah: kebijakan ini hanya memberi akses ke bucket ini.",
+        "s3Key": "Di pengguna baru itu, buka <b>Security credentials</b> lalu klik <b>Create access key</b>. Pilih <b>Application running outside AWS</b> dan tempel kedua nilainya.",
+        "b2Bucket": "Di Backblaze, buka <b>Buckets</b> lalu klik <b>Create a Bucket</b>. Di halaman bucket, salin <b>Endpoint</b>.",
+        "b2Key": "Buka <b>Application Keys</b> lalu klik <b>Add a New Application Key</b>. Beri akses ke bucket-mu dengan <b>Read and Write</b>. Kunci utama akun (master key) tidak bisa dipakai di sini."
+      },
+      "openR2": "Buka R2",
+      "openS3": "Buka S3",
+      "openIam": "Buka IAM",
+      "openB2": "Buka Backblaze",
+      "copyPolicy": "Salin kebijakan",
+      "policyCopied": "Kebijakan disalin, dengan bucket {{bucket}}.",
+      "back": "Kembali",
+      "testAgain": "Uji lagi",
+      "passed": "Koneksi berfungsi: kami berhasil menulis, membaca, melihat daftar, dan menghapus file uji.",
+      "permissionHint": {
+        "r2": "Di Cloudflare, pastikan token punya izin <b>Object Read & Write</b> dan akses ke bucket {{bucket}}. Perbaiki lalu uji lagi.",
+        "s3": "Di AWS, pastikan pengguna punya kebijakan yang disalin di langkah 2, dengan bucket {{bucket}}. Perbaiki lalu uji lagi.",
+        "b2": "Di Backblaze, pastikan kunci punya <b>Read and Write</b> dan akses ke bucket {{bucket}}. Perbaiki lalu uji lagi."
+      },
+      "inUse": "{{provider}} · {{bucket}}",
+      "inUseAt": "{{bucket}} di {{host}}",
+      "stepError": {
+        "auth": "Kunci akses atau kunci rahasia tidak diterima.",
+        "permission": "Kunci tidak diizinkan untuk langkah ini.",
+        "bucketMissing": "Bucket ini tidak ada di alamat ini.",
+        "region": "Wilayahnya bukan wilayah bucket ini.",
+        "network": "Tidak bisa menjangkau alamat itu.",
+        "address": "Alamatnya tidak valid.",
+        "https": "Gunakan alamat yang diawali https://.",
+        "internal": "Alamat ini mengarah ke jaringan internal.",
+        "hostNotFound": "Kami tidak menemukan alamat ini.",
+        "notFound": "File uji tidak kembali saat dibaca.",
+        "unexpected": "Kegagalan tak terduga saat menghubungi penyimpanan.",
+        "invalidBucket": "Nama bucket tidak valid.",
+        "keysRequired": "Isi kedua kunci."
+      },
+      "awsRegion": {
+        "us-east-1": "AS Timur (Virginia Utara)",
+        "us-east-2": "AS Timur (Ohio)",
+        "us-west-1": "AS Barat (California Utara)",
+        "us-west-2": "AS Barat (Oregon)",
+        "ca-central-1": "Kanada (Tengah)",
+        "ca-west-1": "Kanada Barat (Calgary)",
+        "mx-central-1": "Meksiko (Tengah)",
+        "sa-east-1": "Amerika Selatan (São Paulo)",
+        "eu-central-1": "Eropa (Frankfurt)",
+        "eu-central-2": "Eropa (Zurich)",
+        "eu-west-1": "Eropa (Irlandia)",
+        "eu-west-2": "Eropa (London)",
+        "eu-west-3": "Eropa (Paris)",
+        "eu-south-1": "Eropa (Milan)",
+        "eu-south-2": "Eropa (Spanyol)",
+        "eu-north-1": "Eropa (Stockholm)",
+        "il-central-1": "Israel (Tel Aviv)",
+        "me-south-1": "Timur Tengah (Bahrain)",
+        "me-central-1": "Timur Tengah (UEA)",
+        "af-south-1": "Afrika (Cape Town)",
+        "ap-east-1": "Asia Pasifik (Hong Kong)",
+        "ap-south-1": "Asia Pasifik (Mumbai)",
+        "ap-south-2": "Asia Pasifik (Hyderabad)",
+        "ap-northeast-1": "Asia Pasifik (Tokyo)",
+        "ap-northeast-2": "Asia Pasifik (Seoul)",
+        "ap-northeast-3": "Asia Pasifik (Osaka)",
+        "ap-southeast-1": "Asia Pasifik (Singapura)",
+        "ap-southeast-2": "Asia Pasifik (Sydney)",
+        "ap-southeast-3": "Asia Pasifik (Jakarta)",
+        "ap-southeast-4": "Asia Pasifik (Melbourne)",
+        "ap-southeast-5": "Asia Pasifik (Malaysia)",
+        "ap-southeast-7": "Asia Pasifik (Thailand)"
+      }
+    }
   },
   "githubApp": {
     "title": "Repositori GitHub",
@@ -14382,7 +14529,8 @@
       "invalidDescription": "Deskripsi harus terdiri dari 1 sampai {{max}} karakter.",
       "tooLarge": "Skill ini punya {{size}} MB teks dan skrip, dan batasnya {{max}} MB.",
       "tooManyFiles": "Skill ini punya {{files}} file, dan batasnya {{max}}.",
-      "repoTooLarge": "Repositori terlalu besar untuk diunduh (maks {{max}} MB). Unggah folder skill sebagai .zip saja.",
+      "repoTooLarge": "Repositori terlalu besar untuk diunduh (maks {{max}} MB).",
+      "linkTooLarge": "Folder tautan itu berisi terlalu banyak file untuk dibaca. Tempel tautan folder skill itu sendiri.",
       "noFrontmatter": "SKILL.md perlu blok di bagian atas berisi nama dan deskripsi, di antara dua baris ---.",
       "bodyTooLong": "SKILL.md terlalu panjang (maks {{max}} karakter).",
       "noSkillMdZip": "Tidak ada SKILL.md di bagian atas folder zip.",
@@ -16577,6 +16725,7 @@
       "waitingYourAnswer": "menunggu jawabanmu",
       "queued": "dalam antrean",
       "handedOn": "menunggu agen lain",
+      "answered": "sudah menjawab",
       "noAnswer": "tidak menjawab",
       "notFinished": "tidak selesai",
       "someAnswered": "{{done}} dari {{total}} menjawab",

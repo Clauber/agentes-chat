@@ -3,6 +3,7 @@ import { and, asc, type Database, desc, eq, gte, inArray, isNull, lt, schema, sq
 import { MODEL_TIERS, type ModelTier } from "@agenteschat/providers";
 import { getAgent } from "./agents";
 import { decidableBySql } from "./approvals";
+import { audienceSql, listsAllAgents } from "./audience";
 import { recordAudit } from "./audit";
 import type { AutoModels } from "./auto-model";
 import { caches } from "./cache";
@@ -310,8 +311,15 @@ export async function orgOverview(db: Database, actorId: string, orgId: string, 
   const [agentCount] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(agents)
-    // Every agent, the right hand (ADR 0137) included: the sidebar lists it under this count with the others.
-    .where(and(eq(agents.orgId, orgId), isNull(agents.archivedAt)));
+    // The agents the person's lists name (`listsAgentTo`), the right hand (ADR 0137) included: the sidebar lists it
+    // under this count with the others.
+    .where(
+      and(
+        eq(agents.orgId, orgId),
+        isNull(agents.archivedAt),
+        listsAllAgents(membership) ? undefined : audienceSql("agents", sql`${actorId}::text`),
+      ),
+    );
   const [pending] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(approvals)

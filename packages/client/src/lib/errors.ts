@@ -294,6 +294,7 @@ const KNOWN = {
   "skill.too_large": "errors.skill.tooLarge",
   "skill.too_many_files": "errors.skill.tooManyFiles",
   "skill.repo_too_large": "errors.skill.repoTooLarge",
+  "skill.link_too_large": "errors.skill.linkTooLarge",
   "skill.no_frontmatter": "errors.skill.noFrontmatter",
   "skill.body_too_long": "errors.skill.bodyTooLong",
   "skill.no_skill_md_zip": "errors.skill.noSkillMdZip",

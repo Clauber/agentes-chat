@@ -264,6 +264,11 @@ export interface User {
   /** Opened the link that confirms the email address. */
   emailVerified?: boolean;
   /**
+   * The installation's owner on the desktop app's own server: a sign-in in the last 10 minutes through Continue on this
+   * Mac is their proof before a deletion (absent from an older server: false).
+   */
+  confirmsOnThisMac?: boolean;
+  /**
    * A new workspace would be made for them (false on agentes.chat Cloud while sign-up is by invitation, unless early
    * access allowed them; `org.create_refused` and `org.create_unpaid` can still refuse it).
    */
@@ -2646,6 +2651,8 @@ export interface WorkView {
   queuePosition: number | null;
   pausedUntil: string | null;
   canceledByUserId: string | null;
+  /** The right hand that made that stop at their word. */
+  canceledByAgentId?: string | null;
   errorCode: string | null;
 }
 
@@ -3512,8 +3519,13 @@ export interface SecretBox {
 
 export type StorageKind = "agentes" | "s3";
 
-/** What an admin types for "Seu próprio bucket". Keys empty = keep the stored ones. */
+/** The service an admin picked when connecting their own storage: which steps the app shows. */
+export type StorageProvider = "r2" | "s3" | "b2" | "other";
+
+/** What an admin types for "Your own storage". Keys empty = keep the stored ones. */
 export interface S3Input {
+  /** Null from settings saved before the app said it (older servers leave it out). */
+  provider?: StorageProvider | null;
   endpoint: string;
   region: string;
   bucket: string;
@@ -3559,7 +3571,8 @@ export type StorageStep = "write" | "read" | "list" | "delete";
 
 export interface StorageTestResult {
   ok: boolean;
-  steps: { step: StorageStep; ok: boolean; error?: string | null }[];
+  /** `code`: the failure's stable code (`storage.permission`…), absent from an older server. */
+  steps: { step: StorageStep; ok: boolean; error?: string | null; code?: string | null }[];
 }
 
 export interface StorageMigration {
@@ -7382,8 +7395,8 @@ export interface EndedTask {
   routine: { id: string; name: string } | null;
   startedAt: string | null;
   finishedAt: string;
-  /** Stopped by a person: who. */
-  stoppedBy: { userId: string; name: string } | null;
+  /** Stopped by a person: who, and the agent that stopped it at their word (the right hand). */
+  stoppedBy: { userId: string; name: string; agentId?: string } | null;
 }
 
 /** A task's steps (`GET …/task-manager/{runId}/steps`): the chat chip's fields per call, how each ended. */

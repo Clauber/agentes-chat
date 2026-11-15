@@ -293,6 +293,10 @@
       "invites.linkLabel",
       "appsDownload.appStore",
       "appsDownload.googlePlay",
+      "storage.connect.provider.r2",
+      "storage.connect.provider.s3",
+      "storage.connect.provider.b2",
+      "storage.connect.awsRegion.il-central-1",
       "wiki.repo.connect.branch"
     ],
     "es": [
@@ -541,7 +545,11 @@
       "machines.oneClick.tools.antigravity",
       "settings.section.roles",
       "appsDownload.appStore",
-      "appsDownload.googlePlay"
+      "appsDownload.googlePlay",
+      "storage.connect.provider.r2",
+      "storage.connect.provider.s3",
+      "storage.connect.provider.b2",
+      "storage.connect.awsRegion.il-central-1"
     ],
     "fr": [
       "channel.tooLong.fileName",
@@ -967,6 +975,13 @@
       "invites.typesCount",
       "appsDownload.appStore",
       "appsDownload.googlePlay",
+      "storage.connect.provider.r2",
+      "storage.connect.provider.s3",
+      "storage.connect.provider.b2",
+      "storage.connect.awsRegion.eu-central-2",
+      "storage.connect.awsRegion.eu-west-3",
+      "storage.connect.awsRegion.eu-south-1",
+      "storage.connect.awsRegion.eu-north-1",
       "wiki.repo.manage.notes"
     ],
     "de": [
@@ -1414,6 +1429,17 @@
       "invites.linkLabel",
       "appsDownload.appStore",
       "appsDownload.googlePlay",
+      "storage.connect.provider.r2",
+      "storage.connect.provider.s3",
+      "storage.connect.provider.b2",
+      "storage.connect.region",
+      "storage.connect.theirName.r2Key",
+      "storage.connect.theirName.r2Secret",
+      "storage.connect.theirName.s3Key",
+      "storage.connect.theirName.s3Secret",
+      "storage.connect.theirName.b2Key",
+      "storage.connect.theirName.b2Secret",
+      "storage.connect.awsRegion.il-central-1",
       "wiki.repo.connect.repository",
       "wiki.repo.connect.branch"
     ],
@@ -1783,6 +1809,9 @@
       "appsDownload.appStore",
       "appsDownload.googlePlay",
       "appsDownload.computer",
+      "storage.connect.provider.r2",
+      "storage.connect.provider.s3",
+      "storage.connect.provider.b2",
       "wiki.repo.connect.repository",
       "wiki.repo.connect.branch"
     ],
@@ -2380,6 +2409,15 @@
       "appsDownload.appStore",
       "appsDownload.googlePlay",
       "appsDownload.computer",
+      "storage.connect.provider.r2",
+      "storage.connect.provider.s3",
+      "storage.connect.provider.b2",
+      "storage.connect.theirName.r2Key",
+      "storage.connect.theirName.r2Secret",
+      "storage.connect.theirName.s3Key",
+      "storage.connect.theirName.s3Secret",
+      "storage.connect.theirName.b2Key",
+      "storage.connect.theirName.b2Secret",
       "wiki.repo.connect.repository",
       "wiki.repo.connect.branch"
     ],
@@ -2548,7 +2586,10 @@
       "machines.oneClick.tools.grok",
       "machines.oneClick.tools.antigravity",
       "appsDownload.appStore",
-      "appsDownload.googlePlay"
+      "appsDownload.googlePlay",
+      "storage.connect.provider.r2",
+      "storage.connect.provider.s3",
+      "storage.connect.provider.b2"
     ],
     "ko": [
       "channel.tooLong.fileName",
@@ -2709,7 +2750,10 @@
       "machines.oneClick.tools.grok",
       "machines.oneClick.tools.antigravity",
       "appsDownload.appStore",
-      "appsDownload.googlePlay"
+      "appsDownload.googlePlay",
+      "storage.connect.provider.r2",
+      "storage.connect.provider.s3",
+      "storage.connect.provider.b2"
     ],
     "zh-Hans": [
       "channel.tooLong.fileName",
@@ -2861,7 +2905,10 @@
       "machines.oneClick.tools.grok",
       "machines.oneClick.tools.antigravity",
       "appsDownload.appStore",
-      "appsDownload.googlePlay"
+      "appsDownload.googlePlay",
+      "storage.connect.provider.r2",
+      "storage.connect.provider.s3",
+      "storage.connect.provider.b2"
     ],
     "id": [
       "shell.email.label",
@@ -3165,6 +3212,10 @@
       "invites.edit",
       "appsDownload.appStore",
       "appsDownload.googlePlay",
+      "storage.connect.provider.r2",
+      "storage.connect.provider.s3",
+      "storage.connect.provider.b2",
+      "storage.connect.awsRegion.il-central-1",
       "wiki.repo.connect.folder",
       "wiki.repo.connect.branch"
     ],
@@ -3352,7 +3403,10 @@
       "machines.oneClick.tools.grok",
       "machines.oneClick.tools.antigravity",
       "appsDownload.appStore",
-      "appsDownload.googlePlay"
+      "appsDownload.googlePlay",
+      "storage.connect.provider.r2",
+      "storage.connect.provider.s3",
+      "storage.connect.provider.b2"
     ],
     "pl": [
       "devices.cpus",
@@ -3648,6 +3702,10 @@
       "invites.linkLabel",
       "appsDownload.appStore",
       "appsDownload.googlePlay",
+      "storage.connect.provider.r2",
+      "storage.connect.provider.s3",
+      "storage.connect.provider.b2",
+      "storage.connect.region",
       "wiki.repo.connect.folder"
     ],
     "ru": [
@@ -3800,7 +3858,10 @@
       "machines.oneClick.tools.grok",
       "machines.oneClick.tools.antigravity",
       "appsDownload.appStore",
-      "appsDownload.googlePlay"
+      "appsDownload.googlePlay",
+      "storage.connect.provider.r2",
+      "storage.connect.provider.s3",
+      "storage.connect.provider.b2"
     ]
   },
   "mobile-base": {

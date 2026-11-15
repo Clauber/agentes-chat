@@ -63,7 +63,7 @@ import {
   SHARED_SIGN_INS,
   sharedSignIn,
 } from "@agenteschat/providers/plans";
-import { PLAN_PAUSE, planCheckedAt, planState, planWindows } from "@agenteschat/ui/plan-state";
+import { PLAN_PAUSE, planCheckedAt, planFull, planState } from "@agenteschat/ui/plan-state";
 import { recordAudit } from "./audit";
 import { liveModelLimits } from "./brains/select";
 import { BRAIN_PLAN_NAMES } from "./brains/types";
@@ -675,7 +675,7 @@ function accountReading(provider: string | null, prev: PlanUsage | null | undefi
   const perModel = planOf(provider)?.limitsPerModel === true;
   return {
     ...rest,
-    ...(limited && !(perModel && !planWindows(next).some((w) => w.used >= 100)) ? { limited } : {}),
+    ...(limited && !(perModel && !planFull(next)) ? { limited } : {}),
     ...(models ? { models } : {}),
     ...(perModel && prev?.answered ? { answered: prev.answered } : {}),
   };

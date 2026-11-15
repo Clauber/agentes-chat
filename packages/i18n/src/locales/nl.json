@@ -391,6 +391,12 @@
       "short": "praten",
       "say": "praat met de agents"
     },
+    "view_all_agents": {
+      "title": "Alle agents zien",
+      "desc": "In Team en de zijbalk. Zonder dit alleen de agents die de persoon antwoorden.",
+      "short": "alle agents zien",
+      "say": "ziet alle agents"
+    },
     "assign_work": {
       "title": "Agents missies geven",
       "desc": "Vragen om lang werk dat vanzelf doorloopt.",
@@ -698,7 +704,9 @@
     },
     "desktopOwner": {
       "continue": "Doorgaan op deze {{device}}",
-      "text": "Je hebt agentes.chat op deze {{device}} ingericht: geen wachtwoord nodig."
+      "text": "Je hebt agentes.chat op deze {{device}} ingericht: geen wachtwoord nodig.",
+      "gone": "De eigenaar van deze server heeft zijn account verwijderd, dus ‘Doorgaan op deze {{device}}’ kan niemand aanmelden. Meld je in plaats daarvan aan met je eigen e-mail.",
+      "none": "Op agentes.chat op deze {{device}} is geen account meer over. Maak de nieuwe eigenaar aan in het venster dat openging."
     },
     "server": {
       "into": "Aanmelden bij <b>{{server}}</b>",
@@ -1767,6 +1775,12 @@
     "use": "Dit icoon gebruiken",
     "inUse": "In gebruik",
     "sky": "Achtergrond",
+    "pose": "Houding",
+    "poses": {
+      "front": "Recht vooruit",
+      "peek": "Glurend"
+    },
+    "peekBare": "Glurend draagt hij geen accessoire.",
     "expression": "Gezichtsuitdrukking",
     "ready": "Kant-en-klare iconen",
     "oneOrOther": "Met een accessoire blijft de uitdrukking de gewone.",
@@ -4933,6 +4947,7 @@
     "summaryAllRead": "alles gelezen",
     "summaryNothing": "Niets nieuws hier.",
     "readAll": "Alles als gelezen markeren",
+    "doneAll": "Alles afronden",
     "filters": "Meldingen filteren",
     "filter": {
       "all": "Alle",
@@ -5161,6 +5176,8 @@
       "undo": "Ongedaan maken",
       "readAll_one": "{{count}} als gelezen gemarkeerd",
       "readAll_other": "{{count}} als gelezen gemarkeerd",
+      "doneAll_one": "{{count}} verplaatst naar Afgerond",
+      "doneAll_other": "{{count}} verplaatst naar Afgerond",
       "sent": "Antwoord verstuurd",
       "see": "Bekijken",
       "answered": "{{name}} heeft je antwoord gekregen",
@@ -11666,7 +11683,6 @@
       "open": "Model van {{agent}} wijzigen",
       "ownSignIn": "Account van deze computer",
       "apiKey": "{{provider}} met een API-sleutel",
-      "default": "standaard",
       "refused": "Geweigerd voor deze sleutel",
       "textOnly": "Leest alleen tekst",
       "search": "Modellen zoeken",
@@ -12291,8 +12307,8 @@
       "agentes": "agentes.chat-opslag",
       "server": "deze server"
     },
-    "s3": "Je eigen bucket",
-    "s3Text": "S3, R2, MinIO en andere die compatibel zijn met S3.",
+    "s3": "Je eigen opslag",
+    "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2 of een andere S3-compatibele dienst.",
     "current": "In gebruik",
     "usage": {
       "files": "{{size}} aan bestanden",
@@ -12342,7 +12358,139 @@
     "backText": "Nieuwe bestanden gaan weer naar {{place}}. Wat al in je bucket staat, blijft daar.",
     "backDone": "Opslag overgezet naar {{place}}.",
     "required": "Vul dit veld in.",
-    "keysRequired": "Vul de access key en het secret in."
+    "keysRequired": "Vul de access key en het secret in.",
+    "connect": {
+      "open": "Opslag koppelen",
+      "edit": "Koppeling bewerken",
+      "pickTitle": "Waar staat je opslag?",
+      "pickText": "Kies de dienst. We laten zien waar je daar klikt en wat je hier plakt.",
+      "provider": {
+        "r2": "Cloudflare R2",
+        "s3": "Amazon S3",
+        "b2": "Backblaze B2",
+        "other": "Anders"
+      },
+      "providerText": {
+        "r2": "Het eenvoudigst om helemaal nieuw op te zetten",
+        "s3": "Voor wie al AWS gebruikt",
+        "b2": "Voor wie daar al een account heeft",
+        "other": "MinIO, Wasabi en andere S3-compatibele diensten"
+      },
+      "title": {
+        "r2": "Cloudflare R2 koppelen",
+        "s3": "Amazon S3 koppelen",
+        "b2": "Backblaze B2 koppelen",
+        "other": "Andere opslag koppelen"
+      },
+      "editTitle": {
+        "r2": "Cloudflare R2 bewerken",
+        "s3": "Amazon S3 bewerken",
+        "b2": "Backblaze B2 bewerken",
+        "other": "Opslag bewerken"
+      },
+      "lede": {
+        "r2": "Twee stappen in Cloudflare. Daarna testen we voordat we overstappen.",
+        "s3": "Drie stappen in AWS. Daarna testen we voordat we overstappen.",
+        "b2": "Twee stappen in Backblaze. Daarna testen we voordat we overstappen.",
+        "other": "Elke dienst die compatibel is met S3. Daarna testen we voordat we overstappen."
+      },
+      "editLede": "Pas aan wat er veranderd is. Laat de sleutels leeg om de opgeslagen sleutels te houden.",
+      "bucketName": "Bucketnaam",
+      "accessKeyId": "Toegangssleutel-ID",
+      "secret": "Geheime toegangssleutel",
+      "r2Endpoint": "R2-adres",
+      "b2Endpoint": "Endpoint van de bucket",
+      "region": "Regio",
+      "regionPick": "Kies de regio",
+      "regionOption": "{{name}} · {{code}}",
+      "theirName": {
+        "r2Key": "In Cloudflare: Access Key ID",
+        "r2Secret": "In Cloudflare: Secret Access Key",
+        "r2Endpoint": "In Cloudflare: het endpoint dat eindigt op r2.cloudflarestorage.com.",
+        "s3Key": "In AWS: Access key",
+        "s3Secret": "In AWS: Secret access key",
+        "b2Key": "In Backblaze: keyID",
+        "b2Secret": "In Backblaze: applicationKey",
+        "b2Endpoint": "De regio halen we hieruit."
+      },
+      "step": {
+        "bucketTitle": "Maak een bucket",
+        "keyTitle": "Maak de toegangssleutel",
+        "userTitle": "Maak een gebruiker alleen voor agentes.chat",
+        "r2Bucket": "Open <b>R2</b> in het Cloudflare-dashboard en klik op <b>Create bucket</b>. Elke naam is goed.",
+        "r2Key": "Klik op de R2-pagina onder <b>API Tokens</b> op <b>Manage</b> en daarna op <b>Create API Token</b>. Kies de machtiging <b>Object Read & Write</b> en je bucket. Aan het eind toont Cloudflare de drie waarden hieronder maar één keer.",
+        "s3Bucket": "Open <b>S3</b> in de AWS-console en klik op <b>Create bucket</b>. Noteer de regio die je kiest.",
+        "s3User": "Ga in <b>IAM</b> naar <b>Users</b> en klik op <b>Create user</b>. Maak bij de machtigingen een beleid met de tekst die je hieronder kopieert: dat geeft alleen toegang tot deze bucket.",
+        "s3Key": "Open <b>Security credentials</b> bij de nieuwe gebruiker en klik op <b>Create access key</b>. Kies <b>Application running outside AWS</b> en plak beide waarden.",
+        "b2Bucket": "Open <b>Buckets</b> in Backblaze en klik op <b>Create a Bucket</b>. Kopieer op de pagina van de bucket het <b>Endpoint</b>.",
+        "b2Key": "Open <b>Application Keys</b> en klik op <b>Add a New Application Key</b>. Geef hem toegang tot je bucket met <b>Read and Write</b>. De master key van het account werkt hier niet."
+      },
+      "openR2": "R2 openen",
+      "openS3": "S3 openen",
+      "openIam": "IAM openen",
+      "openB2": "Backblaze openen",
+      "copyPolicy": "Beleid kopiëren",
+      "policyCopied": "Beleid gekopieerd, met de bucket {{bucket}}.",
+      "back": "Terug",
+      "testAgain": "Opnieuw testen",
+      "passed": "De verbinding werkt: we hebben een testbestand geschreven, gelezen, in de lijst gezien en verwijderd.",
+      "permissionHint": {
+        "r2": "Controleer in Cloudflare of het token de machtiging <b>Object Read & Write</b> heeft en toegang tot de bucket {{bucket}}. Pas het aan en test opnieuw.",
+        "s3": "Controleer in AWS of de gebruiker het in stap 2 gekopieerde beleid heeft, met de bucket {{bucket}}. Pas het aan en test opnieuw.",
+        "b2": "Controleer in Backblaze of de sleutel <b>Read and Write</b> heeft en toegang tot de bucket {{bucket}}. Pas het aan en test opnieuw."
+      },
+      "inUse": "{{provider}} · {{bucket}}",
+      "inUseAt": "{{bucket}} op {{host}}",
+      "stepError": {
+        "auth": "De toegangssleutel of de geheime sleutel werd niet geaccepteerd.",
+        "permission": "De sleutel mag deze stap niet uitvoeren.",
+        "bucketMissing": "Deze bucket bestaat niet op dit adres.",
+        "region": "Dit is niet de regio van de bucket.",
+        "network": "Het adres was niet bereikbaar.",
+        "address": "Het adres is niet geldig.",
+        "https": "Gebruik een adres dat begint met https://.",
+        "internal": "Dit adres verwijst naar een intern netwerk.",
+        "hostNotFound": "We konden dit adres niet vinden.",
+        "notFound": "Het testbestand kwam niet terug bij het lezen.",
+        "unexpected": "Onverwachte fout bij de communicatie met de opslag.",
+        "invalidBucket": "De bucketnaam is niet geldig.",
+        "keysRequired": "Vul beide sleutels in."
+      },
+      "awsRegion": {
+        "us-east-1": "VS-Oost (Noord-Virginia)",
+        "us-east-2": "VS-Oost (Ohio)",
+        "us-west-1": "VS-West (Noord-Californië)",
+        "us-west-2": "VS-West (Oregon)",
+        "ca-central-1": "Canada (Centraal)",
+        "ca-west-1": "Canada-West (Calgary)",
+        "mx-central-1": "Mexico (Centraal)",
+        "sa-east-1": "Zuid-Amerika (São Paulo)",
+        "eu-central-1": "Europa (Frankfurt)",
+        "eu-central-2": "Europa (Zürich)",
+        "eu-west-1": "Europa (Ierland)",
+        "eu-west-2": "Europa (Londen)",
+        "eu-west-3": "Europa (Parijs)",
+        "eu-south-1": "Europa (Milaan)",
+        "eu-south-2": "Europa (Spanje)",
+        "eu-north-1": "Europa (Stockholm)",
+        "il-central-1": "Israël (Tel Aviv)",
+        "me-south-1": "Midden-Oosten (Bahrein)",
+        "me-central-1": "Midden-Oosten (VAE)",
+        "af-south-1": "Afrika (Kaapstad)",
+        "ap-east-1": "Azië-Pacific (Hongkong)",
+        "ap-south-1": "Azië-Pacific (Mumbai)",
+        "ap-south-2": "Azië-Pacific (Hyderabad)",
+        "ap-northeast-1": "Azië-Pacific (Tokio)",
+        "ap-northeast-2": "Azië-Pacific (Seoul)",
+        "ap-northeast-3": "Azië-Pacific (Osaka)",
+        "ap-southeast-1": "Azië-Pacific (Singapore)",
+        "ap-southeast-2": "Azië-Pacific (Sydney)",
+        "ap-southeast-3": "Azië-Pacific (Jakarta)",
+        "ap-southeast-4": "Azië-Pacific (Melbourne)",
+        "ap-southeast-5": "Azië-Pacific (Maleisië)",
+        "ap-southeast-7": "Azië-Pacific (Thailand)"
+      }
+    }
   },
   "githubApp": {
     "title": "GitHub-repository's",
@@ -14930,7 +15078,8 @@
       "invalidDescription": "De beschrijving moet 1 tot {{max}} tekens hebben.",
       "tooLarge": "Deze skill heeft {{size}} MB aan tekst en scripts, en de limiet is {{max}} MB.",
       "tooManyFiles": "Deze skill heeft {{files}} bestanden, en de limiet is {{max}}.",
-      "repoTooLarge": "De repository is te groot om te downloaden (max. {{max}} MB). Upload de map van de skill als .zip.",
+      "repoTooLarge": "De repository is te groot om te downloaden (max. {{max}} MB).",
+      "linkTooLarge": "De map van die link heeft te veel bestanden om te lezen. Plak de link van de eigen map van de skill.",
       "noFrontmatter": "De SKILL.md heeft bovenaan een blok nodig met naam en beschrijving, tussen twee regels met ---.",
       "bodyTooLong": "De SKILL.md is te lang (max. {{max}} tekens).",
       "noSkillMdZip": "Geen SKILL.md bovenin de map van de zip.",
@@ -17162,6 +17311,7 @@
       "waitingYourAnswer": "wacht op je antwoord",
       "queued": "in de rij",
       "handedOn": "wacht op andere agents",
+      "answered": "heeft geantwoord",
       "noAnswer": "gaf geen antwoord",
       "notFinished": "niet afgemaakt",
       "someAnswered": "{{done}} van {{total}} gaven antwoord",

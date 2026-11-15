@@ -710,6 +710,7 @@ export const WorkView = z
     queuePosition: z.number().nullable(),
     pausedUntil: z.string().nullable(),
     canceledByUserId: z.string().nullable(),
+    canceledByAgentId: z.string().nullable(),
     errorCode: z.string().nullable(),
   })
   .openapi("WorkView");

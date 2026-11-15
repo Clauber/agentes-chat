@@ -1746,6 +1746,8 @@ export interface ApiClient {
     snooze(orgId: string, id: string, until: string | null): Promise<AppNotification>;
     /** "Marcar tudo como lido": the ids it changed (undo marks them unread again). */
     readAll(orgId: string, filter?: NotificationFilter): Promise<{ ids: string[] }>;
+    /** "Concluir todas" but what waits on me: the ids it changed (undo brings each back with `done(…, false)`). */
+    doneAll(orgId: string, filter?: NotificationFilter): Promise<{ ids: string[] }>;
     /** What reaches my devices as a notification in this workspace (ADR 0071 §8). */
     prefs(orgId: string): Promise<NoticePrefs>;
     setPref(orgId: string, category: NoticeCategory, on: boolean): Promise<NoticePrefs>;

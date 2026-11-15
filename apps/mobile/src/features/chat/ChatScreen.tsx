@@ -2121,6 +2121,8 @@ function Chat({
   // Peeked at from the list (iOS's long press): no bar over it and no composer, so no room for either.
   const barHeight = useHeaderHeight();
   const headerHeight = peeking ? 0 : barHeight;
+  // How far down the fade under the header stays solid: the status bar's share of it.
+  const topFadeSolid = headerHeight > 0 ? Math.min(1, insets.top / (headerHeight + 28)) : 0;
   const lift = Math.max(0, bottomPad - KEYBOARD_GAP);
   const showList = !loading && !(rows.length === 0 && runs.length === 0);
   // The conversation starts below the clear bar by our own padding, on both platforms (the pinned card, when there
@@ -2492,11 +2494,12 @@ function Chat({
           {!hasPin ? (
             // The conversation fades under the floating header, as it does under the box. Not under a pinned bar
             // or card: the list already starts below them, and a header-tall fade there was a dark band over the
-            // first messages (the pinned bar's own hairline is the edge).
+            // first messages (the pinned bar's own hairline is the edge). Solid behind the status bar: a message
+            // passing there showed through the clock and the indicators, its words cut by them.
             <LinearGradient
               pointerEvents="none"
-              colors={[c.bg, withOpacity(c.bg, 0.86), withOpacity(c.bg, 0)]}
-              locations={[0, 0.62, 1]}
+              colors={[c.bg, c.bg, withOpacity(c.bg, 0.86), withOpacity(c.bg, 0)]}
+              locations={[0, topFadeSolid, Math.max(0.62, topFadeSolid), 1]}
               style={[styles.topFade, { height: headerHeight + 28 }]}
             />
           ) : null}

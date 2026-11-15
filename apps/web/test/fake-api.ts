@@ -107,7 +107,7 @@ import type {
 } from "@agenteschat/client";
 import { ApiError } from "@agenteschat/client";
 import { moveInGroups } from "@agenteschat/client/lib/agent-groups";
-import { answersOthers, audienceOf } from "@agenteschat/client/lib/audience";
+import { answersOthers, audienceOf, listsAllAgents } from "@agenteschat/client/lib/audience";
 import type { ChatPrefs } from "@agenteschat/client/lib/chat-look";
 import { ISSUES_VIEW_DEFAULT } from "@agenteschat/client/lib/issues-view";
 import { freeHandle, takenHandles } from "@agenteschat/client/lib/new-agent";
@@ -520,6 +520,7 @@ export function seedRoles(): OrgRole[] {
         "post",
         "create_channels",
         "talk_to_agents",
+        "view_all_agents",
         "assign_work",
         "pair_computers",
         "own_computers",
@@ -558,8 +559,16 @@ const PERMISSION_AREAS = [
   },
   {
     id: "agents",
-    use: ["talk_to_agents", "assign_work", "manage_routines"],
-    keys: ["talk_to_agents", "assign_work", "manage_routines", "approve_actions", "create_agents", "manage_agents"],
+    use: ["talk_to_agents", "view_all_agents", "assign_work", "manage_routines"],
+    keys: [
+      "talk_to_agents",
+      "view_all_agents",
+      "assign_work",
+      "manage_routines",
+      "approve_actions",
+      "create_agents",
+      "manage_agents",
+    ],
   },
   {
     id: "tools",
@@ -1377,6 +1386,19 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
   };
   // Budgets like the backend: every agent has one (its own or the default); members see only percentages.
   const seesCost = () => state.me?.organizations[0]?.role !== "member";
+  // Same rule as the backend: everyone, the listed people, or only the owner (who can always talk to it).
+  const talksToMe = (a: Agent) => {
+    const mode = a.audience?.mode ?? "everyone";
+    const me = state.me?.user.id ?? "";
+    return (
+      mode === "everyone" || a.ownerUserId === me || (mode === "people" && (a.audience?.userIds ?? []).includes(me))
+    );
+  };
+  // The server's `listsAgentTo`: Equipe, its sectors and the counts name only these.
+  const listed = () => {
+    const all = listsAllAgents(state.me ? withPermissions(state.me).organizations[0] : undefined);
+    return state.agents.filter((a) => all || talksToMe(a));
+  };
   // A personal workspace (ADR 0159), as `me` says.
   const personalOrg = (orgId: string) => state.me?.organizations.find((o) => o.id === orgId)?.mode === "personal";
   // A new `me` with the org's logo changed, as the server answers: what the app read before stays as it was.
@@ -2016,7 +2038,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         name: "Acme",
         role: state.me?.organizations[0]?.role ?? "member",
         people: state.members.length,
-        agents: state.agents.length,
+        agents: listed().length,
         budgetUsedPercent: workspacePercent(),
         approvalsWaitingForMe: state.approvals.filter((a) => a.status === "pending" && a.canDecide).length,
         proposalsWaitingForMe: state.proposals.filter((p) => p.status === "pending" && !p.stale && p.canDecide).length,
@@ -2176,7 +2198,13 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
     },
     // Groups of agents (ADR 0083), with the server's order rules; every change answers with all of them.
     agentGroups: {
-      list: async () => structuredClone(state.agentGroups ?? []),
+      list: async () => {
+        const all = listsAllAgents(state.me ? withPermissions(state.me).organizations[0] : undefined);
+        const ids = new Set(listed().map((a) => a.id));
+        return structuredClone(state.agentGroups ?? [])
+          .map((g) => (all ? g : { ...g, agentIds: g.agentIds.filter((id) => ids.has(id)) }))
+          .filter((g) => all || g.agentIds.length > 0);
+      },
       create: async (orgId, input) => {
         state.calls.push({ method: "agentGroups.create", args: [orgId, input] });
         const ids = input.agentIds ?? [];
@@ -2274,7 +2302,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         return { previous };
       },
       team: async () => ({
-        agents: state.agents.map((a) => ({
+        agents: listed().map((a) => ({
           id: a.id,
           name: a.name,
           handle: a.handle,
@@ -2295,15 +2323,10 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
           .map((m) => ({ id: m.userId, name: m.name, image: m.image ?? null })),
         consultations: [],
       }),
-      // Same rule as the backend: everyone, the listed people, or only the owner (who can always talk to it).
       list: async () =>
         state.agents.map((a) => {
           const mode = a.audience?.mode ?? "everyone";
-          const me = state.me?.user.id ?? "";
-          const canTalk =
-            mode === "everyone" ||
-            a.ownerUserId === me ||
-            (mode === "people" && (a.audience?.userIds ?? []).includes(me));
+          const canTalk = talksToMe(a);
           const { monthlyBudgetUsd, ...rest } = a;
           // Same rule as the backend: how it works only for who it answers, its owner and admins.
           const seesDetails = canTalk || seesCost();

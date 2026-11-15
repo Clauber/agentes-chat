@@ -14,7 +14,7 @@
   `notifyWikiConflict` in `notification-producers.ts`; routes `apps/server/src/routes/app/wiki.ts`
   (`/organizations/{orgId}/wiki/repository`), the webhook in `apps/server/src/routes/github-app.ts`, the periodic look
   in `apps/server/src/workers.ts`; web `apps/web/src/components/wiki/WikiRepository.tsx`; tables
-  `wiki_repositories`, `wiki_repository_files` (migrations 0275, 0276); tests
+  `wiki_repositories`, `wiki_repository_files`, `wiki_pages.outside` (migration 0277); tests
   `packages/engine/test/wiki-repository.test.ts`
 
 ## Context

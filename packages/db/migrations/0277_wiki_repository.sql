@@ -8,12 +8,14 @@ CREATE TABLE "wiki_repositories" (
 	"path" text DEFAULT '' NOT NULL,
 	"head_sha" text,
 	"writable" boolean DEFAULT true NOT NULL,
+	"public" boolean DEFAULT false NOT NULL,
 	"commit_mode" text DEFAULT 'direct' NOT NULL,
 	"pr_branch" text DEFAULT 'agentes/wiki' NOT NULL,
 	"pr_number" integer,
 	"pr_url" text,
 	"pr_state" text,
 	"pr_signature" text,
+	"pr_head" text,
 	"pr_files" jsonb,
 	"status" text DEFAULT 'active' NOT NULL,
 	"error_code" text,
@@ -21,6 +23,8 @@ CREATE TABLE "wiki_repositories" (
 	"syncing_until" timestamp with time zone,
 	"synced_at" timestamp with time zone,
 	"notified_at" timestamp with time zone,
+	"removals_waiting" integer,
+	"removals_allowed" integer,
 	"created_by_user_id" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
@@ -42,6 +46,7 @@ CREATE TABLE "wiki_repository_files" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+ALTER TABLE "wiki_pages" ADD COLUMN "outside" boolean DEFAULT false NOT NULL;--> statement-breakpoint
 ALTER TABLE "wiki_repositories" ADD CONSTRAINT "wiki_repositories_org_id_organizations_id_fk" FOREIGN KEY ("org_id") REFERENCES "public"."organizations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "wiki_repositories" ADD CONSTRAINT "wiki_repositories_created_by_user_id_users_id_fk" FOREIGN KEY ("created_by_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "wiki_repository_files" ADD CONSTRAINT "wiki_repository_files_repository_id_wiki_repositories_id_fk" FOREIGN KEY ("repository_id") REFERENCES "public"."wiki_repositories"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

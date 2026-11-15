@@ -417,6 +417,12 @@
       "short": "rozmowa",
       "say": "rozmawia z agentami"
     },
+    "view_all_agents": {
+      "title": "Widok wszystkich agentów",
+      "desc": "W Zespole i na pasku bocznym. Bez tego tylko ci, którzy odpowiadają tej osobie.",
+      "short": "widok wszystkich agentów",
+      "say": "widzi wszystkich agentów"
+    },
     "assign_work": {
       "title": "Zlecanie agentom misji",
       "desc": "Zlecanie długiej pracy, która toczy się sama.",
@@ -726,7 +732,9 @@
     },
     "desktopOwner": {
       "continue": "Kontynuuj tutaj ({{device}})",
-      "text": "agentes.chat zostało skonfigurowane na tym urządzeniu ({{device}}): hasło nie jest potrzebne."
+      "text": "agentes.chat zostało skonfigurowane na tym urządzeniu ({{device}}): hasło nie jest potrzebne.",
+      "gone": "Właściciel tego serwera usunął swoje konto, więc „Kontynuuj tutaj ({{device}})” nie może nikogo zalogować. Zaloguj się zamiast tego własnym e-mailem.",
+      "none": "W agentes.chat na tym urządzeniu ({{device}}) nie zostało żadne konto. Utwórz nowego właściciela w oknie, które się otworzyło."
     },
     "server": {
       "into": "Logowanie do <b>{{server}}</b>",
@@ -1870,6 +1878,12 @@
     "use": "Użyj tej ikony",
     "inUse": "W użyciu",
     "sky": "Tło",
+    "pose": "Pozycja",
+    "poses": {
+      "front": "Na wprost",
+      "peek": "Zerkanie"
+    },
+    "peekBare": "Gdy zerka, nie nosi dodatku.",
     "expression": "Mina",
     "ready": "Gotowe ikony",
     "oneOrOther": "Z dodatkiem mina pozostaje zwykła.",
@@ -5259,6 +5273,7 @@
     "summaryAllRead": "wszystko przeczytane",
     "summaryNothing": "Nic nowego.",
     "readAll": "Oznacz wszystko jako przeczytane",
+    "doneAll": "Zakończ wszystkie",
     "filters": "Filtruj powiadomienia",
     "filter": {
       "all": "Wszystkie",
@@ -5515,6 +5530,10 @@
       "readAll_few": "Oznaczono {{count}} jako przeczytane",
       "readAll_many": "Oznaczono {{count}} jako przeczytane",
       "readAll_other": "Oznaczono {{count}} jako przeczytane",
+      "doneAll_one": "Przeniesiono {{count}} do Zakończonych",
+      "doneAll_few": "Przeniesiono {{count}} do Zakończonych",
+      "doneAll_many": "Przeniesiono {{count}} do Zakończonych",
+      "doneAll_other": "Przeniesiono {{count}} do Zakończonych",
       "sent": "Wysłano odpowiedź",
       "see": "Zobacz",
       "answered": "{{name}} ma twoją odpowiedź",
@@ -12476,7 +12495,6 @@
       "open": "Zmień model agenta {{agent}}",
       "ownSignIn": "Konto tego komputera",
       "apiKey": "{{provider}} z kluczem API",
-      "default": "domyślny",
       "refused": "Odrzucony dla tego klucza",
       "textOnly": "Czyta tylko tekst",
       "search": "Szukaj modeli",
@@ -13156,8 +13174,8 @@
       "agentes": "przestrzeń dyskowa agentes.chat",
       "server": "ten serwer"
     },
-    "s3": "Twój własny bucket",
-    "s3Text": "S3, R2, MinIO i inne zgodne z S3.",
+    "s3": "Własne miejsce na dane",
+    "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2 lub inny zgodny z S3.",
     "current": "W użyciu",
     "usage": {
       "files": "{{size}} plików",
@@ -13207,7 +13225,139 @@
     "backText": "Nowe pliki znowu trafią do: {{place}}. To, co już jest w twoim buckecie, tam zostanie.",
     "backDone": "Miejsce na dane przełączone na: {{place}}.",
     "required": "Wypełnij to pole.",
-    "keysRequired": "Wpisz klucz dostępu i sekret."
+    "keysRequired": "Wpisz klucz dostępu i sekret.",
+    "connect": {
+      "open": "Podłącz miejsce na dane",
+      "edit": "Edytuj połączenie",
+      "pickTitle": "Gdzie jest twoje miejsce na dane?",
+      "pickText": "Wybierz usługę. Pokażemy, gdzie tam kliknąć i co tu wkleić.",
+      "provider": {
+        "r2": "Cloudflare R2",
+        "s3": "Amazon S3",
+        "b2": "Backblaze B2",
+        "other": "Inny"
+      },
+      "providerText": {
+        "r2": "Najłatwiej utworzyć od zera",
+        "s3": "Jeśli już korzystasz z AWS",
+        "b2": "Jeśli masz tam już konto",
+        "other": "MinIO, Wasabi i inne zgodne z S3"
+      },
+      "title": {
+        "r2": "Podłącz Cloudflare R2",
+        "s3": "Podłącz Amazon S3",
+        "b2": "Podłącz Backblaze B2",
+        "other": "Podłącz inne miejsce na dane"
+      },
+      "editTitle": {
+        "r2": "Edytuj Cloudflare R2",
+        "s3": "Edytuj Amazon S3",
+        "b2": "Edytuj Backblaze B2",
+        "other": "Edytuj miejsce na dane"
+      },
+      "lede": {
+        "r2": "Dwa kroki w Cloudflare. Potem testujemy przed przełączeniem.",
+        "s3": "Trzy kroki w AWS. Potem testujemy przed przełączeniem.",
+        "b2": "Dwa kroki w Backblaze. Potem testujemy przed przełączeniem.",
+        "other": "Dowolna usługa zgodna z S3. Potem testujemy przed przełączeniem."
+      },
+      "editLede": "Zmień to, co się zmieniło. Zostaw klucze puste, aby zachować zapisane.",
+      "bucketName": "Nazwa bucketu",
+      "accessKeyId": "ID klucza dostępu",
+      "secret": "Tajny klucz dostępu",
+      "r2Endpoint": "Adres R2",
+      "b2Endpoint": "Endpoint bucketu",
+      "region": "Region",
+      "regionPick": "Wybierz region",
+      "regionOption": "{{name}} · {{code}}",
+      "theirName": {
+        "r2Key": "W Cloudflare: Access Key ID",
+        "r2Secret": "W Cloudflare: Secret Access Key",
+        "r2Endpoint": "W Cloudflare: endpoint kończący się na r2.cloudflarestorage.com.",
+        "s3Key": "W AWS: Access key",
+        "s3Secret": "W AWS: Secret access key",
+        "b2Key": "W Backblaze: keyID",
+        "b2Secret": "W Backblaze: applicationKey",
+        "b2Endpoint": "Region odczytamy z niego."
+      },
+      "step": {
+        "bucketTitle": "Utwórz bucket",
+        "keyTitle": "Utwórz klucz dostępu",
+        "userTitle": "Utwórz użytkownika tylko dla agentes.chat",
+        "r2Bucket": "W panelu Cloudflare otwórz <b>R2</b> i kliknij <b>Create bucket</b>. Nazwa może być dowolna.",
+        "r2Key": "Na stronie R2, w sekcji <b>API Tokens</b>, kliknij <b>Manage</b>, a potem <b>Create API Token</b>. Wybierz uprawnienie <b>Object Read & Write</b> i swój bucket. Na koniec Cloudflare pokaże trzy poniższe wartości tylko raz.",
+        "s3Bucket": "W konsoli AWS otwórz <b>S3</b> i kliknij <b>Create bucket</b>. Zapisz sobie wybrany region.",
+        "s3User": "W <b>IAM</b> otwórz <b>Users</b> i kliknij <b>Create user</b>. W uprawnieniach utwórz politykę z tekstem skopiowanym poniżej: daje ona dostęp tylko do tego bucketu.",
+        "s3Key": "Na stronie nowego użytkownika otwórz <b>Security credentials</b> i kliknij <b>Create access key</b>. Wybierz <b>Application running outside AWS</b> i wklej obie wartości.",
+        "b2Bucket": "W Backblaze otwórz <b>Buckets</b> i kliknij <b>Create a Bucket</b>. Na stronie bucketu skopiuj <b>Endpoint</b>.",
+        "b2Key": "Otwórz <b>Application Keys</b> i kliknij <b>Add a New Application Key</b>. Daj mu dostęp do swojego bucketu z uprawnieniem <b>Read and Write</b>. Główny klucz konta (master key) tu nie działa."
+      },
+      "openR2": "Otwórz R2",
+      "openS3": "Otwórz S3",
+      "openIam": "Otwórz IAM",
+      "openB2": "Otwórz Backblaze",
+      "copyPolicy": "Skopiuj politykę",
+      "policyCopied": "Polityka skopiowana, z bucketem {{bucket}}.",
+      "back": "Wstecz",
+      "testAgain": "Przetestuj ponownie",
+      "passed": "Połączenie działa: zapisaliśmy, odczytaliśmy, znaleźliśmy na liście i usunęliśmy plik testowy.",
+      "permissionHint": {
+        "r2": "W Cloudflare sprawdź, czy token ma uprawnienie <b>Object Read & Write</b> i dostęp do bucketu {{bucket}}. Popraw to i przetestuj ponownie.",
+        "s3": "W AWS sprawdź, czy użytkownik ma politykę skopiowaną w kroku 2, z bucketem {{bucket}}. Popraw to i przetestuj ponownie.",
+        "b2": "W Backblaze sprawdź, czy klucz ma <b>Read and Write</b> i dostęp do bucketu {{bucket}}. Popraw to i przetestuj ponownie."
+      },
+      "inUse": "{{provider}} · {{bucket}}",
+      "inUseAt": "{{bucket}} na {{host}}",
+      "stepError": {
+        "auth": "Klucz dostępu lub tajny klucz nie został zaakceptowany.",
+        "permission": "Klucz nie ma uprawnień do tego kroku.",
+        "bucketMissing": "Ten bucket nie istnieje pod tym adresem.",
+        "region": "To nie jest region tego bucketu.",
+        "network": "Nie udało się połączyć z adresem.",
+        "address": "Adres jest nieprawidłowy.",
+        "https": "Użyj adresu zaczynającego się od https://.",
+        "internal": "Ten adres wskazuje na sieć wewnętrzną.",
+        "hostNotFound": "Nie znaleźliśmy tego adresu.",
+        "notFound": "Plik testowy nie wrócił przy odczycie.",
+        "unexpected": "Nieoczekiwany błąd w komunikacji z miejscem na dane.",
+        "invalidBucket": "Nazwa bucketu jest nieprawidłowa.",
+        "keysRequired": "Podaj oba klucze."
+      },
+      "awsRegion": {
+        "us-east-1": "Wschodnie USA (Północna Wirginia)",
+        "us-east-2": "Wschodnie USA (Ohio)",
+        "us-west-1": "Zachodnie USA (Północna Kalifornia)",
+        "us-west-2": "Zachodnie USA (Oregon)",
+        "ca-central-1": "Kanada (Centralna)",
+        "ca-west-1": "Zachodnia Kanada (Calgary)",
+        "mx-central-1": "Meksyk (Centralny)",
+        "sa-east-1": "Ameryka Południowa (São Paulo)",
+        "eu-central-1": "Europa (Frankfurt)",
+        "eu-central-2": "Europa (Zurych)",
+        "eu-west-1": "Europa (Irlandia)",
+        "eu-west-2": "Europa (Londyn)",
+        "eu-west-3": "Europa (Paryż)",
+        "eu-south-1": "Europa (Mediolan)",
+        "eu-south-2": "Europa (Hiszpania)",
+        "eu-north-1": "Europa (Sztokholm)",
+        "il-central-1": "Izrael (Tel Awiw)",
+        "me-south-1": "Bliski Wschód (Bahrajn)",
+        "me-central-1": "Bliski Wschód (ZEA)",
+        "af-south-1": "Afryka (Kapsztad)",
+        "ap-east-1": "Azja i Pacyfik (Hongkong)",
+        "ap-south-1": "Azja i Pacyfik (Mumbaj)",
+        "ap-south-2": "Azja i Pacyfik (Hajdarabad)",
+        "ap-northeast-1": "Azja i Pacyfik (Tokio)",
+        "ap-northeast-2": "Azja i Pacyfik (Seul)",
+        "ap-northeast-3": "Azja i Pacyfik (Osaka)",
+        "ap-southeast-1": "Azja i Pacyfik (Singapur)",
+        "ap-southeast-2": "Azja i Pacyfik (Sydney)",
+        "ap-southeast-3": "Azja i Pacyfik (Dżakarta)",
+        "ap-southeast-4": "Azja i Pacyfik (Melbourne)",
+        "ap-southeast-5": "Azja i Pacyfik (Malezja)",
+        "ap-southeast-7": "Azja i Pacyfik (Tajlandia)"
+      }
+    }
   },
   "githubApp": {
     "title": "Repozytoria GitHub",
@@ -15879,7 +16029,8 @@
       "invalidDescription": "Opis musi mieć od 1 do {{max}} znaków.",
       "tooLarge": "Ta umiejętność ma {{size}} MB tekstu i skryptów, a limit to {{max}} MB.",
       "tooManyFiles": "Ta umiejętność ma tyle plików: {{files}}, a limit to {{max}}.",
-      "repoTooLarge": "Repozytorium jest za duże, żeby je pobrać (maks. {{max}} MB). Prześlij folder umiejętności jako .zip.",
+      "repoTooLarge": "Repozytorium jest za duże, żeby je pobrać (maks. {{max}} MB).",
+      "linkTooLarge": "Folder z tego linku ma za dużo plików, żeby go odczytać. Wklej link do folderu samej umiejętności.",
       "noFrontmatter": "SKILL.md musi mieć na górze blok z nazwą i opisem, między dwiema liniami ---.",
       "bodyTooLong": "SKILL.md jest za długi (maks. {{max}} znaków).",
       "noSkillMdZip": "Brak pliku SKILL.md na górze folderu w zipie.",
@@ -18182,6 +18333,7 @@
       "waitingYourAnswer": "czeka na twoją odpowiedź",
       "queued": "w kolejce",
       "handedOn": "czeka na innych agentów",
+      "answered": "odpowiedział",
       "noAnswer": "nie odpowiedział",
       "notFinished": "nie skończył",
       "someAnswered": "odpowiedziało {{done}} z {{total}}",

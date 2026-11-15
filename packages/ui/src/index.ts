@@ -439,6 +439,7 @@ export {
   emojiEntry,
   searchEmoji,
 } from "./emoji-data";
+export { placeList } from "./floating";
 export {
   applyFormat,
   codeBlock,
@@ -540,6 +541,7 @@ export {
   workspaceInk,
   workspaceTones,
 } from "./sky/workspace";
+export { onThemeChange, switchTheme, THEME_SWITCHING_ATTR, type Theme } from "./theme";
 export {
   allZones,
   cityOf,

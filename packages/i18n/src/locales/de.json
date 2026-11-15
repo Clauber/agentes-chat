@@ -391,6 +391,12 @@
       "short": "sprechen",
       "say": "spricht mit den Agenten"
     },
+    "view_all_agents": {
+      "title": "Alle Agenten sehen",
+      "desc": "Im Team und in der Seitenleiste. Ohne das nur die, die der Person antworten.",
+      "short": "alle Agenten sehen",
+      "say": "sieht alle Agenten"
+    },
     "assign_work": {
       "title": "Agenten Missionen geben",
       "desc": "Längere Arbeit anfragen, die von selbst weiterläuft.",
@@ -698,7 +704,9 @@
     },
     "desktopOwner": {
       "continue": "Auf diesem {{device}} weitermachen",
-      "text": "Du hast agentes.chat auf diesem {{device}} eingerichtet: Kein Passwort nötig."
+      "text": "Du hast agentes.chat auf diesem {{device}} eingerichtet: Kein Passwort nötig.",
+      "gone": "Der Inhaber dieses Servers hat sein Konto gelöscht, daher kann „Auf diesem {{device}} weitermachen“ niemanden anmelden. Melde dich stattdessen mit deiner eigenen E-Mail an.",
+      "none": "Im agentes.chat auf diesem {{device}} ist kein Konto mehr übrig. Lege seinen neuen Inhaber im Fenster an, das sich geöffnet hat."
     },
     "server": {
       "into": "Anmeldung bei <b>{{server}}</b>",
@@ -1767,6 +1775,12 @@
     "use": "Dieses Symbol verwenden",
     "inUse": "In Verwendung",
     "sky": "Hintergrund",
+    "pose": "Haltung",
+    "poses": {
+      "front": "Von vorn",
+      "peek": "Neugierig"
+    },
+    "peekBare": "Neugierig trägt er kein Accessoire.",
     "expression": "Gesichtsausdruck",
     "ready": "Vorgefertigte",
     "oneOrOther": "Mit einem Accessoire bleibt der Ausdruck der normale.",
@@ -4930,6 +4944,7 @@
     "summaryAllRead": "alles gelesen",
     "summaryNothing": "Nichts Neues hier.",
     "readAll": "Alle als gelesen markieren",
+    "doneAll": "Alle erledigen",
     "filters": "Benachrichtigungen filtern",
     "filter": {
       "all": "Alle",
@@ -5158,6 +5173,8 @@
       "undo": "Rückgängig",
       "readAll_one": "{{count}} als gelesen markiert",
       "readAll_other": "{{count}} als gelesen markiert",
+      "doneAll_one": "{{count}} nach Erledigt verschoben",
+      "doneAll_other": "{{count}} nach Erledigt verschoben",
       "sent": "Antwort gesendet",
       "see": "Ansehen",
       "answered": "{{name}} hat deine Antwort bekommen",
@@ -11601,7 +11618,6 @@
       "open": "Modell von {{agent}} ändern",
       "ownSignIn": "Konto dieses Computers",
       "apiKey": "{{provider}} mit API-Schlüssel",
-      "default": "Standard",
       "refused": "Mit diesem Schlüssel abgelehnt",
       "textOnly": "Liest nur Text",
       "search": "Modelle suchen",
@@ -12223,8 +12239,8 @@
       "agentes": "agentes.chat-Speicher",
       "server": "dieser Server"
     },
-    "s3": "Dein eigener Bucket",
-    "s3Text": "S3, R2, MinIO und andere S3-kompatible.",
+    "s3": "Dein eigener Speicher",
+    "s3Text": "Cloudflare R2, Amazon S3, Backblaze B2 oder ein anderer S3-kompatibler Dienst.",
     "current": "In Verwendung",
     "usage": {
       "files": "{{size}} an Dateien",
@@ -12274,7 +12290,139 @@
     "backText": "Neue Dateien landen wieder in {{place}}. Was schon in deinem Bucket liegt, bleibt dort.",
     "backDone": "Speicher auf {{place}} umgestellt.",
     "required": "Füll dieses Feld aus.",
-    "keysRequired": "Gib den Zugriffsschlüssel und das Secret ein."
+    "keysRequired": "Gib den Zugriffsschlüssel und das Secret ein.",
+    "connect": {
+      "open": "Speicher verbinden",
+      "edit": "Verbindung bearbeiten",
+      "pickTitle": "Wo liegt dein Speicher?",
+      "pickText": "Wähle den Dienst. Wir zeigen dir, wo du dort klickst und was du hier einfügst.",
+      "provider": {
+        "r2": "Cloudflare R2",
+        "s3": "Amazon S3",
+        "b2": "Backblaze B2",
+        "other": "Andere"
+      },
+      "providerText": {
+        "r2": "Am einfachsten neu einzurichten",
+        "s3": "Für alle, die schon AWS nutzen",
+        "b2": "Für alle, die dort ein Konto haben",
+        "other": "MinIO, Wasabi und andere S3-kompatible Dienste"
+      },
+      "title": {
+        "r2": "Cloudflare R2 verbinden",
+        "s3": "Amazon S3 verbinden",
+        "b2": "Backblaze B2 verbinden",
+        "other": "Anderen Speicher verbinden"
+      },
+      "editTitle": {
+        "r2": "Cloudflare R2 bearbeiten",
+        "s3": "Amazon S3 bearbeiten",
+        "b2": "Backblaze B2 bearbeiten",
+        "other": "Speicher bearbeiten"
+      },
+      "lede": {
+        "r2": "Zwei Schritte in Cloudflare. Dann testen wir, bevor wir umstellen.",
+        "s3": "Drei Schritte in AWS. Dann testen wir, bevor wir umstellen.",
+        "b2": "Zwei Schritte in Backblaze. Dann testen wir, bevor wir umstellen.",
+        "other": "Jeder S3-kompatible Dienst. Dann testen wir, bevor wir umstellen."
+      },
+      "editLede": "Ändere, was sich geändert hat. Lass die Schlüssel leer, um die gespeicherten zu behalten.",
+      "bucketName": "Bucket-Name",
+      "accessKeyId": "Zugriffsschlüssel-ID",
+      "secret": "Geheimer Zugriffsschlüssel",
+      "r2Endpoint": "R2-Adresse",
+      "b2Endpoint": "Bucket-Endpoint",
+      "region": "Region",
+      "regionPick": "Wähle die Region",
+      "regionOption": "{{name}} · {{code}}",
+      "theirName": {
+        "r2Key": "In Cloudflare: Access Key ID",
+        "r2Secret": "In Cloudflare: Secret Access Key",
+        "r2Endpoint": "In Cloudflare: der Endpoint, der auf r2.cloudflarestorage.com endet.",
+        "s3Key": "In AWS: Access key",
+        "s3Secret": "In AWS: Secret access key",
+        "b2Key": "In Backblaze: keyID",
+        "b2Secret": "In Backblaze: applicationKey",
+        "b2Endpoint": "Daraus ergibt sich die Region."
+      },
+      "step": {
+        "bucketTitle": "Erstelle einen Bucket",
+        "keyTitle": "Erstelle den Zugriffsschlüssel",
+        "userTitle": "Erstelle einen Benutzer nur für agentes.chat",
+        "r2Bucket": "Öffne im Cloudflare-Dashboard <b>R2</b> und klicke auf <b>Create bucket</b>. Der Name ist egal.",
+        "r2Key": "Klicke auf der R2-Seite unter <b>API Tokens</b> auf <b>Manage</b> und dann auf <b>Create API Token</b>. Wähle die Berechtigung <b>Object Read & Write</b> und deinen Bucket. Am Ende zeigt Cloudflare die drei Werte unten nur ein einziges Mal an.",
+        "s3Bucket": "Öffne in der AWS-Konsole <b>S3</b> und klicke auf <b>Create bucket</b>. Merk dir die Region, die du wählst.",
+        "s3User": "Öffne in <b>IAM</b> den Bereich <b>Users</b> und klicke auf <b>Create user</b>. Erstelle bei den Berechtigungen eine Richtlinie mit dem unten kopierten Text: Sie gibt nur Zugriff auf diesen Bucket.",
+        "s3Key": "Öffne beim neuen Benutzer <b>Security credentials</b> und klicke auf <b>Create access key</b>. Wähle <b>Application running outside AWS</b> und füge beide Werte ein.",
+        "b2Bucket": "Öffne in Backblaze <b>Buckets</b> und klicke auf <b>Create a Bucket</b>. Kopiere auf der Seite des Buckets den <b>Endpoint</b>.",
+        "b2Key": "Öffne <b>Application Keys</b> und klicke auf <b>Add a New Application Key</b>. Gib ihm mit <b>Read and Write</b> Zugriff auf deinen Bucket. Der Hauptschlüssel des Kontos (Master Key) funktioniert hier nicht."
+      },
+      "openR2": "R2 öffnen",
+      "openS3": "S3 öffnen",
+      "openIam": "IAM öffnen",
+      "openB2": "Backblaze öffnen",
+      "copyPolicy": "Richtlinie kopieren",
+      "policyCopied": "Richtlinie kopiert, mit dem Bucket {{bucket}}.",
+      "back": "Zurück",
+      "testAgain": "Erneut testen",
+      "passed": "Verbindung klappt: Wir haben eine Testdatei geschrieben, gelesen, aufgelistet und gelöscht.",
+      "permissionHint": {
+        "r2": "Prüfe in Cloudflare, ob das Token die Berechtigung <b>Object Read & Write</b> und Zugriff auf den Bucket {{bucket}} hat. Korrigiere es und teste erneut.",
+        "s3": "Prüfe in AWS, ob der Benutzer die in Schritt 2 kopierte Richtlinie mit dem Bucket {{bucket}} hat. Korrigiere es und teste erneut.",
+        "b2": "Prüfe in Backblaze, ob der Schlüssel <b>Read and Write</b> und Zugriff auf den Bucket {{bucket}} hat. Korrigiere es und teste erneut."
+      },
+      "inUse": "{{provider}} · {{bucket}}",
+      "inUseAt": "{{bucket}} auf {{host}}",
+      "stepError": {
+        "auth": "Der Zugriffsschlüssel oder der geheime Schlüssel wurde nicht akzeptiert.",
+        "permission": "Der Schlüssel darf diesen Schritt nicht ausführen.",
+        "bucketMissing": "Diesen Bucket gibt es unter dieser Adresse nicht.",
+        "region": "Die Region ist nicht die des Buckets.",
+        "network": "Die Adresse ist nicht erreichbar.",
+        "address": "Die Adresse ist ungültig.",
+        "https": "Nutze eine Adresse, die mit https:// beginnt.",
+        "internal": "Diese Adresse zeigt auf ein internes Netzwerk.",
+        "hostNotFound": "Wir haben diese Adresse nicht gefunden.",
+        "notFound": "Die Testdatei kam beim Lesen nicht zurück.",
+        "unexpected": "Unerwarteter Fehler bei der Verbindung zum Speicher.",
+        "invalidBucket": "Der Bucket-Name ist ungültig.",
+        "keysRequired": "Gib beide Schlüssel ein."
+      },
+      "awsRegion": {
+        "us-east-1": "USA Ost (Nord-Virginia)",
+        "us-east-2": "USA Ost (Ohio)",
+        "us-west-1": "USA West (Nordkalifornien)",
+        "us-west-2": "USA West (Oregon)",
+        "ca-central-1": "Kanada (Zentral)",
+        "ca-west-1": "Kanada West (Calgary)",
+        "mx-central-1": "Mexiko (Zentral)",
+        "sa-east-1": "Südamerika (São Paulo)",
+        "eu-central-1": "Europa (Frankfurt)",
+        "eu-central-2": "Europa (Zürich)",
+        "eu-west-1": "Europa (Irland)",
+        "eu-west-2": "Europa (London)",
+        "eu-west-3": "Europa (Paris)",
+        "eu-south-1": "Europa (Mailand)",
+        "eu-south-2": "Europa (Spanien)",
+        "eu-north-1": "Europa (Stockholm)",
+        "il-central-1": "Israel (Tel Aviv)",
+        "me-south-1": "Naher Osten (Bahrain)",
+        "me-central-1": "Naher Osten (VAE)",
+        "af-south-1": "Afrika (Kapstadt)",
+        "ap-east-1": "Asien-Pazifik (Hongkong)",
+        "ap-south-1": "Asien-Pazifik (Mumbai)",
+        "ap-south-2": "Asien-Pazifik (Hyderabad)",
+        "ap-northeast-1": "Asien-Pazifik (Tokio)",
+        "ap-northeast-2": "Asien-Pazifik (Seoul)",
+        "ap-northeast-3": "Asien-Pazifik (Osaka)",
+        "ap-southeast-1": "Asien-Pazifik (Singapur)",
+        "ap-southeast-2": "Asien-Pazifik (Sydney)",
+        "ap-southeast-3": "Asien-Pazifik (Jakarta)",
+        "ap-southeast-4": "Asien-Pazifik (Melbourne)",
+        "ap-southeast-5": "Asien-Pazifik (Malaysia)",
+        "ap-southeast-7": "Asien-Pazifik (Thailand)"
+      }
+    }
   },
   "githubApp": {
     "title": "GitHub-Repositories",
@@ -14866,7 +15014,8 @@
       "invalidDescription": "Die Beschreibung muss 1 bis {{max}} Zeichen haben.",
       "tooLarge": "Dieser Skill hat {{size}} MB Text und Skripte, das Limit liegt bei {{max}} MB.",
       "tooManyFiles": "Dieser Skill hat {{files}} Dateien, das Limit liegt bei {{max}}.",
-      "repoTooLarge": "Das Repository ist zu groß zum Herunterladen (max. {{max}} MB). Lade den Ordner des Skills stattdessen als .zip hoch.",
+      "repoTooLarge": "Das Repository ist zu groß zum Herunterladen (max. {{max}} MB).",
+      "linkTooLarge": "Der Ordner dieses Links hat zu viele Dateien zum Lesen. Füge den Link zum eigenen Ordner des Skills ein.",
       "noFrontmatter": "Die SKILL.md braucht oben einen Block mit Name und Beschreibung zwischen zwei ----Zeilen.",
       "bodyTooLong": "Die SKILL.md ist zu lang (max. {{max}} Zeichen).",
       "noSkillMdZip": "Keine SKILL.md oben im Ordner der Zip-Datei.",
@@ -17096,6 +17245,7 @@
       "waitingYourAnswer": "wartet auf deine Antwort",
       "queued": "in der Warteschlange",
       "handedOn": "wartet auf andere Agenten",
+      "answered": "hat geantwortet",
       "noAnswer": "hat nicht geantwortet",
       "notFinished": "nicht fertig geworden",
       "someAnswered": "{{done}} von {{total}} haben geantwortet",
