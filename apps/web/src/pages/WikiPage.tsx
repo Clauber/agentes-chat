@@ -32,7 +32,7 @@ import { WikiAudienceDialog } from "@/components/wiki/WikiAudience";
 import { WikiBulkAgentsDialog, WikiBulkDeleteDialog, WikiTrash } from "@/components/wiki/WikiBulk";
 import { useVaultDrop, VaultDropOverlay, WikiImportDialog } from "@/components/wiki/WikiImport";
 import { AuthorAvatar, PageOutline, WikiReader } from "@/components/wiki/WikiReader";
-import { WikiRepositoryDialog, WikiRepositoryMenuItem, WikiRepositoryStopped } from "@/components/wiki/WikiRepository";
+import { WikiRepositoryDialog, WikiRepositoryStopped } from "@/components/wiki/WikiRepository";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useRightHandLook } from "@/hooks/useRightHandLook";
 import { copyText } from "@/lib/context-menu";
@@ -439,10 +439,10 @@ function WikiNav({
             label={moreLabel}
             trigger={<Button size="sm" variant="ghost" iconOnly icon="more" aria-label={moreLabel} title={moreLabel} />}
           >
+            {/* Keeping the wiki on GitHub lives in here too: Import › GitHub › "Keep in sync". */}
             <MenuItem icon="upload" onSelect={onImport}>
               {t("wiki.import.cta")}
             </MenuItem>
-            <WikiRepositoryMenuItem onOpen={() => setRepositoryOpen(true)} />
           </Menu>
         )}
       </div>

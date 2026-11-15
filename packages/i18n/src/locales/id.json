@@ -10862,11 +10862,6 @@
     "repo": {
       "stopped": "Berhenti memperbarui dengan GitHub",
       "conflictNotice": "Versi GitHub dari {{name}} menggantikan suntingan yang dibuat di sini (keduanya mengubah baris yang sama). Suntingan Anda adalah versi {{version}} di riwayat halaman.",
-      "menu": {
-        "name": "GitHub",
-        "connect": "Simpan di GitHub",
-        "connectDesc": "Halaman sebagai catatan di repositorimu"
-      },
       "state": {
         "upToDate": "{{repo}} · terbaru {{when}}",
         "syncing": "{{repo}} · memperbarui…",
@@ -11023,6 +11018,11 @@
         "read": "Baca catatan",
         "error": {
           "notGithub": "Tempel tautan github.com."
+        },
+        "mode": {
+          "label": "Cara catatan masuk",
+          "sync": "Tetap sinkron",
+          "once": "Impor sekali"
         }
       },
       "anotherLink": "Ganti tautan",

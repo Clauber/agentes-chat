@@ -11583,11 +11583,6 @@ export const en = {
       /** The inbox's notice to whoever wrote an edit GitHub's version replaced: `name` is the page's title. */
       conflictNotice:
         "GitHub's version of {{name}} replaced an edit made here (both changed the same lines). Your edit is version {{version}} in the page's history.",
-      menu: {
-        name: "GitHub",
-        connect: "Keep on GitHub",
-        connectDesc: "The pages as notes in a repository of yours",
-      },
       state: {
         upToDate: "{{repo}} · up to date {{when}}",
         syncing: "{{repo}} · updating…",
@@ -11750,6 +11745,7 @@ export const en = {
         help: "The link of a repository, a folder or a .md file. Markdown notes become pages and the images they show go to the Drive. The rest of the repository stays out. A private repository is read through the workspace's GitHub.",
         read: "Read the notes",
         error: { notGithub: "Paste a github.com link." },
+        mode: { label: "How the notes come", sync: "Keep in sync", once: "Import once" },
       },
       anotherLink: "Change link",
       dropTitle: "Drop the vault .zip here",

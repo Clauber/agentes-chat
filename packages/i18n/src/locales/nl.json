@@ -11317,11 +11317,6 @@
     "repo": {
       "stopped": "Werkt niet meer bij met GitHub",
       "conflictNotice": "De GitHub-versie van {{name}} heeft een wijziging van hier vervangen (beide veranderden dezelfde regels). Jouw wijziging is versie {{version}} in de geschiedenis van de pagina.",
-      "menu": {
-        "name": "GitHub",
-        "connect": "Bijhouden op GitHub",
-        "connectDesc": "De pagina's als notities in een repository van je"
-      },
       "state": {
         "upToDate": "{{repo}} · bijgewerkt {{when}}",
         "syncing": "{{repo}} · bijwerken…",
@@ -11480,6 +11475,11 @@
         "read": "Notities lezen",
         "error": {
           "notGithub": "Plak een link van github.com."
+        },
+        "mode": {
+          "label": "Hoe de notities binnenkomen",
+          "sync": "Gesynchroniseerd houden",
+          "once": "Eén keer importeren"
         }
       },
       "anotherLink": "Andere link",

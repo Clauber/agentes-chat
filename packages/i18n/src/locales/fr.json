@@ -11667,11 +11667,6 @@
     "repo": {
       "stopped": "Ne se met plus à jour avec GitHub",
       "conflictNotice": "La version GitHub de {{name}} a remplacé une modification faite ici (les deux ont changé les mêmes lignes). Votre modification est la version {{version}} dans l'historique de la page.",
-      "menu": {
-        "name": "GitHub",
-        "connect": "Garder sur GitHub",
-        "connectDesc": "Les pages en notes dans un de vos dépôts"
-      },
       "state": {
         "upToDate": "{{repo}} · à jour {{when}}",
         "syncing": "{{repo}} · mise à jour…",
@@ -11832,6 +11827,11 @@
         "read": "Lire les notes",
         "error": {
           "notGithub": "Collez un lien github.com."
+        },
+        "mode": {
+          "label": "Comment arrivent les notes",
+          "sync": "Garder synchronisé",
+          "once": "Importer une fois"
         }
       },
       "anotherLink": "Changer de lien",

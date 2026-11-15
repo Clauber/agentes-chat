@@ -11623,11 +11623,6 @@ export const ptBR = {
       /** The inbox's notice to whoever wrote an edit GitHub's version replaced: `name` is the page's title. */
       conflictNotice:
         "A versão do GitHub de {{name}} substituiu uma edição feita aqui (os dois mudaram as mesmas linhas). Sua edição é a versão {{version}} no histórico da página.",
-      menu: {
-        name: "GitHub",
-        connect: "Manter no GitHub",
-        connectDesc: "As páginas como notas num repositório seu",
-      },
       state: {
         upToDate: "{{repo}} · atualizado {{when}}",
         syncing: "{{repo}} · atualizando…",
@@ -11791,6 +11786,7 @@ export const ptBR = {
         help: "O link de um repositório, de uma pasta ou de um arquivo .md. As notas em Markdown viram páginas e as imagens que elas mostram vão para o Drive. O resto do repositório fica de fora. Repositório privado é lido pelo GitHub do workspace.",
         read: "Ler as notas",
         error: { notGithub: "Cole um link do github.com." },
+        mode: { label: "Como as notas vêm", sync: "Manter sincronizado", once: "Importar uma vez" },
       },
       anotherLink: "Trocar link",
       dropTitle: "Solte o .zip da vault aqui",

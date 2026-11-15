@@ -11598,11 +11598,6 @@
     "repo": {
       "stopped": "Dejó de actualizarse con GitHub",
       "conflictNotice": "La versión de GitHub de {{name}} reemplazó una edición hecha aquí (los dos cambiaron las mismas líneas). Tu edición es la versión {{version}} en el historial de la página.",
-      "menu": {
-        "name": "GitHub",
-        "connect": "Mantener en GitHub",
-        "connectDesc": "Las páginas como notas en un repositorio tuyo"
-      },
       "state": {
         "upToDate": "{{repo}} · actualizado {{when}}",
         "syncing": "{{repo}} · actualizando…",
@@ -11763,6 +11758,11 @@
         "read": "Leer las notas",
         "error": {
           "notGithub": "Pega un enlace de github.com."
+        },
+        "mode": {
+          "label": "Cómo llegan las notas",
+          "sync": "Mantener sincronizado",
+          "once": "Importar una vez"
         }
       },
       "anotherLink": "Cambiar enlace",

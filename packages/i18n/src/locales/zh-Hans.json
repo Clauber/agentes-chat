@@ -10876,11 +10876,6 @@
     "repo": {
       "stopped": "已停止与 GitHub 同步更新",
       "conflictNotice": "{{name}} 在 GitHub 上的版本替换了这里的一次修改（两边改了同样的行）。你的修改是页面历史中的第 {{version}} 版。",
-      "menu": {
-        "name": "GitHub",
-        "connect": "保存在 GitHub",
-        "connectDesc": "将页面作为笔记保存在你的仓库中"
-      },
       "state": {
         "upToDate": "{{repo}} · 已更新（{{when}}）",
         "syncing": "{{repo}} · 正在更新…",
@@ -11037,6 +11032,11 @@
         "read": "读取笔记",
         "error": {
           "notGithub": "请粘贴 github.com 的链接。"
+        },
+        "mode": {
+          "label": "笔记如何进来",
+          "sync": "保持同步",
+          "once": "导入一次"
         }
       },
       "anotherLink": "更换链接",

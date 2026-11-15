@@ -1,4 +1,11 @@
-import { keys, useCatalog, useWikiTree, type WikiImportNote, type WikiImportSource } from "@agenteschat/client";
+import {
+  keys,
+  useCatalog,
+  useWikiRepository,
+  useWikiTree,
+  type WikiImportNote,
+  type WikiImportSource,
+} from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
 import { joinNames } from "@agenteschat/client/lib/format";
 import { can } from "@agenteschat/client/lib/permissions";
@@ -47,6 +54,7 @@ import {
 } from "@/lib/obsidian";
 import { useToast } from "@/lib/toast";
 import { ObsidianMark } from "./ObsidianMark";
+import { stateLine, WikiRepositoryPanel } from "./WikiRepository";
 import "@/components/import-flow.css";
 import "./vault.css";
 
@@ -396,6 +404,9 @@ const SOURCES: WikiImportSource[] = ["obsidian", "github", "files"];
  * it holds and how it lands, then import (attachments to the Drive, notes as pages). A GitHub link is
  * read on the server, a private repository through the workspace's GitHub; when none reaches it, the dialog offers
  * to connect GitHub, as Instalar skill does. `files` starts it already reading (dropped on the page).
+ *
+ * GitHub's step also keeps the wiki in a repository (ADR 0186), one choice away from importing once: "Keep in sync"
+ * connects one (administrators) or shows the one connected, whose state the GitHub card says on the first step.
  */
 export function WikiImportDialog({
   files,
@@ -434,6 +445,13 @@ export function WikiImportDialog({
   const [flow, setFlow] = useState<FlowState | null>(null);
   const catalog = useCatalog();
   const github = catalog.data?.connectors.find((c) => c.id === "github");
+  /** The repository the wiki is kept in, if any: GitHub's step shows it rather than a link to read once. */
+  const kept = useWikiRepository(org.id).data ?? null;
+  const admin = can(org, "administrator");
+  /** Kept in sync, or read once; only who may connect a repository (or sees one connected) gets the choice. */
+  const [githubMode, setGithubMode] = useState<"sync" | "once" | null>(null);
+  const syncable = admin || kept !== null;
+  const mode = syncable ? (githubMode ?? "sync") : "once";
 
   const read = async (f: Promise<VaultFile[]>, n?: string, source?: WikiImportSource) => {
     const r = await reader.read(f, n, source);
@@ -568,6 +586,24 @@ export function WikiImportDialog({
           : from
             ? t(`wiki.import.textFrom.${from}`)
             : t("wiki.import.text");
+
+  const githubChoice = syncable ? (
+    <Segmented
+      block
+      label={t("wiki.import.github.mode.label")}
+      value={mode}
+      onValueChange={setGithubMode}
+      options={[
+        { value: "sync", label: t("wiki.import.github.mode.sync") },
+        { value: "once", label: t("wiki.import.github.mode.once") },
+      ]}
+    />
+  ) : null;
+  const backToSources = () => {
+    setFrom(null);
+    setLinkError(null);
+    setHidden(null);
+  };
 
   let body: ReactNode;
   let footer: ReactNode;
@@ -794,6 +830,11 @@ export function WikiImportDialog({
                 )}
               </span>
               <span className="ac-option__title">{t(`wiki.import.source.${source}`)}</span>
+              {source === "github" && kept && (
+                <span className={kept.status === "error" ? "ac-option__desc wiki-repo-warn" : "ac-option__desc"}>
+                  {stateLine(t, i18n.language, kept)}
+                </span>
+              )}
             </OptionCard>
           ))}
         </div>
@@ -806,6 +847,7 @@ export function WikiImportDialog({
             void readLink();
           }}
         >
+          {githubChoice}
           <Field
             label={t("wiki.import.github.label")}
             id="wiki-import-url"
@@ -857,15 +899,7 @@ export function WikiImportDialog({
       from === null ? null : (
         <>
           <span className="small muted vault-foot-hint">{t("wiki.import.nothingYet")}</span>
-          <Button
-            onClick={() => {
-              setFrom(null);
-              setLinkError(null);
-              setHidden(null);
-            }}
-          >
-            {t("common.back")}
-          </Button>
+          <Button onClick={backToSources}>{t("common.back")}</Button>
           {from === "github" && (
             <Button
               type="submit"
@@ -879,6 +913,26 @@ export function WikiImportDialog({
           )}
         </>
       );
+  }
+
+  // Kept in sync: the repository's own panel, the choice first and "Voltar" in its footer.
+  if (from === "github" && mode === "sync" && !report && !importing && !done && reader.state.step !== "reading") {
+    return (
+      <Dialog
+        open
+        onOpenChange={(o) => !o && onClose()}
+        title={kept ? t("wiki.repo.manage.title") : t("wiki.repo.connect.title")}
+        description={kept ? undefined : t("wiki.repo.connect.description")}
+        closeLabel={t("common.close")}
+        width={680}
+      >
+        <WikiRepositoryPanel
+          onClose={onClose}
+          lead={githubChoice}
+          back={<Button onClick={backToSources}>{t("common.back")}</Button>}
+        />
+      </Dialog>
+    );
   }
 
   return (

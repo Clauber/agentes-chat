@@ -11193,11 +11193,6 @@
     "repo": {
       "stopped": "GitHub ile güncellemeyi bıraktı",
       "conflictNotice": "{{name}} sayfasının GitHub sürümü burada yapılan bir düzenlemenin yerine geçti (ikisi de aynı satırları değiştirdi). Düzenlemeniz sayfanın geçmişinde {{version}}. sürüm olarak duruyor.",
-      "menu": {
-        "name": "GitHub",
-        "connect": "GitHub'da tut",
-        "connectDesc": "Sayfalar, deponuzda notlar olarak"
-      },
       "state": {
         "upToDate": "{{repo}} · güncel {{when}}",
         "syncing": "{{repo}} · güncelleniyor…",
@@ -11356,6 +11351,11 @@
         "read": "Notları oku",
         "error": {
           "notGithub": "Bir github.com bağlantısı yapıştırın."
+        },
+        "mode": {
+          "label": "Notlar nasıl gelir",
+          "sync": "Eşitlenmiş tut",
+          "once": "Bir kez içe aktar"
         }
       },
       "anotherLink": "Bağlantıyı değiştir",

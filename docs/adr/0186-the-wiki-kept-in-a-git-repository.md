@@ -29,7 +29,9 @@ never reaches the repository. Teams don't want a second copy of what they know t
 1. **An option per workspace.** An administrator keeps the wiki in one repository: one branch (the default one unless
    another is named) and one folder (the whole repository unless one is named), picked among the repositories the
    GitHub App reaches or named by an address (`owner/name`, or a link to the repository or to a folder in it, which
-   gives the branch and the folder). Connecting another repository, branch or folder replaces the one before;
+   gives the branch and the folder). It lives where notes come into the wiki: Import › GitHub, "Keep in sync" beside
+   "Import once" (the copy that follows nothing); the GitHub card there says how a connected repository is going, and
+   the line at the column's foot opens it once the sync stopped. Connecting another repository, branch or folder replaces the one before;
    disconnecting leaves the pages here and the notes there as they are. Administrators only: connecting writes every
    page that isn't limited to some people into a place everyone with access to the repository reads.
 2. **The repository is the source, and two edits are joined when they can be.** Each side follows the other. When

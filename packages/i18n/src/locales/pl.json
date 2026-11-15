@@ -12073,11 +12073,6 @@
     "repo": {
       "stopped": "Przestało się aktualizować z GitHubem",
       "conflictNotice": "Wersja z GitHuba strony {{name}} zastąpiła zmianę zrobioną tutaj (obie zmieniły te same wiersze). Twoja zmiana to wersja {{version}} w historii strony.",
-      "menu": {
-        "name": "GitHub",
-        "connect": "Trzymaj na GitHubie",
-        "connectDesc": "Strony jako notatki w twoim repozytorium"
-      },
       "state": {
         "upToDate": "{{repo}} · aktualne {{when}}",
         "syncing": "{{repo}} · aktualizowanie…",
@@ -12240,6 +12235,11 @@
         "read": "Wczytaj notatki",
         "error": {
           "notGithub": "Wklej link z github.com."
+        },
+        "mode": {
+          "label": "Jak trafiają notatki",
+          "sync": "Synchronizuj na bieżąco",
+          "once": "Importuj raz"
         }
       },
       "anotherLink": "Zmień link",

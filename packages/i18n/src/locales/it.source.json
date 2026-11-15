@@ -27509,15 +27509,6 @@
   "wiki.repo.conflictNotice": {
     "value": "GitHub's version of {{name}} replaced an edit made here (both changed the same lines). Your edit is version {{version}} in the page's history."
   },
-  "wiki.repo.menu.name": {
-    "value": "GitHub"
-  },
-  "wiki.repo.menu.connect": {
-    "value": "Keep on GitHub"
-  },
-  "wiki.repo.menu.connectDesc": {
-    "value": "The pages as notes in a repository of yours"
-  },
   "wiki.repo.state.upToDate": {
     "value": "{{repo}} · up to date {{when}}"
   },
@@ -27895,6 +27886,15 @@
   },
   "wiki.import.github.error.notGithub": {
     "value": "Paste a github.com link."
+  },
+  "wiki.import.github.mode.label": {
+    "value": "How the notes come"
+  },
+  "wiki.import.github.mode.sync": {
+    "value": "Keep in sync"
+  },
+  "wiki.import.github.mode.once": {
+    "value": "Import once"
   },
   "wiki.import.anotherLink": {
     "value": "Change link"

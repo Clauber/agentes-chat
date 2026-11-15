@@ -18,22 +18,21 @@ import {
   FactStrip,
   Field,
   Input,
-  MenuItem,
   OptionList,
   SearchSelect,
   SettingNote,
 } from "@agenteschat/ui";
 import { Link } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GitHubMark } from "@/components/GitHubMark";
 import { useOrg } from "@/components/org-context";
 import { useToast } from "@/lib/toast";
 
 /**
- * The wiki kept in a GitHub repository (ADR 0186): its item in the wiki's "More" menu, the line at the column's foot
- * when the two stopped following each other, the dialog that connects a repository or shows how it is going, and the
+ * The wiki kept in a GitHub repository (ADR 0186): "Keep in sync" in Importar › GitHub (`WikiRepositoryPanel`), the
+ * line at the column's foot when the two stopped following each other (opening the same panel as a dialog), and the
  * mark on each page saying where its note stands.
  */
 
@@ -73,41 +72,12 @@ const heldText = (t: TFunction, code: string) => t(HELD[code as keyof typeof HEL
 const retrying = (r: WikiRepository) => r.status === "active" && r.errorCode !== null;
 
 /** The repository's state in one line: up to date since when (read-only, or not), updating, retrying, or stopped. */
-function stateLine(t: TFunction, locale: string, r: WikiRepository) {
+export function stateLine(t: TFunction, locale: string, r: WikiRepository) {
   if (r.status === "error") return t("wiki.repo.state.stopped", { repo: nameOf(r) });
   if (retrying(r)) return t("wiki.repo.state.retrying", { repo: nameOf(r) });
   if (r.syncing || !r.syncedAt) return t("wiki.repo.state.syncing", { repo: nameOf(r) });
   const when = relativeTime(t, locale, r.syncedAt);
   return t(r.writable ? "wiki.repo.state.upToDate" : "wiki.repo.state.readOnly", { repo: nameOf(r), when });
-}
-
-/**
- * The repository's item in the wiki's "More" menu: connecting is for administrators; one already connected shows how
- * it is going to whoever writes the wiki.
- */
-export function WikiRepositoryMenuItem({ onOpen }: { onOpen: () => void }) {
-  const { t, i18n } = useTranslation();
-  const { org } = useOrg();
-  const repository = useWikiRepository(org.id).data ?? null;
-  const admin = can(org, "administrator");
-  if (!repository && !admin) return null;
-  return (
-    <MenuItem
-      leading={<GitHubMark size={16} className="gh-mark" />}
-      description={
-        repository ? (
-          <span className={repository.status === "error" ? "wiki-repo-warn" : undefined}>
-            {stateLine(t, i18n.language, repository)}
-          </span>
-        ) : (
-          t("wiki.repo.menu.connectDesc")
-        )
-      }
-      onSelect={onOpen}
-    >
-      {repository ? t("wiki.repo.menu.name") : t("wiki.repo.menu.connect")}
-    </MenuItem>
-  );
 }
 
 /** At the column's foot, only while the wiki and its repository stopped following each other. */
@@ -195,12 +165,36 @@ export function WikiRepositoryMark({ page, onHistory }: { page: WikiPage; onHist
   );
 }
 
-/** Connects a repository when the wiki has none; else shows how it is going, with sync now and disconnect. */
-export function WikiRepositoryDialog({ onClose }: { onClose: () => void }) {
-  const { t } = useTranslation();
+/**
+ * Inside a dialog: connects a repository when the wiki has none, else shows how it is going, with sync now and
+ * disconnect. `lead` goes first in its body (Importar's choice between keeping in sync and importing once), `back`
+ * first in its footer, in place of Cancel.
+ */
+export function WikiRepositoryPanel({
+  onClose,
+  lead,
+  back,
+}: {
+  onClose: () => void;
+  lead?: ReactNode;
+  back?: ReactNode;
+}) {
   const { org } = useOrg();
   const repository = useWikiRepository(org.id);
   const current = repository.data ?? null;
+  if (repository.isLoading) return null;
+  return current ? (
+    <Manage repository={current} onClose={onClose} lead={lead} back={back} />
+  ) : (
+    <Connect onClose={onClose} lead={lead} back={back} />
+  );
+}
+
+/** The panel on its own, from the line at the column's foot once the sync stopped. */
+export function WikiRepositoryDialog({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const current = useWikiRepository(org.id).data ?? null;
   return (
     <Dialog
       open
@@ -210,11 +204,7 @@ export function WikiRepositoryDialog({ onClose }: { onClose: () => void }) {
       closeLabel={t("common.close")}
       width={520}
     >
-      {repository.isLoading ? null : current ? (
-        <Manage repository={current} onClose={onClose} />
-      ) : (
-        <Connect onClose={onClose} />
-      )}
+      <WikiRepositoryPanel onClose={onClose} />
     </Dialog>
   );
 }
@@ -282,7 +272,7 @@ function cadenceOf(t: TFunction, r: { writable: boolean; notifiedAt?: string | n
 /** The picker's last option: a repository named by its address (a public one, or one the app reaches). */
 const BY_ADDRESS = ":address";
 
-function Connect({ onClose }: { onClose: () => void }) {
+function Connect({ onClose, lead, back }: { onClose: () => void; lead?: ReactNode; back?: ReactNode }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const repos = useGitHubRepos(org.id);
@@ -351,6 +341,7 @@ function Connect({ onClose }: { onClose: () => void }) {
             );
           }}
         >
+          {lead}
           {!none && (
             <Field
               label={t("wiki.repo.connect.repository")}
@@ -480,7 +471,7 @@ function Connect({ onClose }: { onClose: () => void }) {
         </form>
       </DialogBody>
       <DialogFooter>
-        <Button onClick={onClose}>{t("common.cancel")}</Button>
+        {back ?? <Button onClick={onClose}>{t("common.cancel")}</Button>}
         <Button
           type="submit"
           form="wiki-repo-connect"
@@ -495,7 +486,17 @@ function Connect({ onClose }: { onClose: () => void }) {
   );
 }
 
-function Manage({ repository, onClose }: { repository: WikiRepository; onClose: () => void }) {
+function Manage({
+  repository,
+  onClose,
+  lead,
+  back,
+}: {
+  repository: WikiRepository;
+  onClose: () => void;
+  lead?: ReactNode;
+  back?: ReactNode;
+}) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const toast = useToast();
@@ -512,6 +513,7 @@ function Manage({ repository, onClose }: { repository: WikiRepository; onClose: 
     <>
       <DialogBody>
         <div className="wiki-repo-form">
+          {lead}
           {stopped && <Alert>{whyText(t, repository)}</Alert>}
           {stopped && admin && repository.errorCode === "wiki.repo_mass_removal" && (
             <div>
@@ -648,6 +650,7 @@ function Manage({ repository, onClose }: { repository: WikiRepository; onClose: 
         </div>
       </DialogBody>
       <DialogFooter>
+        {back}
         {admin && (
           <Button
             variant="ghost"

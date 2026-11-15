@@ -11685,11 +11685,6 @@
     "repo": {
       "stopped": "Non si aggiorna più con GitHub",
       "conflictNotice": "La versione di GitHub di {{name}} ha sostituito una modifica fatta qui (entrambe hanno cambiato le stesse righe). La tua modifica è la versione {{version}} nella cronologia della pagina.",
-      "menu": {
-        "name": "GitHub",
-        "connect": "Tieni su GitHub",
-        "connectDesc": "Le pagine come note in un tuo repository"
-      },
       "state": {
         "upToDate": "{{repo}} · aggiornato {{when}}",
         "syncing": "{{repo}} · aggiornamento…",
@@ -11850,6 +11845,11 @@
         "read": "Leggi le note",
         "error": {
           "notGithub": "Incolla un link di github.com."
+        },
+        "mode": {
+          "label": "Come arrivano le note",
+          "sync": "Tieni sincronizzato",
+          "once": "Importa una volta"
         }
       },
       "anotherLink": "Cambia link",

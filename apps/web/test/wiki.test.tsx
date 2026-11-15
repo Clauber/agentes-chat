@@ -158,7 +158,10 @@ const waitCheck = async () => {
   await settle(4);
 };
 
-/** The wiki's "More" menu (Radix: opened with the keyboard) → "Keep on GitHub": the connect dialog. */
+/**
+ * The wiki's "More" menu (Radix: opened with the keyboard) → "Import" → GitHub, kept in sync (an administrator's
+ * first choice): the connect form. The menu has no GitHub item of its own.
+ */
 const openKeepOnGitHub = async () => {
   const more = screen().getByRole("button", { name: "Mais ações: Wiki" });
   more.focus();
@@ -167,9 +170,16 @@ const openKeepOnGitHub = async () => {
     fireEvent.keyUp(more, { key: "Enter" });
   });
   await settle(2);
-  await click(within(screen().getByRole("menu")).getByRole("menuitem", { name: /Manter no GitHub/ }));
+  const menu = screen().getByRole("menu");
+  expect(within(menu).queryByRole("menuitem", { name: /GitHub/ })).toBeNull();
+  await click(within(menu).getByRole("menuitem", { name: "Importar" }));
   await settle(2);
-  return screen().getByRole("dialog", { name: "Manter a wiki no GitHub" });
+  const imports = screen().getByRole("dialog", { name: "Importar para a wiki" });
+  await click(within(imports).getByRole("button", { name: /^GitHub/ }));
+  await settle(2);
+  const d = screen().getByRole("dialog", { name: "Manter a wiki no GitHub" });
+  expect(within(d).getByRole("radio", { name: "Manter sincronizado" }).getAttribute("aria-checked")).toBe("true");
+  return d;
 };
 
 describe("the wiki kept on GitHub", () => {
@@ -276,8 +286,10 @@ describe("the wiki kept on GitHub", () => {
     });
   });
 
-  test("stopped because many notes left GitHub at once: why, and a way to let their pages go to the trash", async () => {
-    const { state, api } = await go("wiki/onboarding");
+  test("stopped because many notes left GitHub at once: the line at the column's foot, why, and a way to let their pages go to the trash", async () => {
+    // Stopped before the page opens: the line at the column's foot reads it as the wiki loads.
+    const state = seedState();
+    const api = createFakeApi(state, { seed: true });
     api.wiki.repository = async () => ({
       provider: "github",
       owner: "acme",
@@ -300,20 +312,25 @@ describe("the wiki kept on GitHub", () => {
       held: [],
       removalsWaiting: 30,
     });
-    await settle(2);
-    const more = screen().getByRole("button", { name: "Mais ações: Wiki" });
-    more.focus();
-    await act(async () => {
-      fireEvent.keyDown(more, { key: "Enter" });
-      fireEvent.keyUp(more, { key: "Enter" });
-    });
-    await settle(2);
-    await click(within(screen().getByRole("menu")).getByRole("menuitem", { name: /^GitHub/ }));
+    await renderApp(`/org/${ORG_ID}/wiki/onboarding`, { api });
+    await settle(8);
+    await click(screen().getByRole("button", { name: "Parou de atualizar com o GitHub" }));
     await settle(2);
     const d = screen().getByRole("dialog", { name: "Wiki no GitHub" });
     expect(d.textContent).toContain("Muitas notas foram removidas de acme/notas de uma vez (30)");
     await click(within(d).getByRole("button", { name: "Mandar essas páginas para a lixeira" }));
     expect(state.calls.find((c) => c.method === "wiki.syncRepository")?.args[1]).toEqual({ allowRemovals: true });
+  });
+
+  test("Import › GitHub: importing once is the other choice, the link read as before; back goes to the sources", async () => {
+    await go("wiki/onboarding");
+    const d = await openKeepOnGitHub();
+    await click(within(d).getByRole("radio", { name: "Importar uma vez" }));
+    const once = screen().getByRole("dialog", { name: "Importar do GitHub" });
+    expect(within(once).getByLabelText("Link do GitHub")).toBeTruthy();
+    expect(within(once).getByRole("button", { name: "Ler as notas" })).toBeTruthy();
+    await click(within(once).getByRole("button", { name: "Voltar" }));
+    expect(screen().getByRole("dialog", { name: "Importar para a wiki" })).toBeTruthy();
   });
 
   test("a repository GitHub hides: why, under its name, and nothing to connect", async () => {

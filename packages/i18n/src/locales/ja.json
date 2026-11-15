@@ -10809,11 +10809,6 @@
     "repo": {
       "stopped": "GitHub との更新が止まりました",
       "conflictNotice": "{{name}} の GitHub 版が、ここでの編集を置き換えました（両方が同じ行を変更しました）。あなたの編集はページ履歴のバージョン {{version}} です。",
-      "menu": {
-        "name": "GitHub",
-        "connect": "GitHub に置く",
-        "connectDesc": "ページをあなたのリポジトリのノートとして"
-      },
       "state": {
         "upToDate": "{{repo}} · 最新（{{when}}）",
         "syncing": "{{repo}} · 更新中…",
@@ -10970,6 +10965,11 @@
         "read": "ノートを読み込む",
         "error": {
           "notGithub": "github.comのリンクを貼り付けてください。"
+        },
+        "mode": {
+          "label": "ノートの取り込み方",
+          "sync": "同期し続ける",
+          "once": "1回だけインポート"
         }
       },
       "anotherLink": "リンクを変更",

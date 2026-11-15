@@ -11250,11 +11250,6 @@
     "repo": {
       "stopped": "Aktualisiert sich nicht mehr mit GitHub",
       "conflictNotice": "Die GitHub-Version von {{name}} hat eine Änderung von hier ersetzt (beide haben dieselben Zeilen geändert). Deine Änderung ist Version {{version}} im Verlauf der Seite.",
-      "menu": {
-        "name": "GitHub",
-        "connect": "Auf GitHub pflegen",
-        "connectDesc": "Die Seiten als Notizen in einem deiner Repositorys"
-      },
       "state": {
         "upToDate": "{{repo}} · aktuell {{when}}",
         "syncing": "{{repo}} · wird aktualisiert…",
@@ -11413,6 +11408,11 @@
         "read": "Notizen lesen",
         "error": {
           "notGithub": "Füge einen Link von github.com ein."
+        },
+        "mode": {
+          "label": "Wie die Notizen kommen",
+          "sync": "Synchron halten",
+          "once": "Einmal importieren"
         }
       },
       "anotherLink": "Link wechseln",

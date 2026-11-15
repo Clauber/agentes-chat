@@ -10803,11 +10803,6 @@
     "repo": {
       "stopped": "GitHub와 업데이트가 멈췄어요",
       "conflictNotice": "{{name}}의 GitHub 버전이 여기서 한 수정을 대체했어요(양쪽이 같은 줄을 바꿨어요). 내 수정은 페이지 기록의 버전 {{version}}이에요.",
-      "menu": {
-        "name": "GitHub",
-        "connect": "GitHub에 보관",
-        "connectDesc": "페이지를 내 저장소의 노트로"
-      },
       "state": {
         "upToDate": "{{repo}} · 최신 ({{when}})",
         "syncing": "{{repo}} · 업데이트 중…",
@@ -10964,6 +10959,11 @@
         "read": "노트 읽기",
         "error": {
           "notGithub": "github.com 링크를 붙여 넣으세요."
+        },
+        "mode": {
+          "label": "노트를 가져오는 방식",
+          "sync": "계속 동기화",
+          "once": "한 번만 가져오기"
         }
       },
       "anotherLink": "링크 변경",
