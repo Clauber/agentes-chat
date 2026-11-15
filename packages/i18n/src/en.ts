@@ -10703,6 +10703,10 @@ export const en = {
       },
       resetsAt: "resets at {{time}}",
       resetsOn: "resets {{day}} at {{time}}",
+      /** The full meter's heading over a plan's own quotas, when some quotas bind only some models. */
+      allModels: "All models",
+      /** The heading over a model group's own quotas ({{name}}: "Claude and GPT", "Gemini 4 Argon"). */
+      onlyModels: "Only {{name}}",
       almost: "Almost at the limit",
       limited: "At the limit",
       limitedUntil: "At the limit until {{when}}",
@@ -13266,6 +13270,8 @@ export const en = {
     connectedAs: "Connected as {{account}}",
     /** A sign-in that lacks scopes the connector asks for now; `what` lists what reconnecting adds (`adds.*`). */
     reconnectAdds: "Reconnect {{name}} so agents can also {{what}}.",
+    /** On a connected server's row: the request headers it also sends (`<names/>`: X-API-Key). Reconnect is the menu item. */
+    sendsToo: "Also sends: <names/>. To change that, use Reconnect.",
     adds: { github_project: "use GitHub Projects (read boards and move cards)" },
     toolsCount_one: "{{count}} tool",
     toolsCount_other: "{{count}} tools",
@@ -14395,6 +14401,29 @@ export const en = {
     notApproved:
       "{{name}} only lets apps it approved sign in, and agentes.chat isn't approved yet. If it gives you an API key, you can connect with that.",
     serverSaid: "The server answered: {{detail}}",
+    /**
+     * A server by address: HTTP request headers an admin types once (a name and a value each), sent with every request
+     * to that server. `{{n}}` is a row's number; `<names/>` is the list of header names, such as X-API-Key.
+     */
+    headers: {
+      title: "Request headers",
+      help: "For a key that goes in another header, or a gateway in front of the server. Most servers need none.",
+      value: "Value",
+      nameOf: "Name of header {{n}}",
+      valueOf: "Value of header {{n}}",
+      remove: "Remove header {{n}}",
+      add: "Add header",
+      /** Reconnecting an account that has headers: their names (the values are never shown again). */
+      saved_one: "Saved: <names/>. It stays unless you type new ones.",
+      saved_other: "Saved: <names/>. They stay unless you type new ones.",
+      /** The link after `saved`: reconnect without them. */
+      drop: "Remove",
+      dropping_one: "<names/> will be removed when you reconnect.",
+      dropping_other: "<names/> will be removed when you reconnect.",
+      undo: "Undo",
+      /** The server said no to a connection that sent headers and no API key. */
+      refused: "The server didn't accept these headers. Check their values, or connect with an API key.",
+    },
     nothingYet: "Nothing is available to agents until step 3.",
     allCanUse: "Once connected, every agent can use it. You can adjust that later.",
     replace: "Replaces the current sign-in. Who uses it stays the same.",
@@ -15052,6 +15081,21 @@ export const en = {
        */
       misconfigured:
         "The connection to {{provider}} is set up wrong on the server, so it can't finish. Whoever runs the server needs to replace the key in the app's settings.",
+      /**
+       * A request header typed for a server by address was refused. `{{header}}` is its name as typed (X-API-Key),
+       * never translated, and so is Authorization.
+       */
+      headerName: "Use only letters, digits and hyphens in a header's name, like X-API-Key.",
+      headerValue:
+        "Type a value for {{header}}: up to 2,000 characters on one line, with no accented letters or emoji.",
+      headerReserved: "{{header}} is already sent with every request and can't be changed. Remove this header.",
+      headerTwice: "{{header}} is in the list twice. Remove one of them.",
+      headerAndKey: "The API key is already sent as Authorization. Clear the key, or remove this header.",
+      headersTooMany: "A server takes at most {{max}} headers. Remove one to add another.",
+      headersWithSignIn:
+        "This server asks for a sign-in, and a sign-in can't carry headers yet. Remove the headers to sign in, or connect with an API key.",
+      /** Reconnecting an account whose saved headers, kept encrypted, could no longer be opened. */
+      headersUnreadable: "The saved headers couldn't be read. Type them again, or remove them.",
     },
     wiki: {
       githubNoNotes: "No Markdown notes in this link.",

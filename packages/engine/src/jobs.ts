@@ -1177,7 +1177,7 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     [AUTONOMY_REPORT_JOB]: async (job) => {
       await queueAutonomyEmail(deps.db, job.payload, { router: deps.router?.enabled ?? false });
     },
-    // The wiki and the repository it is kept in follow each other (ADR 0186): a save here, a push there, or the
+    // The wiki and the repository it is kept in follow each other (ADR 0187): a save here, a push there, or the
     // periodic look.
     [WIKI_REPOSITORY_SYNC_JOB]: async (job) => {
       await syncWikiRepository(

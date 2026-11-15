@@ -8,7 +8,7 @@ import { GitHubBusy } from "./github";
 import { NOTE_MAX_BYTES, NOTES_MAX, type NoteRemote, type RemoteNote, RepoRefusal } from "./remote";
 
 /**
- * A public repository on GitHub read without credentials (ADR 0186): the wiki follows it, read-only, when the GitHub
+ * A public repository on GitHub read without credentials (ADR 0187): the wiki follows it, read-only, when the GitHub
  * App isn't installed on it. Neither read goes through the REST API, whose unauthenticated calls share one limit per
  * server address: a branch's head is git's own `ls-refs` over HTTPS, one small request, and a commit's notes come from
  * its archive (`linkedRepository`, as the wiki's import by link reads one).

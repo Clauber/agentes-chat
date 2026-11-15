@@ -1563,7 +1563,7 @@ export async function notifySkillUpdate(
 export const resolveSkillWaiting = (deps: NotificationDeps, orgId: string, skillId: string) =>
   resolveNotifications(deps, orgId, { groupKeyPrefix: skillWaitingGroup(skillId) });
 
-// ── The wiki kept in a git repository (ADR 0186) ──────────────────────────────
+// ── The wiki kept in a git repository (ADR 0187) ──────────────────────────────
 
 /**
  * A page was edited here and its note on GitHub in the same lines before the sync: GitHub's version stays, and the

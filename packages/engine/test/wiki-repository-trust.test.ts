@@ -24,7 +24,7 @@ import { type Fixture, setup } from "./fixtures";
 import { agentRunRow, channelRoutine, fire } from "./routine-fixtures";
 
 /**
- * What the team didn't write stays outside text, and what the wiki publishes needs a person asking (ADR 0186): pages
+ * What the team didn't write stays outside text, and what the wiki publishes needs a person asking (ADR 0187): pages
  * whose text came from a public repository the workspace only follows, a wiki kept in a public repository it writes
  * to, a note's extra names, and where a limited page's note stands.
  */

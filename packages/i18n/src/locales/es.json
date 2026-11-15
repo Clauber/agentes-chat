@@ -10686,6 +10686,8 @@
       },
       "resetsAt": "se renueva a las {{time}}",
       "resetsOn": "se renueva el {{day}} a las {{time}}",
+      "allModels": "Todos los modelos",
+      "onlyModels": "Solo {{name}}",
       "almost": "Casi en el límite",
       "limited": "En el límite",
       "limitedUntil": "En el límite hasta {{when}}",
@@ -13413,6 +13415,7 @@
     "connected": "Conectado",
     "connectedAs": "Conectado como {{account}}",
     "reconnectAdds": "Vuelve a conectar {{name}} para que los agentes también puedan {{what}}.",
+    "sendsToo": "También envía: <names/>. Para cambiarlo, usa Volver a conectar.",
     "adds": {
       "github_project": "usar GitHub Projects (leer tableros y mover tarjetas)"
     },
@@ -14541,6 +14544,22 @@
     "needsKey": "Este servidor no admite OAuth. Conéctalo con una clave de API.",
     "notApproved": "{{name}} solo deja iniciar sesión a las apps que aprobó, y agentes.chat todavía no está aprobado. Si te da una clave de API, puedes conectarlo con ella.",
     "serverSaid": "El servidor respondió: {{detail}}",
+    "headers": {
+      "title": "Encabezados de la solicitud",
+      "help": "Para una clave que va en otro encabezado, o un gateway delante del servidor. La mayoría de los servidores no los necesita.",
+      "value": "Valor",
+      "nameOf": "Nombre del encabezado {{n}}",
+      "valueOf": "Valor del encabezado {{n}}",
+      "remove": "Quitar el encabezado {{n}}",
+      "add": "Agregar encabezado",
+      "saved_one": "Guardado: <names/>. Se mantiene, a menos que escribas otros nuevos.",
+      "saved_other": "Guardados: <names/>. Se mantienen, a menos que escribas otros nuevos.",
+      "drop": "Quitar",
+      "dropping_one": "<names/> se quitará al volver a conectar.",
+      "dropping_other": "<names/> se quitarán al volver a conectar.",
+      "undo": "Deshacer",
+      "refused": "El servidor no aceptó estos encabezados. Revisa sus valores, o conéctalo con una clave de API."
+    },
     "nothingYet": "Nada queda disponible para los agentes hasta el paso 3.",
     "allCanUse": "Una vez conectado, todos los agentes pueden usarlo. Puedes ajustarlo después.",
     "replace": "Reemplaza el inicio de sesión actual. Quién lo usa sigue igual.",
@@ -15255,7 +15274,15 @@
       "gone": "Esa cuenta ya no está conectada.",
       "unfinished": "El inicio de sesión en Composio no terminó. Intenta de nuevo.",
       "unavailable": "Este servicio no se puede conectar aquí.",
-      "misconfigured": "La conexión con {{provider}} está mal configurada en el servidor, así que no puede terminar. Quien administra el servidor tiene que cambiar la clave en la configuración de la app."
+      "misconfigured": "La conexión con {{provider}} está mal configurada en el servidor, así que no puede terminar. Quien administra el servidor tiene que cambiar la clave en la configuración de la app.",
+      "headerName": "Usa solo letras, números y guiones en el nombre del encabezado, como X-API-Key.",
+      "headerValue": "Escribe un valor para {{header}}: hasta 2000 caracteres en una sola línea, sin acentos ni emojis.",
+      "headerReserved": "{{header}} ya se envía con cada solicitud y no se puede cambiar. Quita este encabezado.",
+      "headerTwice": "{{header}} está dos veces en la lista. Quita uno.",
+      "headerAndKey": "La clave de API ya se envía como Authorization. Borra la clave o quita este encabezado.",
+      "headersTooMany": "Un servidor admite como máximo {{max}} encabezados. Quita uno para agregar otro.",
+      "headersWithSignIn": "Este servidor pide iniciar sesión, y un inicio de sesión todavía no puede llevar encabezados. Quita los encabezados para iniciar sesión, o conéctalo con una clave de API.",
+      "headersUnreadable": "No se pudieron leer los encabezados guardados. Escríbelos de nuevo o quítalos."
     },
     "wiki": {
       "githubNoNotes": "No hay notas en Markdown en este enlace.",

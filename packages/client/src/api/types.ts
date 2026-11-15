@@ -2937,6 +2937,11 @@ export interface CustomServer {
   /** The account as the provider names it ("Acme"), when it says. */
   accountLabel?: string | null;
   authType: "oauth" | "api_key";
+  /**
+   * The request headers typed for it, by name (their values are never returned); empty when it has none, and for
+   * who doesn't manage connectors. Older servers leave it out.
+   */
+  headerNames?: string[];
   /** The server's own icon, kept and served by the backend (`/api/app/connector-icons/…`); null = a monogram. */
   iconUrl?: string | null;
   /** A service through Composio (ADR 0107): its address means nothing to people. */
@@ -2960,6 +2965,12 @@ export interface ComposioUsage {
   limit: number | null;
   /** `2026-11`. */
   month: string;
+}
+
+/** A request header an admin types for a server by address, sent with every request to it. */
+export interface RequestHeader {
+  name: string;
+  value: string;
 }
 
 /** What connecting did: a new account, a new sign-in for one ("Reconectar"), or the same account again. */
@@ -5443,7 +5454,7 @@ export interface WikiPage extends WikiPageSummary {
   reads?: WikiAgentReads & {
     last: { agentId: string; channelId: string | null; channelName: string | null; at: string } | null;
   };
-  /** Its note in the repository the wiki is kept in (ADR 0186); null or absent when there is none. */
+  /** Its note in the repository the wiki is kept in (ADR 0187); null or absent when there is none. */
   repository?: WikiPageRepository | null;
 }
 
@@ -5473,7 +5484,7 @@ export interface WikiPageRepository {
 export type WikiCommitMode = "direct" | "pull_request" | "none";
 
 /**
- * The repository a workspace keeps its wiki in (ADR 0186): the notes under `path` of `branch` are the pages, each side
+ * The repository a workspace keeps its wiki in (ADR 0187): the notes under `path` of `branch` are the pages, each side
  * following the other and the repository the source.
  */
 export interface WikiRepository {
@@ -6821,7 +6832,7 @@ export type NotificationKind =
    */
   | "team_watch"
   /**
-   * ADR 0186: GitHub's version of a wiki page replaced an edit made here (both changed the same lines). Who wrote that
+   * ADR 0187: GitHub's version of a wiki page replaced an edit made here (both changed the same lines). Who wrote that
    * edit, one row per page while unread, no actor. `source.wikiPageId` and `source.slug` the page, its title in
    * `source.label`, the edit's version in the page's history in `latest.version`. Inbox only. Opens the page.
    */

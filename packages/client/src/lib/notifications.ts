@@ -529,7 +529,7 @@ export function openTarget(n: AppNotification): OpenTarget | null {
       params: { section: "skills" },
       ...(s.skillId ? { search: { skill: s.skillId } } : {}),
     };
-  // GitHub's version of a wiki page replaced an edit made here (ADR 0186): the page, whose history keeps that edit.
+  // GitHub's version of a wiki page replaced an edit made here (ADR 0187): the page, whose history keeps that edit.
   if (n.kind === "wiki_conflict")
     return s.slug ? { to: "/org/$orgId/wiki/$slug", params: { slug: s.slug } } : { to: "/org/$orgId/wiki" };
   if (

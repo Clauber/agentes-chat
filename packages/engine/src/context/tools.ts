@@ -273,7 +273,7 @@ export function createContextToolSource(deps: ContextDeps): ToolSource {
           ).map((m) => [m.id, m]),
         );
         const speakers = await speakersOf(ctx.db, [...items.values()]);
-        // Wiki pages that follow a public repository the workspace doesn't write to are outside text (ADR 0186).
+        // Wiki pages that follow a public repository the workspace doesn't write to are outside text (ADR 0187).
         const outsidePages = await outsideWikiPages(
           ctx.db,
           ctx.orgId,

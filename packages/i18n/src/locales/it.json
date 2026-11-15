@@ -10762,6 +10762,8 @@
       },
       "resetsAt": "si azzera alle {{time}}",
       "resetsOn": "si azzera {{day}} alle {{time}}",
+      "allModels": "Tutti i modelli",
+      "onlyModels": "Solo {{name}}",
       "almost": "Quasi al limite",
       "limited": "Al limite",
       "limitedUntil": "Al limite fino a {{when}}",
@@ -13496,6 +13498,7 @@
     "connected": "Collegato",
     "connectedAs": "Collegato come {{account}}",
     "reconnectAdds": "Ricollega {{name}} così gli agenti possono anche {{what}}.",
+    "sendsToo": "Invia anche: <names/>. Per cambiare, usa Ricollega.",
     "adds": {
       "github_project": "usare GitHub Projects (leggere le board e spostare le schede)"
     },
@@ -14624,6 +14627,22 @@
     "needsKey": "Questo server non supporta OAuth. Collegalo con una chiave API.",
     "notApproved": "{{name}} consente l'accesso solo alle app che ha approvato, e agentes.chat non è ancora approvato. Se ti fornisce una chiave API, puoi collegarti con quella.",
     "serverSaid": "Il server ha risposto: {{detail}}",
+    "headers": {
+      "title": "Intestazioni della richiesta",
+      "help": "Per una chiave che va in un'altra intestazione, o un gateway davanti al server. La maggior parte dei server non ne ha bisogno.",
+      "value": "Valore",
+      "nameOf": "Nome dell'intestazione {{n}}",
+      "valueOf": "Valore dell'intestazione {{n}}",
+      "remove": "Rimuovi l'intestazione {{n}}",
+      "add": "Aggiungi intestazione",
+      "saved_one": "Salvata: <names/>. Resta, a meno che tu non ne scriva di nuove.",
+      "saved_other": "Salvate: <names/>. Restano, a meno che tu non ne scriva di nuove.",
+      "drop": "Rimuovi",
+      "dropping_one": "<names/> verrà rimossa quando ricolleghi.",
+      "dropping_other": "<names/> verranno rimosse quando ricolleghi.",
+      "undo": "Annulla",
+      "refused": "Il server non ha accettato queste intestazioni. Controlla i valori, oppure collegalo con una chiave API."
+    },
     "nothingYet": "Niente è disponibile per gli agenti fino al passaggio 3.",
     "allCanUse": "Una volta collegato, ogni agente può usarlo. Puoi regolarlo in seguito.",
     "replace": "Sostituisce l'accesso attuale. Chi lo usa resta invariato.",
@@ -15338,7 +15357,15 @@
       "gone": "Quell'account non è più collegato.",
       "unfinished": "L'accesso su Composio non è stato completato. Riprova.",
       "unavailable": "Questo servizio non si può collegare qui.",
-      "misconfigured": "Il collegamento a {{provider}} è configurato male sul server, quindi non può finire. Chi gestisce il server deve sostituire la chiave nelle impostazioni dell'app."
+      "misconfigured": "Il collegamento a {{provider}} è configurato male sul server, quindi non può finire. Chi gestisce il server deve sostituire la chiave nelle impostazioni dell'app.",
+      "headerName": "Usa solo lettere, numeri e trattini nel nome di un'intestazione, come X-API-Key.",
+      "headerValue": "Scrivi un valore per {{header}}: fino a 2.000 caratteri su una sola riga, senza accenti né emoji.",
+      "headerReserved": "{{header}} viene già inviata con ogni richiesta e non si può cambiare. Rimuovi questa intestazione.",
+      "headerTwice": "{{header}} è nell'elenco due volte. Rimuovine una.",
+      "headerAndKey": "La chiave API viene già inviata come Authorization. Cancella la chiave, oppure rimuovi questa intestazione.",
+      "headersTooMany": "Un server accetta al massimo {{max}} intestazioni. Rimuovine una per aggiungerne un'altra.",
+      "headersWithSignIn": "Questo server chiede un accesso, e un accesso non può ancora portare intestazioni. Rimuovi le intestazioni per accedere, oppure collegalo con una chiave API.",
+      "headersUnreadable": "Non è stato possibile leggere le intestazioni salvate. Scrivile di nuovo oppure rimuovile."
     },
     "wiki": {
       "githubNoNotes": "Nessuna nota Markdown in questo link.",

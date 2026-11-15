@@ -567,7 +567,7 @@ async function run(
       if (hits.length === 0) return "Nothing found.";
       // As `search_context` hands them (ADR 0167): the team's trusted memory, its messages that relay nothing from
       // outside and the wiki read as the team's come as they are; the rest in the outside-text envelope (ADR 0053),
-      // among it the pages that follow a public repository the workspace doesn't write to (ADR 0186).
+      // among it the pages that follow a public repository the workspace doesn't write to (ADR 0187).
       const said = new Map(
         (
           await describeMessages(

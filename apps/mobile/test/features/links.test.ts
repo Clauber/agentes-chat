@@ -161,7 +161,7 @@ describe("inbox items", () => {
     );
   });
 
-  test("an edit GitHub's version of a wiki page replaced opens the page, else the wiki (ADR 0186)", () => {
+  test("an edit GitHub's version of a wiki page replaced opens the page, else the wiki (ADR 0187)", () => {
     const n = notification({
       id: "n",
       kind: "wiki_conflict",

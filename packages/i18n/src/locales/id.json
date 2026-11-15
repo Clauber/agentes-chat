@@ -9982,6 +9982,8 @@
       },
       "resetsAt": "direset pukul {{time}}",
       "resetsOn": "direset {{day}} pukul {{time}}",
+      "allModels": "Semua model",
+      "onlyModels": "Hanya {{name}}",
       "almost": "Hampir mencapai batas",
       "limited": "Mencapai batas",
       "limitedUntil": "Mencapai batas sampai {{when}}",
@@ -12571,6 +12573,7 @@
     "connected": "Terhubung",
     "connectedAs": "Terhubung sebagai {{account}}",
     "reconnectAdds": "Hubungkan ulang {{name}} agar agen juga bisa {{what}}.",
+    "sendsToo": "Juga mengirim: <names/>. Untuk mengubahnya, pakai Hubungkan ulang.",
     "adds": {
       "github_project": "memakai GitHub Projects (membaca papan dan memindahkan kartu)"
     },
@@ -13659,6 +13662,20 @@
     "needsKey": "Server ini tidak mendukung OAuth. Hubungkan dengan kunci API.",
     "notApproved": "{{name}} hanya mengizinkan aplikasi yang sudah disetujuinya untuk masuk, dan agentes.chat belum disetujui. Kalau {{name}} memberimu kunci API, kamu bisa menghubungkan dengan kunci itu.",
     "serverSaid": "Jawaban server: {{detail}}",
+    "headers": {
+      "title": "Header permintaan",
+      "help": "Untuk kunci yang dikirim di header lain, atau gateway di depan server. Kebanyakan server tidak memerlukannya.",
+      "value": "Nilai",
+      "nameOf": "Nama header {{n}}",
+      "valueOf": "Nilai header {{n}}",
+      "remove": "Hapus header {{n}}",
+      "add": "Tambah header",
+      "saved_other": "Tersimpan: <names/>. Tetap dipakai kecuali kamu mengetik yang baru.",
+      "drop": "Hapus",
+      "dropping_other": "<names/> akan dihapus saat dihubungkan ulang.",
+      "undo": "Urungkan",
+      "refused": "Server tidak menerima header ini. Periksa nilainya, atau hubungkan dengan kunci API."
+    },
     "nothingYet": "Belum ada yang tersedia untuk agen sampai langkah 3.",
     "allCanUse": "Setelah terhubung, semua agen bisa memakainya. Kamu bisa menyesuaikannya nanti.",
     "replace": "Menggantikan sesi masuk saat ini. Siapa yang memakainya tetap sama.",
@@ -14339,7 +14356,15 @@
       "gone": "Akun itu sudah tidak terhubung.",
       "unfinished": "Proses masuk di Composio tidak selesai. Coba lagi.",
       "unavailable": "Layanan ini tidak bisa dihubungkan di sini.",
-      "misconfigured": "Koneksi ke {{provider}} di server salah diatur, jadi tidak bisa selesai. Pengelola server perlu mengganti kunci di pengaturan aplikasi."
+      "misconfigured": "Koneksi ke {{provider}} di server salah diatur, jadi tidak bisa selesai. Pengelola server perlu mengganti kunci di pengaturan aplikasi.",
+      "headerName": "Pakai hanya huruf, angka, dan tanda hubung pada nama header, seperti X-API-Key.",
+      "headerValue": "Ketik nilai untuk {{header}}: maksimal 2.000 karakter dalam satu baris, tanpa huruf beraksen atau emoji.",
+      "headerReserved": "{{header}} sudah dikirim bersama setiap permintaan dan tidak bisa diubah. Hapus header ini.",
+      "headerTwice": "{{header}} ada dua kali dalam daftar. Hapus salah satunya.",
+      "headerAndKey": "Kunci API sudah dikirim sebagai Authorization. Kosongkan kuncinya, atau hapus header ini.",
+      "headersTooMany": "Satu server menerima paling banyak {{max}} header. Hapus satu untuk menambah yang lain.",
+      "headersWithSignIn": "Server ini meminta proses masuk, dan proses masuk belum bisa membawa header. Hapus header untuk masuk, atau hubungkan dengan kunci API.",
+      "headersUnreadable": "Header yang tersimpan tidak bisa dibaca. Ketik lagi, atau hapus."
     },
     "wiki": {
       "githubNoNotes": "Tidak ada catatan Markdown di tautan ini.",

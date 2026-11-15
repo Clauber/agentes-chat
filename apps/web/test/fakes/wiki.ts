@@ -3,7 +3,7 @@
  * `GET …/wiki/pages`, `GET/PUT …/wiki/pages/{slug}`, `POST …/wiki/pages`,
  * `…/rename`, `…/history`, `…/versions/{n}`, `…/append`, `GET …/wiki/graph`,
  * `GET …/wiki/search?q=`. A stale `baseVersion` → 409 `version_conflict`.
- * The repository the wiki is kept in (ADR 0186) is held per org: `repository` answers it, and connecting, syncing,
+ * The repository the wiki is kept in (ADR 0187) is held per org: `repository` answers it, and connecting, syncing,
  * saving how it writes and disconnecting change it as the server does.
  */
 import type {

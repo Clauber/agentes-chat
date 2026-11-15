@@ -193,7 +193,7 @@ const Page = Summary.extend({
       }),
     })
     .nullable()
-    .openapi({ description: "Its note in the repository the wiki is kept in (ADR 0186); null when there is none." }),
+    .openapi({ description: "Its note in the repository the wiki is kept in (ADR 0187); null when there is none." }),
 }).openapi("WikiPage");
 const Version = z
   .object({
@@ -966,7 +966,7 @@ export function wikiRoutes(deps: AppDeps) {
     },
   );
 
-  // The repository the wiki is kept in (ADR 0186): the notes of one branch's folder are the pages, each side following
+  // The repository the wiki is kept in (ADR 0187): the notes of one branch's folder are the pages, each side following
   // the other and the repository the source (a save here is a commit there, a push there a new version here).
   // Reached through the GitHub App's installation on it for this workspace; an administrator connects it.
   const repository = (): WikiRepositoryDeps => ({

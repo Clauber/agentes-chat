@@ -77,7 +77,7 @@ export interface WikiDeps {
   /** Search over the wiki (else a title/body match). */
   search?: SearchDeps;
   /**
-   * Saves the wiki's repository makes (its sync, ADR 0186): they queue no other sync. Every other save does, when the
+   * Saves the wiki's repository makes (its sync, ADR 0187): they queue no other sync. Every other save does, when the
    * wiki is kept in one.
    */
   fromRepository?: boolean;
@@ -184,7 +184,7 @@ export interface WikiPageView extends WikiPageSummary {
   /** Whether the editors' list lets this reader edit it (a locked page or a missing `edit_wiki` still stops them). */
   canEdit: boolean;
   deletedAt: string | null;
-  /** Its note in the repository the wiki is kept in (ADR 0186); null when the wiki is kept in none. */
+  /** Its note in the repository the wiki is kept in (ADR 0187); null when the wiki is kept in none. */
   repository: WikiPageRepository | null;
 }
 
@@ -984,7 +984,7 @@ async function claimLinks(tx: Executor, page: Pick<PageRow, "id" | "orgId" | "sl
 }
 
 /**
- * The wiki changed: when it is kept in a repository, a sync is queued (ADR 0186), unless the change is the sync's own.
+ * The wiki changed: when it is kept in a repository, a sync is queued (ADR 0187), unless the change is the sync's own.
  * Never in the way of the save that asked: the periodic look takes what this misses.
  */
 async function followRepository(deps: WikiDeps, orgId: string) {
@@ -1355,7 +1355,7 @@ const NOTE_PATTERNS: [RegExp, string, string[]][] = [
 ];
 
 /**
- * The note of a version the wiki's repository brought (ADR 0186): a note that changed there, at that commit; `over`,
+ * The note of a version the wiki's repository brought (ADR 0187): a note that changed there, at that commit; `over`,
  * the version made here that it replaced, both having changed the same lines.
  */
 export const wikiRepositoryNote = (commit: string, over?: number) =>
@@ -2862,7 +2862,7 @@ export async function createPageFromSource(
 /**
  * Wiki pages relevant to the trigger message, for the run's prompt (a trusted
  * source written by the team; a page that follows a repository the workspace
- * doesn't write to comes as outside text, ADR 0186). Pages marked "Sempre no
+ * doesn't write to comes as outside text, ADR 0187). Pages marked "Sempre no
  * contexto" and the pages the message links with `[[…]]` come first, then the
  * search's matches that pass `WIKI_MIN_RANK`. An org without a wiki costs one
  * cached lookup.

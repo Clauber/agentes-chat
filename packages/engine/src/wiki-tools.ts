@@ -42,7 +42,7 @@ export const WIKI_WRITE_REFUSAL =
 
 /**
  * Shown when a run no person is behind (a routine's, an unattended one) writes to a wiki kept in a public repository:
- * what it saves there is published for anyone to read (ADR 0186).
+ * what it saves there is published for anyone to read (ADR 0187).
  */
 export const WIKI_PUBLIC_WRITE_REFUSAL =
   "Not allowed: this workspace's wiki is kept in a public repository, so what you write to it is published for anyone to read, and no person asked for it. An agent writes there only when a person asks. Offer to say it in the conversation instead.";
@@ -53,7 +53,7 @@ const OUTSIDE_PAGES = "wiki pages from a public repository";
 
 /**
  * A tool's answer that names a page: `[[Title]]` in it; for a page whose text came from a public repository the
- * workspace doesn't write to, "the page below" and its title after it, as outside text (ADR 0186): a title there is a
+ * workspace doesn't write to, "the page below" and its title after it, as outside text (ADR 0187): a title there is a
  * file name whoever keeps that repository chose.
  */
 const naming = (title: string, outside: boolean, said: (name: string) => string) =>
@@ -113,7 +113,7 @@ export function createWikiToolSource(deps: Omit<WikiDeps, "db">): ToolSource {
       return WIKI_WRITE_REFUSAL;
     }
     // A wiki kept in a public repository publishes what it saves: only a person asking may make an agent do that, not
-    // a routine's standing instructions nor a run nobody is behind (ADR 0186).
+    // a routine's standing instructions nor a run nobody is behind (ADR 0187).
     if (!person && (await wikiPublishesPublicly(ctx.db, ctx.orgId))) return WIKI_PUBLIC_WRITE_REFUSAL;
     return { type: "agent", agentId: ctx.agentId, requestedByUserId: userId, channelId: ctx.channelId };
   }
@@ -139,7 +139,7 @@ export function createWikiToolSource(deps: Omit<WikiDeps, "db">): ToolSource {
           if (pages.length === 0) return { content: note || "No wiki pages match." };
           const line = (p: (typeof pages)[number]) =>
             `- [[${p.title}]] (${p.folder ? `${p.folder}/` : ""}${p.slug}, v${p.version}): ${cutText(p.body.replace(/\s+/g, " "), 200)}`;
-          // Pages that follow a public repository the workspace doesn't write to: outside text (ADR 0186).
+          // Pages that follow a public repository the workspace doesn't write to: outside text (ADR 0187).
           const outside = await outsideWikiPages(
             ctx.db,
             ctx.orgId,
@@ -196,7 +196,7 @@ export function createWikiToolSource(deps: Omit<WikiDeps, "db">): ToolSource {
           ]
             .filter(Boolean)
             .join("\n\n");
-          // A page that follows a public repository the workspace doesn't write to: outside text (ADR 0186). So are the
+          // A page that follows a public repository the workspace doesn't write to: outside text (ADR 0187). So are the
           // titles of such pages among those that link here.
           const outside = (await outsideWikiPages(ctx.db, ctx.orgId, [p.id])).has(p.id);
           const outsideSlugs = await outsideWikiSlugs(

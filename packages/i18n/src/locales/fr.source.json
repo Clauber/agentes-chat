@@ -25203,6 +25203,12 @@
   "aiAccounts.usage.resetsOn": {
     "value": "resets {{day}} at {{time}}"
   },
+  "aiAccounts.usage.allModels": {
+    "value": "All models"
+  },
+  "aiAccounts.usage.onlyModels": {
+    "value": "Only {{name}}"
+  },
   "aiAccounts.usage.almost": {
     "value": "Almost at the limit"
   },
@@ -31592,6 +31598,9 @@
   "connectors.reconnectAdds": {
     "value": "Reconnect {{name}} so agents can also {{what}}."
   },
+  "connectors.sendsToo": {
+    "value": "Also sends: <names/>. To change that, use Reconnect."
+  },
   "connectors.adds.github_project": {
     "value": "use GitHub Projects (read boards and move cards)"
   },
@@ -34790,6 +34799,48 @@
   "connectFlow.serverSaid": {
     "value": "The server answered: {{detail}}"
   },
+  "connectFlow.headers.title": {
+    "value": "Request headers"
+  },
+  "connectFlow.headers.help": {
+    "value": "For a key that goes in another header, or a gateway in front of the server. Most servers need none."
+  },
+  "connectFlow.headers.value": {
+    "value": "Value"
+  },
+  "connectFlow.headers.nameOf": {
+    "value": "Name of header {{n}}"
+  },
+  "connectFlow.headers.valueOf": {
+    "value": "Value of header {{n}}"
+  },
+  "connectFlow.headers.remove": {
+    "value": "Remove header {{n}}"
+  },
+  "connectFlow.headers.add": {
+    "value": "Add header"
+  },
+  "connectFlow.headers.saved": {
+    "value": {
+      "one": "Saved: <names/>. It stays unless you type new ones.",
+      "other": "Saved: <names/>. They stay unless you type new ones."
+    }
+  },
+  "connectFlow.headers.drop": {
+    "value": "Remove"
+  },
+  "connectFlow.headers.dropping": {
+    "value": {
+      "one": "<names/> will be removed when you reconnect.",
+      "other": "<names/> will be removed when you reconnect."
+    }
+  },
+  "connectFlow.headers.undo": {
+    "value": "Undo"
+  },
+  "connectFlow.headers.refused": {
+    "value": "The server didn't accept these headers. Check their values, or connect with an API key."
+  },
   "connectFlow.nothingYet": {
     "value": "Nothing is available to agents until step 3."
   },
@@ -36448,6 +36499,30 @@
   },
   "errors.connector.misconfigured": {
     "value": "The connection to {{provider}} is set up wrong on the server, so it can't finish. Whoever runs the server needs to replace the key in the app's settings."
+  },
+  "errors.connector.headerName": {
+    "value": "Use only letters, digits and hyphens in a header's name, like X-API-Key."
+  },
+  "errors.connector.headerValue": {
+    "value": "Type a value for {{header}}: up to 2,000 characters on one line, with no accented letters or emoji."
+  },
+  "errors.connector.headerReserved": {
+    "value": "{{header}} is already sent with every request and can't be changed. Remove this header."
+  },
+  "errors.connector.headerTwice": {
+    "value": "{{header}} is in the list twice. Remove one of them."
+  },
+  "errors.connector.headerAndKey": {
+    "value": "The API key is already sent as Authorization. Clear the key, or remove this header."
+  },
+  "errors.connector.headersTooMany": {
+    "value": "A server takes at most {{max}} headers. Remove one to add another."
+  },
+  "errors.connector.headersWithSignIn": {
+    "value": "This server asks for a sign-in, and a sign-in can't carry headers yet. Remove the headers to sign in, or connect with an API key."
+  },
+  "errors.connector.headersUnreadable": {
+    "value": "The saved headers couldn't be read. Type them again, or remove them."
   },
   "errors.wiki.githubNoNotes": {
     "value": "No Markdown notes in this link."
