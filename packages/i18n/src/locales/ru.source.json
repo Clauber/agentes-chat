@@ -14567,7 +14567,9 @@
   "agentPage.access.filters.ask": {
     "value": "Ask for approval"
   },
-  "agentPage.access.setAll": "Change all",
+  "agentPage.access.setAll": {
+    "value": "Change all"
+  },
   "agentPage.access.connectors": {
     "value": "{{org}}'s connectors"
   },
@@ -27599,8 +27601,32 @@
   "wiki.repo.connect.readOnly": {
     "value": "{{repo}}, {{branch}} branch: public, so the wiki follows it without writing there."
   },
+  "wiki.repo.connect.readOnlyPrivate": {
+    "value": "{{repo}}, {{branch}} branch: the GitHub app may only read it, so the wiki follows it without writing there."
+  },
   "wiki.repo.connect.installForWrite": {
     "value": "To write there too, install the GitHub app on this repository."
+  },
+  "wiki.repo.connect.installForWritePrivate": {
+    "value": "To write there too, give the GitHub app permission to write on this repository."
+  },
+  "wiki.repo.connect.privateNeedsApp": {
+    "value": "A private repository needs the GitHub app installed on it. A public one works as it is."
+  },
+  "wiki.repo.connect.reach.not_installed": {
+    "value": "Install the GitHub app on this repository, then come back to connect it."
+  },
+  "wiki.repo.connect.reach.no_app": {
+    "value": "No GitHub app is set up yet, so only public repositories can be followed."
+  },
+  "wiki.repo.connect.reach.refused": {
+    "value": "The GitHub app is on this repository but may not read it. Accept its permissions on GitHub, then come back to connect it."
+  },
+  "wiki.repo.connect.useAddress": {
+    "value": "Use {{repo}}"
+  },
+  "wiki.repo.connect.replaces": {
+    "value": "Connecting replaces what the wiki follows now. The pages stay here, and the notes on GitHub stay as they are."
   },
   "wiki.repo.connect.openConnectors": {
     "value": "Open Connectors"
@@ -27686,6 +27712,9 @@
   "wiki.repo.manage.readOnly": {
     "value": "The GitHub app isn't installed on {{repo}}, or may only read it: the wiki follows it, and what changes here stays here. Install the app on it, allowed to write, to send the changes from here too."
   },
+  "wiki.repo.manage.readOnlyPrivate": {
+    "value": "The GitHub app may only read {{repo}}: the wiki follows it, and what changes here stays here. Give the app permission to write there to send the changes from here too."
+  },
   "wiki.repo.manage.noteDisconnect": {
     "value": "Disconnecting leaves the pages here and the notes there, as they are."
   },
@@ -27695,8 +27724,17 @@
   "wiki.repo.manage.allowRemovals": {
     "value": "Send those pages to the trash"
   },
+  "wiki.repo.manage.change": {
+    "value": "Change repository, branch or folder"
+  },
   "wiki.repo.manage.disconnect": {
     "value": "Disconnect"
+  },
+  "wiki.repo.manage.disconnectText": {
+    "value": "The wiki stops following {{repo}}. The pages stay here and the notes stay on GitHub, as they are."
+  },
+  "wiki.repo.manage.disconnectTextPr": {
+    "value": "The wiki stops following {{repo}} and closes its pull request #{{number}} there. The pages stay here and the notes stay on GitHub, as they are."
   },
   "wiki.repo.manage.open": {
     "value": "Open on GitHub"
@@ -27740,6 +27778,9 @@
   "wiki.repo.writing.branchHelp": {
     "value": "The wiki rebuilds it at every change: edit the wiki, not this branch."
   },
+  "wiki.repo.writing.branchTaken": {
+    "value": "This branch already exists on GitHub and isn't the wiki's. Choose another name."
+  },
   "wiki.repo.writing.now.direct": {
     "value": "The wiki commits straight on {{branch}}."
   },
@@ -27780,40 +27821,94 @@
     "value": "It couldn't become a page"
   },
   "wiki.repo.why.not_installed": {
-    "value": "The GitHub app no longer reaches {{repo}}, and it isn't public. An admin adds the repository to the app on GitHub, and the wiki follows it again."
+    "value": "The GitHub app no longer reaches {{repo}}, and it isn't public. Add the repository to the app on GitHub, from Connectors, then press Try again."
   },
   "wiki.repo.why.refused": {
-    "value": "The GitHub app may not read {{repo}}. An admin accepts the app's permissions on GitHub, and the wiki follows it again."
+    "value": "The GitHub app may not read {{repo}}. Accept the app's permissions on GitHub, from Connectors, then press Try again."
   },
   "wiki.repo.why.branch_missing": {
-    "value": "The branch the wiki was kept on is gone from {{repo}}. Connect the repository again."
+    "value": "The branch the wiki was kept on, {{branch}}, is gone from {{repo}}. Choose another branch, or bring it back on GitHub and press Try again."
   },
   "wiki.repo.why.empty": {
-    "value": "{{repo}} has no file yet. Add a first file to it and try again."
+    "value": "{{repo}} has no file yet. Add a first file to it, then press Try again."
   },
   "wiki.repo.why.missing": {
-    "value": "{{repo}} is gone, or can no longer be read."
+    "value": "{{repo}} is gone, or can no longer be read. If it moved or was renamed, choose it again."
   },
   "wiki.repo.why.too_large": {
-    "value": "{{repo}} holds too many notes to follow. Connect one of its folders instead."
+    "value": "{{repo}} holds too many notes to follow. Choose one of its folders instead."
   },
   "wiki.repo.why.owner_gone": {
-    "value": "Whoever connected {{repo}} is no longer an admin here. An admin starts it again here."
+    "value": "Whoever connected {{repo}} is no longer an admin here. Press Try again to keep it going in your name."
   },
   "wiki.repo.why.folder_missing": {
-    "value": "The wiki's folder is gone from {{repo}}, or is empty. Nothing was deleted here: connect the repository again with the right folder."
+    "value": "The wiki's folder is gone from {{repo}}, or is empty. Nothing was deleted here. Choose the right folder, or bring the notes back on GitHub and press Try again."
   },
   "wiki.repo.why.no_app": {
-    "value": "{{repo}} isn't public, and no GitHub app is set up to reach it. An admin sets one up in Connectors, and the wiki follows it again."
+    "value": "{{repo}} isn't public, and no GitHub app is set up to reach it. Set one up in Connectors, then press Try again."
   },
   "wiki.repo.why.protected": {
-    "value": "{{repo}} takes no commits straight on that branch (it is protected). Choose “Through a pull request”, or let the GitHub app push to it."
+    "value": "{{repo}} takes no commits straight on that branch (it is protected). Choose “Through a pull request” below and save, or let the GitHub app push to it and press Try again."
   },
   "wiki.repo.why.mass_removal": {
-    "value": "Many notes were removed from {{repo}} at once ({{count}}), so the wiki stopped before sending their pages to the trash. If it was on purpose, send them to the trash. If not, put the notes back on GitHub and try again."
+    "value": "Many notes were removed from {{repo}} at once ({{count}}), so the wiki stopped before sending their pages to the trash. If it was on purpose, send them to the trash. If not, put the notes back on GitHub and press Try again."
+  },
+  "wiki.repo.why.pr_branch_taken": {
+    "value": "The pull request's branch, {{prBranch}}, already exists in {{repo}} and isn't the wiki's. Choose another name for it below, or delete that branch on GitHub and press Try again."
+  },
+  "wiki.repo.why.write_refused": {
+    "value": "GitHub refused the wiki's last change to {{repo}}, for instance a page and a folder with the same name. Rename what clashes, here or on GitHub, then press Try again."
+  },
+  "wiki.repo.why.unreadable": {
+    "value": "GitHub's copy of {{repo}} couldn't be read. Press Try again in a while. If it keeps stopping, install the GitHub app on the repository."
   },
   "wiki.repo.why.other": {
-    "value": "The wiki stopped following {{repo}}. Try again."
+    "value": "The wiki stopped following {{repo}}. Press Try again."
+  },
+  "wiki.repo.whyMember.not_installed": {
+    "value": "The GitHub app no longer reaches {{repo}}, and it isn't public. An admin can add the repository to the app on GitHub and start it again."
+  },
+  "wiki.repo.whyMember.refused": {
+    "value": "The GitHub app may not read {{repo}}. An admin can accept the app's permissions on GitHub and start it again."
+  },
+  "wiki.repo.whyMember.branch_missing": {
+    "value": "The branch the wiki was kept on, {{branch}}, is gone from {{repo}}. An admin can choose another branch and start it again."
+  },
+  "wiki.repo.whyMember.empty": {
+    "value": "{{repo}} has no file yet. Once it has one, an admin can start it again."
+  },
+  "wiki.repo.whyMember.missing": {
+    "value": "{{repo}} is gone, or can no longer be read. If it moved, an admin can choose it again."
+  },
+  "wiki.repo.whyMember.too_large": {
+    "value": "{{repo}} holds too many notes to follow. An admin can choose one of its folders instead."
+  },
+  "wiki.repo.whyMember.owner_gone": {
+    "value": "Whoever connected {{repo}} is no longer an admin here. An admin can start it again."
+  },
+  "wiki.repo.whyMember.folder_missing": {
+    "value": "The wiki's folder is gone from {{repo}}, or is empty. Nothing was deleted here. An admin can choose the right folder and start it again."
+  },
+  "wiki.repo.whyMember.no_app": {
+    "value": "{{repo}} isn't public, and no GitHub app is set up to reach it. An admin can set one up in Connectors and start it again."
+  },
+  "wiki.repo.whyMember.protected": {
+    "value": "{{repo}} takes no commits straight on that branch (it is protected). An admin can have the wiki write through a pull request and start it again."
+  },
+  "wiki.repo.whyMember.mass_removal": {
+    "value": "Many notes were removed from {{repo}} at once ({{count}}), so the wiki stopped before sending their pages to the trash. An admin decides whether they go, and starts it again."
+  },
+  "wiki.repo.whyMember.pr_branch_taken": {
+    "value": "The pull request's branch, {{prBranch}}, already exists in {{repo}} and isn't the wiki's. An admin can choose another name for it and start it again."
+  },
+  "wiki.repo.whyMember.write_refused": {
+    "value": "GitHub refused the wiki's last change to {{repo}}, for instance a page and a folder with the same name. An admin needs to look at it and start it again."
+  },
+  "wiki.repo.whyMember.unreadable": {
+    "value": "GitHub's copy of {{repo}} couldn't be read. An admin can start it again."
+  },
+  "wiki.repo.whyMember.other": {
+    "value": "The wiki stopped following {{repo}}. An admin can start it again."
   },
   "wiki.repo.page.synced": {
     "value": "On GitHub"
@@ -27934,6 +28029,12 @@
   },
   "wiki.import.github.mode.once": {
     "value": "Import once"
+  },
+  "wiki.import.github.kept": {
+    "value": "The wiki already keeps {{repo}} in sync: its notes come in by themselves, and importing them once makes copies. To bring in what changed there now, press “Update now” in “Keep in sync”."
+  },
+  "wiki.import.github.keptMember": {
+    "value": "The wiki already keeps {{repo}} in sync: its notes come in by themselves, and importing them once makes copies."
   },
   "wiki.import.anotherLink": {
     "value": "Change link"
@@ -29021,7 +29122,9 @@
   "access.cellAsks": {
     "value": "{{agent}} in {{resource}}: {{level}}, sensitive actions ask for approval"
   },
-  "access.asksList": "Asks for approval: {{tools}}",
+  "access.asksList": {
+    "value": "Asks for approval: {{tools}}"
+  },
   "access.asksMore": {
     "value": {
       "one": "and {{count}} more",
@@ -35575,7 +35678,9 @@
   "mail.agent.onlyYou": {
     "value": "{{name}} uses this mailbox only for you, in your DM."
   },
-  "mail.agent.onlyYouAll": "{{name}} uses your mailboxes only for you, in your DM.",
+  "mail.agent.onlyYouAll": {
+    "value": "{{name}} uses your mailboxes only for you, in your DM."
+  },
   "mail.agent.remove": {
     "value": "Remove access"
   },
