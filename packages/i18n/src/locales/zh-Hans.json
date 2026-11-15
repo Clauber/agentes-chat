@@ -2696,6 +2696,7 @@
         "ai_account": "只有账户所有者能分配它",
         "name": "只有管理员能重命名智能体",
         "look": "只有管理员和负责人能更改它的外观",
+        "group": "只有管理员能更改智能体所在的部门",
         "reports_to": "只有管理员能更改智能体的汇报对象",
         "many": "只有管理员能做这些更改"
       }
@@ -2710,6 +2711,7 @@
       "channel": "频道",
       "name": "名称",
       "look": "外观",
+      "group": "部门",
       "reports_to": "汇报对象",
       "skill": "技能 {{name}}"
     },
@@ -3288,7 +3290,17 @@
     "never": {
       "title": "从不询问",
       "text": "从不询问，包括合并、部署、付款和例程。"
-    }
+    },
+    "change": "更改何时询问",
+    "now": "{{name}} 现在：{{level}}。",
+    "nowEveryAgent": "所有智能体现在：{{level}}。",
+    "undo": "撤销",
+    "everyAgent": "应用到工作区的所有智能体",
+    "follows": "跟随工作区",
+    "edit": "更改",
+    "workspaceLead": "智能体在行动前何时询问人。",
+    "workspaceHelp": "每个智能体都跟随此选择，直到有人在智能体页面上更改它自己的设置。",
+    "ownAgents_other": "{{count}} 个智能体有自己的选择，不会改变。"
   },
   "brakes": {
     "title": "没人要求的工作",
@@ -7456,6 +7468,17 @@
     },
     "assigneeFilter": "负责人",
     "priorityFilter": "优先级",
+    "labelFilter": "标签",
+    "table": {
+      "task": "任务",
+      "github": "GitHub",
+      "sortBy": "按{{column}}排序"
+    },
+    "fold": {
+      "open": "打开{{name}}",
+      "close": "折叠{{name}}",
+      "column": "折叠列"
+    },
     "title": "任务",
     "summary": "{{open}} 个未完成 · {{agents}} 个由智能体负责",
     "search": "搜索任务",
@@ -7497,8 +7520,16 @@
       "order": {
         "manual": "手动",
         "priority": "优先级",
-        "due": "截止日期"
+        "due": "截止日期",
+        "updated": "最近"
       },
+      "done": "已完成",
+      "doneIs": {
+        "all": "全部",
+        "recent": "最近 {{days}} 天",
+        "hidden": "无"
+      },
+      "hideEmpty": "隐藏空分组",
       "field": {
         "project": "项目",
         "assignee": "负责人",
@@ -8399,6 +8430,7 @@
       "waiting_budget_late": "错过了时间：预算更新得太晚",
       "stopped": "被人停止",
       "stoppedBy": "被 {{name}} 停止",
+      "stalled": "已释放：20 分钟内没有任何进展",
       "no_report": "已结束，但没有告知结果",
       "handoff_blocked": "无法告知：例行工作已暂停，或创建者已无法在那里发消息",
       "deleted": "已停止：例行工作已删除",
@@ -9779,7 +9811,7 @@
   },
   "jev": {
     "title": "Jev",
-    "about": "TypeSafe 推出的快速模型，专为快速决策而生。agentes.chat 会问它一些小问题，比如该由谁来回复。费用直接付给 TypeSafe。",
+    "about": "TypeSafe 推出的快速模型，专为快速决策而生。agentes.chat 会问它一些小问题，比如该由谁来回复。费用直接付给 TypeSafe，或以同样的价格通过 OpenRouter 支付。",
     "lead": "帮你的智能体像团队一样协作。",
     "how": "Jev 如何工作",
     "why": {
@@ -9819,6 +9851,32 @@
       "envInvalid": "TypeSafe 不接受这个密钥。请在此服务器的设置中更改（TYPESAFE_API_KEY）。"
     },
     "checkAgain": "重新检查",
+    "via": {
+      "label": "Jev 的付费方式",
+      "typesafe": "TypeSafe",
+      "typesafeText": "直接使用 TypeSafe 账户，预付费额度。",
+      "openrouter": "OpenRouter",
+      "openrouterText": "使用 OpenRouter 密钥，价格相同。",
+      "connected": "密钥已连接"
+    },
+    "openRouter": {
+      "create": "在 OpenRouter 创建密钥",
+      "createHint": "使用 OpenRouter 的额度。Jev 的价格与 TypeSafe 相同：每百万 token US$ {{price}}。决定一次谁来回复大约花费 US$ {{call}}。",
+      "open": "打开 OpenRouter",
+      "placeholder": "你的 OpenRouter 密钥",
+      "shape": "OpenRouter 密钥以 sk-or-v1- 开头。请检查后重新粘贴。",
+      "invalid": "OpenRouter 不接受这个密钥。请从密钥页面重新复制。",
+      "keyName": "OpenRouter 密钥",
+      "same": "服务商密钥中的那个",
+      "forAll": "它为此服务器上所有工作区的 Jev 付费。",
+      "turnOn": "开启 Jev",
+      "otherKey": "使用其他密钥",
+      "line": {
+        "invalid": "OpenRouter 不接受这个密钥。请创建一个新的。",
+        "no_credit": "在 OpenRouter 充值后，Jev 会自动恢复。",
+        "envInvalid": "OpenRouter 不接受这个密钥。请在此服务器的设置中更改（TYPESAFE_API_KEY）。"
+      }
+    },
     "remove": {
       "title": "移除 Jev 密钥？",
       "text": "没有它，智能体也会继续工作。"
@@ -9932,6 +9990,10 @@
       "copies_other": "这个账号还有 {{count}} 个登录，没有任何智能体使用。",
       "removeCopies": "移除",
       "copiesRemoved_other": "已移除 {{count}} 个未使用的登录。",
+      "removeAllDone": "已移除 {{n}} 个 Grok 登录。",
+      "removeAllText": "它们将不再为 {{computers}} 上的代理思考。其他人的登录不会被改动。",
+      "removeAllTitle": "要移除全部 {{n}} 个 Grok 登录吗？",
+      "removeAllGrok": "移除所有 Grok 登录",
       "disconnect": "断开连接",
       "renameTitle": "重命名 {{label}}",
       "nameLabel": "名称",
@@ -14620,7 +14682,8 @@
     },
     "agentGroup": {
       "notFound": "这个部门已不存在。",
-      "tooMany": "这个工作区已有 {{max}} 个部门。请先删除一个。"
+      "tooMany": "这个工作区已有 {{max}} 个部门。请先删除一个。",
+      "ambiguous": "有两个部门都叫 {{name}}。请重命名其中一个，然后重试。"
     },
     "rightHand": {
       "permanent": "得力助手属于整个工作区，不加入频道。在任何频道 @提及它即可叫到它。",
@@ -16165,6 +16228,8 @@
         "openLatest": "最新消息",
         "textSize": "文字大小",
         "textSizeHelp": "消息的文字，适用于所有对话，并同步到你的所有设备",
+        "fullMessages": "显示完整消息",
+        "fullMessagesHelp": "长消息不再折叠为“查看更多”，适用于所有对话，并同步到你的所有设备",
         "textSizePhone": "作用于整个应用，并叠加在手机的文字大小之上",
         "textXs": "更小",
         "textSm": "小",

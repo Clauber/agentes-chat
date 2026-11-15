@@ -6962,6 +6962,9 @@
   "rightHand.card.only.look": {
     "value": "Only admins and its owner change its look"
   },
+  "rightHand.card.only.group": {
+    "value": "Only admins move an agent to another department"
+  },
   "rightHand.card.only.reports_to": {
     "value": "Only admins change who an agent reports to"
   },
@@ -6994,6 +6997,9 @@
   },
   "rightHand.field.look": {
     "value": "Look"
+  },
+  "rightHand.field.group": {
+    "value": "Department"
   },
   "rightHand.field.reports_to": {
     "value": "Reports to"
@@ -8355,6 +8361,39 @@
   },
   "approvalsLevel.never.text": {
     "value": "Never asks, merge, deploy, payments and routines included."
+  },
+  "approvalsLevel.change": {
+    "value": "Change when it asks"
+  },
+  "approvalsLevel.now": {
+    "value": "{{name}} now: {{level}}."
+  },
+  "approvalsLevel.nowEveryAgent": {
+    "value": "Every agent now: {{level}}."
+  },
+  "approvalsLevel.undo": {
+    "value": "Undo"
+  },
+  "approvalsLevel.everyAgent": {
+    "value": "For every agent in the workspace"
+  },
+  "approvalsLevel.follows": {
+    "value": "Follows the workspace"
+  },
+  "approvalsLevel.edit": {
+    "value": "Change"
+  },
+  "approvalsLevel.workspaceLead": {
+    "value": "When agents ask a person before acting."
+  },
+  "approvalsLevel.workspaceHelp": {
+    "value": "Each agent follows this choice until someone changes its own on the agent's page."
+  },
+  "approvalsLevel.ownAgents": {
+    "value": {
+      "one": "{{count}} agent has its own choice and won't change.",
+      "other": "{{count}} agents have their own choice and won't change."
+    }
   },
   "brakes.title": {
     "value": "Work nobody asked for"
@@ -18678,6 +18717,27 @@
   "issues.priorityFilter": {
     "value": "Priority"
   },
+  "issues.labelFilter": {
+    "value": "Label"
+  },
+  "issues.table.task": {
+    "value": "Task"
+  },
+  "issues.table.github": {
+    "value": "GitHub"
+  },
+  "issues.table.sortBy": {
+    "value": "Sort by {{column}}"
+  },
+  "issues.fold.open": {
+    "value": "Open {{name}}"
+  },
+  "issues.fold.close": {
+    "value": "Fold {{name}}"
+  },
+  "issues.fold.column": {
+    "value": "Fold column"
+  },
   "issues.title": {
     "value": "Tasks"
   },
@@ -18794,6 +18854,24 @@
   },
   "issues.display.order.due": {
     "value": "Due date"
+  },
+  "issues.display.order.updated": {
+    "value": "Recent"
+  },
+  "issues.display.done": {
+    "value": "Done"
+  },
+  "issues.display.doneIs.all": {
+    "value": "All"
+  },
+  "issues.display.doneIs.recent": {
+    "value": "Last {{days}} days"
+  },
+  "issues.display.doneIs.hidden": {
+    "value": "None"
+  },
+  "issues.display.hideEmpty": {
+    "value": "Hide empty groups"
   },
   "issues.display.field.project": {
     "value": "Project"
@@ -20987,6 +21065,9 @@
   },
   "routines.code.stoppedBy": {
     "value": "Stopped by {{name}}"
+  },
+  "routines.code.stalled": {
+    "value": "Let go: nothing moved in it for 20 minutes"
   },
   "routines.code.no_report": {
     "value": "Finished without telling the result"
@@ -24692,7 +24773,7 @@
     "value": "Jev"
   },
   "jev.about": {
-    "value": "A fast model by TypeSafe, made for quick decisions. agentes.chat asks it small questions, like who should answer. You pay TypeSafe directly."
+    "value": "A fast model by TypeSafe, made for quick decisions. agentes.chat asks it small questions, like who should answer. You pay TypeSafe directly, or through OpenRouter at the same price."
   },
   "jev.lead": {
     "value": "Helps your agents work as a team."
@@ -24789,6 +24870,66 @@
   },
   "jev.checkAgain": {
     "value": "Check again"
+  },
+  "jev.via.label": {
+    "value": "Where you pay for Jev"
+  },
+  "jev.via.typesafe": {
+    "value": "TypeSafe"
+  },
+  "jev.via.typesafeText": {
+    "value": "An account at TypeSafe itself, with prepaid credit."
+  },
+  "jev.via.openrouter": {
+    "value": "OpenRouter"
+  },
+  "jev.via.openrouterText": {
+    "value": "With an OpenRouter key, at the same price."
+  },
+  "jev.via.connected": {
+    "value": "Key already connected"
+  },
+  "jev.openRouter.create": {
+    "value": "Create a key at OpenRouter"
+  },
+  "jev.openRouter.createHint": {
+    "value": "With credit at OpenRouter. Jev costs the same as at TypeSafe: US$ {{price}} per million tokens. Picking who answers costs about US$ {{call}}."
+  },
+  "jev.openRouter.open": {
+    "value": "Open OpenRouter"
+  },
+  "jev.openRouter.placeholder": {
+    "value": "Your OpenRouter key"
+  },
+  "jev.openRouter.shape": {
+    "value": "OpenRouter keys start with sk-or-v1-. Check it and paste it again."
+  },
+  "jev.openRouter.invalid": {
+    "value": "OpenRouter didn't accept this key. Copy it again from the keys page."
+  },
+  "jev.openRouter.keyName": {
+    "value": "OpenRouter key"
+  },
+  "jev.openRouter.same": {
+    "value": "The one in Provider keys"
+  },
+  "jev.openRouter.forAll": {
+    "value": "It pays for Jev in every workspace on this server."
+  },
+  "jev.openRouter.turnOn": {
+    "value": "Turn on Jev"
+  },
+  "jev.openRouter.otherKey": {
+    "value": "Use another key"
+  },
+  "jev.openRouter.line.invalid": {
+    "value": "OpenRouter didn't accept this key. Create a new one."
+  },
+  "jev.openRouter.line.no_credit": {
+    "value": "Add credit at OpenRouter. Jev resumes by itself."
+  },
+  "jev.openRouter.line.envInvalid": {
+    "value": "OpenRouter didn't accept this key. Change it in this server's settings (TYPESAFE_API_KEY)."
   },
   "jev.remove.title": {
     "value": "Remove the Jev key?"
@@ -25040,6 +25181,18 @@
       "one": "{{count}} unused login removed.",
       "other": "{{count}} unused logins removed."
     }
+  },
+  "aiAccounts.page.removeAllGrok": {
+    "value": "Remove all Grok logins"
+  },
+  "aiAccounts.page.removeAllTitle": {
+    "value": "Remove all {{n}} Grok logins?"
+  },
+  "aiAccounts.page.removeAllText": {
+    "value": "They stop thinking for their agents on {{computers}}. Nobody else's logins are touched."
+  },
+  "aiAccounts.page.removeAllDone": {
+    "value": "{{n}} Grok logins removed."
   },
   "aiAccounts.page.disconnect": {
     "value": "Disconnect"
@@ -37127,6 +37280,9 @@
   "errors.agentGroup.tooMany": {
     "value": "This workspace already has {{max}} departments. Delete one first."
   },
+  "errors.agentGroup.ambiguous": {
+    "value": "Two departments are called {{name}}. Rename one of them, then try again."
+  },
   "errors.rightHand.permanent": {
     "value": "The right hand is part of the workspace and stays out of channels. An @mention reaches it in any of them."
   },
@@ -41061,6 +41217,12 @@
   },
   "settings.account.chat.textSizeHelp": {
     "value": "Of messages, in every conversation and on all your devices"
+  },
+  "settings.account.chat.fullMessages": {
+    "value": "Show full messages"
+  },
+  "settings.account.chat.fullMessagesHelp": {
+    "value": "Show long messages without “See more”, in every conversation and on all your devices"
   },
   "settings.account.chat.textSizePhone": {
     "value": "Applies to the whole app, on top of your phone's text size"

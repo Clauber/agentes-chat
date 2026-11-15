@@ -2791,6 +2791,7 @@
         "ai_account": "Nur die Person, der das Konto gehört, vergibt es",
         "name": "Nur Admins benennen einen Agenten um",
         "look": "Nur Admins und sein Verantwortlicher ändern sein Aussehen",
+        "group": "Nur Admins versetzen einen Agenten in eine andere Abteilung",
         "reports_to": "Nur Admins ändern, an wen ein Agent berichtet",
         "many": "Nur Admins machen diese Änderungen"
       }
@@ -2805,6 +2806,7 @@
       "channel": "Kanal",
       "name": "Name",
       "look": "Aussehen",
+      "group": "Abteilung",
       "reports_to": "Berichtet an",
       "skill": "Skill {{name}}"
     },
@@ -3411,7 +3413,18 @@
     "never": {
       "title": "Nie fragen",
       "text": "Fragt nie, auch nicht bei Merge, Deploy, Zahlungen und Routinen."
-    }
+    },
+    "change": "Ändern, wann gefragt wird",
+    "now": "{{name}} jetzt: {{level}}.",
+    "nowEveryAgent": "Alle Agenten jetzt: {{level}}.",
+    "undo": "Rückgängig",
+    "everyAgent": "Für alle Agenten im Workspace",
+    "follows": "Folgt dem Workspace",
+    "edit": "Ändern",
+    "workspaceLead": "Wann die Agenten vor dem Handeln eine Person fragen.",
+    "workspaceHelp": "Jeder Agent folgt dieser Wahl, bis jemand seine eigene auf der Seite des Agenten ändert.",
+    "ownAgents_one": "{{count}} Agent hat eine eigene Wahl und ändert sich nicht.",
+    "ownAgents_other": "{{count}} Agenten haben eine eigene Wahl und ändern sich nicht."
   },
   "brakes": {
     "title": "Arbeit, um die niemand gebeten hat",
@@ -7697,6 +7710,17 @@
     },
     "assigneeFilter": "Zuständig",
     "priorityFilter": "Priorität",
+    "labelFilter": "Label",
+    "table": {
+      "task": "Aufgabe",
+      "github": "GitHub",
+      "sortBy": "Nach {{column}} sortieren"
+    },
+    "fold": {
+      "open": "{{name}} öffnen",
+      "close": "{{name}} einklappen",
+      "column": "Spalte einklappen"
+    },
     "title": "Aufgaben",
     "summary": "{{open}} offen · {{agents}} bei Agenten",
     "search": "Aufgaben durchsuchen",
@@ -7739,8 +7763,16 @@
       "order": {
         "manual": "Manuell",
         "priority": "Priorität",
-        "due": "Fälligkeit"
+        "due": "Fälligkeit",
+        "updated": "Neueste"
       },
+      "done": "Erledigte",
+      "doneIs": {
+        "all": "Alle",
+        "recent": "Letzte {{days}} Tage",
+        "hidden": "Keine"
+      },
+      "hideEmpty": "Leere Gruppen ausblenden",
       "field": {
         "project": "Projekt",
         "assignee": "Zuständig",
@@ -8657,6 +8689,7 @@
       "waiting_budget_late": "Hat ihre Zeit verpasst: Das Budget hat sich zu spät erneuert",
       "stopped": "Von jemandem gestoppt",
       "stoppedBy": "Von {{name}} gestoppt",
+      "stalled": "Freigegeben: 20 Minuten lang hat sich nichts bewegt",
       "no_report": "Fertig, ohne das Ergebnis mitzuteilen",
       "handoff_blocked": "Konnte nicht berichten: Die Routine wurde pausiert oder wer sie erstellt hat, kann dort nicht mehr posten",
       "deleted": "Gestoppt: Die Routine wurde gelöscht",
@@ -10138,7 +10171,7 @@
   },
   "jev": {
     "title": "Jev",
-    "about": "Ein schnelles Modell von TypeSafe, gemacht für schnelle Entscheidungen. agentes.chat stellt ihm kleine Fragen, etwa wer antworten soll. Du bezahlst TypeSafe direkt.",
+    "about": "Ein schnelles Modell von TypeSafe, gemacht für schnelle Entscheidungen. agentes.chat stellt ihm kleine Fragen, etwa wer antworten soll. Du bezahlst TypeSafe direkt oder über OpenRouter zum selben Preis.",
     "lead": "Hilft deinen Agenten, als Team zu arbeiten.",
     "how": "So funktioniert Jev",
     "why": {
@@ -10179,6 +10212,32 @@
       "envInvalid": "TypeSafe hat diesen Schlüssel nicht akzeptiert. Ändere ihn in den Einstellungen dieses Servers (TYPESAFE_API_KEY)."
     },
     "checkAgain": "Erneut prüfen",
+    "via": {
+      "label": "Wo du für Jev bezahlst",
+      "typesafe": "TypeSafe",
+      "typesafeText": "Ein Konto direkt bei TypeSafe, mit Prepaid-Guthaben.",
+      "openrouter": "OpenRouter",
+      "openrouterText": "Mit einem OpenRouter-Schlüssel, zum selben Preis.",
+      "connected": "Schlüssel schon verbunden"
+    },
+    "openRouter": {
+      "create": "Erstelle einen Schlüssel bei OpenRouter",
+      "createHint": "Mit Guthaben bei OpenRouter. Jev kostet dasselbe wie bei TypeSafe: US$ {{price}} pro Million Tokens. Die Wahl, wer antwortet, kostet etwa US$ {{call}}.",
+      "open": "OpenRouter öffnen",
+      "placeholder": "Dein OpenRouter-Schlüssel",
+      "shape": "OpenRouter-Schlüssel beginnen mit sk-or-v1-. Prüfe ihn und füge ihn noch einmal ein.",
+      "invalid": "OpenRouter hat diesen Schlüssel nicht akzeptiert. Kopiere ihn noch einmal von der Schlüsselseite.",
+      "keyName": "OpenRouter-Schlüssel",
+      "same": "Der aus den Anbieterschlüsseln",
+      "forAll": "Er bezahlt Jev für jeden Workspace auf diesem Server.",
+      "turnOn": "Jev einschalten",
+      "otherKey": "Anderen Schlüssel verwenden",
+      "line": {
+        "invalid": "OpenRouter hat diesen Schlüssel nicht akzeptiert. Erstelle einen neuen.",
+        "no_credit": "Lade Guthaben bei OpenRouter auf. Jev macht dann von selbst weiter.",
+        "envInvalid": "OpenRouter hat diesen Schlüssel nicht akzeptiert. Ändere ihn in den Einstellungen dieses Servers (TYPESAFE_API_KEY)."
+      }
+    },
     "remove": {
       "title": "Jev-Schlüssel entfernen?",
       "text": "Die Agenten arbeiten ohne ihn weiter."
@@ -10289,6 +10348,10 @@
       "removeCopies": "Entfernen",
       "copiesRemoved_one": "{{count}} ungenutzte Anmeldung entfernt.",
       "copiesRemoved_other": "{{count}} ungenutzte Anmeldungen entfernt.",
+      "removeAllDone": "{{n}} Grok-Anmeldungen entfernt.",
+      "removeAllText": "Sie denken dann für ihre Agenten auf {{computers}} nicht mehr mit. Anmeldungen anderer Personen bleiben unangetastet.",
+      "removeAllTitle": "Alle {{n}} Grok-Anmeldungen entfernen?",
+      "removeAllGrok": "Alle Grok-Anmeldungen entfernen",
       "disconnect": "Trennen",
       "renameTitle": "{{label}} umbenennen",
       "nameLabel": "Name",
@@ -15097,7 +15160,8 @@
     },
     "agentGroup": {
       "notFound": "Diese Abteilung gibt es nicht mehr.",
-      "tooMany": "Dieser Workspace hat schon {{max}} Abteilungen. Lösch zuerst eine."
+      "tooMany": "Dieser Workspace hat schon {{max}} Abteilungen. Lösch zuerst eine.",
+      "ambiguous": "Zwei Abteilungen heißen {{name}}. Benenne eine davon um und versuch es noch einmal."
     },
     "rightHand": {
       "permanent": "Die rechte Hand gehört zum Workspace und bleibt außerhalb der Kanäle. Eine @Erwähnung erreicht sie in jedem davon.",
@@ -16660,6 +16724,8 @@
         "openLatest": "Neueste Nachricht",
         "textSize": "Textgröße",
         "textSizeHelp": "Für Nachrichten, in allen Unterhaltungen und auf all deinen Geräten",
+        "fullMessages": "Nachrichten vollständig anzeigen",
+        "fullMessagesHelp": "Lange Nachrichten ohne „Mehr anzeigen“, in allen Unterhaltungen und auf all deinen Geräten",
         "textSizePhone": "Gilt für die ganze App, zusätzlich zur Textgröße deines Handys",
         "textXs": "Kleiner",
         "textSm": "Klein",

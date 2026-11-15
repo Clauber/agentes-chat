@@ -3003,6 +3003,7 @@ export const en = {
         ai_account: "Only the account's owner gives it",
         name: "Only admins rename an agent",
         look: "Only admins and its owner change its look",
+        group: "Only admins move an agent to another department",
         reports_to: "Only admins change who an agent reports to",
         many: "Only admins make these changes",
       },
@@ -3017,6 +3018,7 @@ export const en = {
       channel: "Channel",
       name: "Name",
       look: "Look",
+      group: "Department",
       reports_to: "Reports to",
       skill: "{{name}} skill",
     },
@@ -3691,6 +3693,23 @@ export const en = {
       title: "Never ask",
       text: "Never asks, merge, deploy, payments and routines included.",
     },
+    /** The quiet link on a waiting approval that opens its agent's three choices in place. */
+    change: "Change when it asks",
+    /** The toast after a choice from that link. {{level}}: the choice's title. */
+    now: "{{name}} now: {{level}}.",
+    nowEveryAgent: "Every agent now: {{level}}.",
+    undo: "Undo",
+    /** In that dialog, for who may set the workspace's level: it also clears each agent's own choice. */
+    everyAgent: "For every agent in the workspace",
+    /** An agent's row value while it has no choice of its own. */
+    follows: "Follows the workspace",
+    /** Settings → Approvals: the button that opens the three choices. */
+    edit: "Change",
+    /** Settings → Approvals: the workspace's level. */
+    workspaceLead: "When agents ask a person before acting.",
+    workspaceHelp: "Each agent follows this choice until someone changes its own on the agent's page.",
+    ownAgents_one: "{{count}} agent has its own choice and won't change.",
+    ownAgents_other: "{{count}} agents have their own choice and won't change.",
   },
   /** Agent settings: what it may start that nobody asked for directly, and which agents it may call (ADR 0131). */
   brakes: {
@@ -8119,6 +8138,9 @@ export const en = {
     },
     assigneeFilter: "Assignee",
     priorityFilter: "Priority",
+    labelFilter: "Label",
+    table: { task: "Task", github: "GitHub", sortBy: "Sort by {{column}}" },
+    fold: { open: "Open {{name}}", close: "Fold {{name}}", column: "Fold column" },
     title: "Tasks",
     summary: "{{open}} open · {{agents}} with agents",
     search: "Search tasks",
@@ -8154,7 +8176,10 @@ export const en = {
       saved: "Saved for you in this workspace",
       reset: "Back to default",
       by: { stage: "Stage", assignee: "Assignee", priority: "Priority" },
-      order: { manual: "Manual", priority: "Priority", due: "Due date" },
+      order: { manual: "Manual", priority: "Priority", due: "Due date", updated: "Recent" },
+      done: "Done",
+      doneIs: { all: "All", recent: "Last {{days}} days", hidden: "None" },
+      hideEmpty: "Hide empty groups",
       field: {
         project: "Project",
         assignee: "Assignee",
@@ -9066,6 +9091,7 @@ export const en = {
       waiting_budget_late: "Missed its time: the budget renewed too late",
       stopped: "Stopped by someone",
       stoppedBy: "Stopped by {{name}}",
+      stalled: "Let go: nothing moved in it for 20 minutes",
       no_report: "Finished without telling the result",
       handoff_blocked: "Couldn't tell: the routine was paused or its creator can no longer post there",
       deleted: "Stopped: the routine was deleted",
@@ -10477,7 +10503,7 @@ export const en = {
   jev: {
     title: "Jev",
     about:
-      "A fast model by TypeSafe, made for quick decisions. agentes.chat asks it small questions, like who should answer. You pay TypeSafe directly.",
+      "A fast model by TypeSafe, made for quick decisions. agentes.chat asks it small questions, like who should answer. You pay TypeSafe directly, or through OpenRouter at the same price.",
     lead: "Helps your agents work as a team.",
     how: "How Jev works",
     why: {
@@ -10519,6 +10545,35 @@ export const en = {
       envInvalid: "TypeSafe didn't accept this key. Change it in this server's settings (TYPESAFE_API_KEY).",
     },
     checkAgain: "Check again",
+    /** Where Jev is called and paid (ADR 0073 §9): the rows under the reasons once "Set up Jev" is pressed. */
+    via: {
+      label: "Where you pay for Jev",
+      typesafe: "TypeSafe",
+      typesafeText: "An account at TypeSafe itself, with prepaid credit.",
+      openrouter: "OpenRouter",
+      openrouterText: "With an OpenRouter key, at the same price.",
+      connected: "Key already connected",
+    },
+    /** Jev through OpenRouter: its steps, the workspace's own key, and the key's lines once saved. */
+    openRouter: {
+      create: "Create a key at OpenRouter",
+      createHint:
+        "With credit at OpenRouter. Jev costs the same as at TypeSafe: US$ {{price}} per million tokens. Picking who answers costs about US$ {{call}}.",
+      open: "Open OpenRouter",
+      placeholder: "Your OpenRouter key",
+      shape: "OpenRouter keys start with sk-or-v1-. Check it and paste it again.",
+      invalid: "OpenRouter didn't accept this key. Copy it again from the keys page.",
+      keyName: "OpenRouter key",
+      same: "The one in Provider keys",
+      forAll: "It pays for Jev in every workspace on this server.",
+      turnOn: "Turn on Jev",
+      otherKey: "Use another key",
+      line: {
+        invalid: "OpenRouter didn't accept this key. Create a new one.",
+        no_credit: "Add credit at OpenRouter. Jev resumes by itself.",
+        envInvalid: "OpenRouter didn't accept this key. Change it in this server's settings (TYPESAFE_API_KEY).",
+      },
+    },
     remove: {
       title: "Remove the Jev key?",
       text: "Agents keep working without it.",
@@ -10640,6 +10695,11 @@ export const en = {
       removeCopies: "Remove",
       copiesRemoved_one: "{{count}} unused login removed.",
       copiesRemoved_other: "{{count}} unused logins removed.",
+      /** Every Grok login the viewer owns at once (issue #319): one sign-in per agent, removed together. */
+      removeAllGrok: "Remove all Grok logins",
+      removeAllTitle: "Remove all {{n}} Grok logins?",
+      removeAllText: "They stop thinking for their agents on {{computers}}. Nobody else's logins are touched.",
+      removeAllDone: "{{n}} Grok logins removed.",
       disconnect: "Disconnect",
       renameTitle: "Rename {{label}}",
       nameLabel: "Name",
@@ -15361,6 +15421,8 @@ export const en = {
     agentGroup: {
       notFound: "This department no longer exists.",
       tooMany: "This workspace already has {{max}} departments. Delete one first.",
+      /** `agent_group.ambiguous`: a card names a department two of them are called; renaming one decides. */
+      ambiguous: "Two departments are called {{name}}. Rename one of them, then try again.",
     },
     /** `agent.right_hand_permanent`: archiving, deleting or adding the right hand to a channel (ADR 0137). */
     rightHand: {
@@ -17025,6 +17087,8 @@ export const en = {
         /** The words of every message, in every look, smallest step first. */
         textSize: "Text size",
         textSizeHelp: "Of messages, in every conversation and on all your devices",
+        fullMessages: "Show full messages",
+        fullMessagesHelp: "Show long messages without “See more”, in every conversation and on all your devices",
         /** On the phone, under the text size slider: the choice sizes the whole app, on top of the system's own setting. */
         textSizePhone: "Applies to the whole app, on top of your phone's text size",
         textXs: "Smaller",

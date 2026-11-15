@@ -4489,6 +4489,49 @@ test.if(posix)(
   },
 );
 
+test("spawn resolves promptly after exit even when a background child inherits stdio pipes", async () => {
+  const t = setup();
+  const spawnFn = (
+    t.manager as unknown as {
+      spawn: (
+        command: string[],
+        args: string[],
+        opts: { timeoutMs: number; cwd: string },
+      ) => Promise<{ stdout: string; stderr: string; exitCode: number | null; timedOut: boolean }>;
+    }
+  ).spawn.bind(t.manager);
+  const sleeper = "setTimeout(() => {}, 3000)";
+  const launcher = `
+    const { spawn } = require("node:child_process");
+    const sub = spawn(process.execPath, ["-e", ${JSON.stringify(sleeper)}], {
+      detached: true,
+      stdio: "inherit",
+      windowsHide: true,
+    });
+    sub.unref();
+    process.stdout.write(String(sub.pid ?? 0));
+  `;
+  const started = Date.now();
+  let childPid = 0;
+  try {
+    const res = await spawnFn([process.execPath], ["-e", launcher], { timeoutMs: 2500, cwd: t.ws });
+    const elapsed = Date.now() - started;
+    childPid = Number(res.stdout.trim());
+    expect(res.exitCode).toBe(0);
+    expect(res.timedOut).toBe(false);
+    expect(childPid).toBeGreaterThan(0);
+    expect(elapsed).toBeLessThan(1500);
+  } finally {
+    if (childPid > 0) {
+      try {
+        process.kill(childPid);
+      } catch {
+        // already exited
+      }
+    }
+  }
+});
+
 test.if(posix)(
   "its server short of memory: idle browsers close their duplicate and blank tabs and free memory, every other tab kept; one watched or just used is left alone, one its agent holds only tidied",
   async () => {

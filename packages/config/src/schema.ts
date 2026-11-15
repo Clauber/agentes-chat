@@ -374,7 +374,7 @@ export const envVars = {
   TYPESAFE_API_KEY: {
     schema: z.string().optional(),
     description:
-      "Your TypeSafe key for Jev (https://console.typesafe.ai/keys), optional. Jev picks who answers messages nobody @mentioned, keeps memory tidy and finds what agents look for on their screens. The installation's owner can also add it in Settings › AI accounts. This variable wins over that one. Never sent to a browser. Calls are billed to your TypeSafe account.",
+      "Your TypeSafe key for Jev (https://console.typesafe.ai/keys), optional. Jev picks who answers messages nobody @mentioned, keeps memory tidy and finds what agents look for on their screens. An OpenRouter key (sk-or-…) works too: the same Jev, called and billed through OpenRouter. The installation's owner can also add one in Settings › AI accounts. This variable wins over that one. Never sent to a browser. Calls are billed to the key's account.",
     section: "Agents",
     secret: true,
   },

@@ -5038,10 +5038,14 @@ export class BrowserManager {
       let size = 0;
       let timedOut = false;
       let done = false;
+      let exitDrain: ReturnType<typeof setTimeout> | undefined;
+      let killDrain: ReturnType<typeof setTimeout> | undefined;
       const finish = (exitCode: number | null) => {
         if (done) return;
         done = true;
         clearTimeout(timer);
+        if (exitDrain) clearTimeout(exitDrain);
+        if (killDrain) clearTimeout(killDrain);
         opts.signal?.removeEventListener("abort", onAbort);
         resolve({ stdout, stderr, exitCode, timedOut });
       };
@@ -5050,6 +5054,12 @@ export class BrowserManager {
           child.kill("SIGKILL");
         } catch {
           // gone
+        }
+        // On Windows, a background child (such as a daemon started by the CLI) may inherit stdout/stderr handles so
+        // `close` never fires even after killing the direct child; settle shortly after `kill()` as well.
+        if (!killDrain) {
+          killDrain = setTimeout(() => finish(null), 200);
+          killDrain.unref?.();
         }
       };
       const timer = setTimeout(() => {
@@ -5071,6 +5081,16 @@ export class BrowserManager {
       events.on("error", (err: Error) => {
         stderr += err.message;
         finish(null);
+      });
+      // On Windows, when `agent-browser` launches or restarts its background daemon, the daemon inherits stdout/stderr
+      // pipe handles so `"close"` stays blocked for the daemon's lifetime even after the CLI exits. Drain after
+      // `"exit"` so buffered stdio chunks arrive without hanging until timeout; 500 ms leaves a loaded box time to flush a
+      // large snapshot, and the normal path still settles on `"close"`.
+      events.on("exit", (code: number | null) => {
+        if (!exitDrain) {
+          exitDrain = setTimeout(() => finish(code), 500);
+          exitDrain.unref?.();
+        }
       });
       events.on("close", (code: number | null) => finish(code));
       child.stdin.on("error", () => undefined);

@@ -361,6 +361,7 @@ export * from "./work-tools";
 export * from "./working";
 export * from "./works";
 export * from "./workspace-actions";
+export * from "./workspace-approvals";
 export * from "./workspace-deletion";
 export * from "./workspace-mode";
 export * from "./workspace-tools";

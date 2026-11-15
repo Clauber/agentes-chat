@@ -2787,6 +2787,7 @@
         "ai_account": "Yalnızca hesabın sahibi verebilir",
         "name": "Bir ajanın adını yalnızca yöneticiler değiştirir",
         "look": "Görünümünü yalnızca yöneticiler ve sorumlusu değiştirir",
+        "group": "Bir ajanın departmanını yalnızca yöneticiler değiştirir",
         "reports_to": "Bir ajanın kime rapor verdiğini yalnızca yöneticiler değiştirir",
         "many": "Bu değişiklikleri yalnızca yöneticiler yapar"
       }
@@ -2801,6 +2802,7 @@
       "channel": "Kanal",
       "name": "Ad",
       "look": "Görünüm",
+      "group": "Departman",
       "reports_to": "Rapor verdiği",
       "skill": "{{name}} becerisi"
     },
@@ -3400,7 +3402,18 @@
     "never": {
       "title": "Hiç sorma",
       "text": "Hiç sormaz, merge, deploy, ödemeler ve rutinler dahil."
-    }
+    },
+    "change": "Ne zaman soracağını değiştir",
+    "now": "{{name}} artık: {{level}}.",
+    "nowEveryAgent": "Tüm ajanlar artık: {{level}}.",
+    "undo": "Geri al",
+    "everyAgent": "Workspace’teki tüm ajanlar için",
+    "follows": "Workspace’i izler",
+    "edit": "Değiştir",
+    "workspaceLead": "Ajanların harekete geçmeden önce birine ne zaman sorduğu.",
+    "workspaceHelp": "Biri ajanın sayfasında kendi seçimini değiştirene kadar her ajan bu seçimi izler.",
+    "ownAgents_one": "{{count}} ajanın kendi seçimi var ve değişmez.",
+    "ownAgents_other": "{{count}} ajanın kendi seçimi var ve değişmez."
   },
   "brakes": {
     "title": "Kimsenin istemediği iş",
@@ -7657,6 +7670,17 @@
     },
     "assigneeFilter": "Atanan",
     "priorityFilter": "Öncelik",
+    "labelFilter": "Etiket",
+    "table": {
+      "task": "Görev",
+      "github": "GitHub",
+      "sortBy": "{{column}} ölçütüne göre sırala"
+    },
+    "fold": {
+      "open": "{{name}} öğesini aç",
+      "close": "{{name}} öğesini daralt",
+      "column": "Sütunu daralt"
+    },
     "title": "Görevler",
     "summary": "{{open}} açık · {{agents}} ajanlarda",
     "search": "Görevlerde ara",
@@ -7699,8 +7723,16 @@
       "order": {
         "manual": "Elle",
         "priority": "Öncelik",
-        "due": "Son tarih"
+        "due": "Son tarih",
+        "updated": "En yeni"
       },
+      "done": "Tamamlananlar",
+      "doneIs": {
+        "all": "Tümü",
+        "recent": "Son {{days}} gün",
+        "hidden": "Hiçbiri"
+      },
+      "hideEmpty": "Boş grupları gizle",
       "field": {
         "project": "Proje",
         "assignee": "Atanan",
@@ -8614,6 +8646,7 @@
       "waiting_budget_late": "Zamanını kaçırdı: bütçe çok geç yenilendi",
       "stopped": "Biri tarafından durduruldu",
       "stoppedBy": "{{name}} durdurdu",
+      "stalled": "Bırakıldı: 20 dakika boyunca hiçbir şey ilerlemedi",
       "no_report": "Sonucu bildirmeden bitti",
       "handoff_blocked": "Bildirilemedi: rutin duraklatıldı ya da oluşturan kişi artık oraya yazamıyor",
       "deleted": "Durduruldu: rutin silindi",
@@ -10083,7 +10116,7 @@
   },
   "jev": {
     "title": "Jev",
-    "about": "TypeSafe'in hızlı kararlar için yaptığı hızlı bir model. agentes.chat ona kimin yanıt vereceği gibi küçük sorular sorar. Ücreti doğrudan TypeSafe'e ödersiniz.",
+    "about": "TypeSafe'in hızlı kararlar için yaptığı hızlı bir model. agentes.chat ona kimin yanıt vereceği gibi küçük sorular sorar. Ücreti doğrudan TypeSafe'e ya da aynı fiyatla OpenRouter üzerinden ödersiniz.",
     "lead": "Ajanlarınızın ekip olarak çalışmasına yardım eder.",
     "how": "Jev nasıl çalışır",
     "why": {
@@ -10124,6 +10157,32 @@
       "envInvalid": "TypeSafe bu anahtarı kabul etmedi. Bu sunucunun ayarlarından değiştirin (TYPESAFE_API_KEY)."
     },
     "checkAgain": "Tekrar kontrol et",
+    "via": {
+      "label": "Jev için nereden ödersiniz",
+      "typesafe": "TypeSafe",
+      "typesafeText": "Doğrudan TypeSafe'te bir hesap, ön ödemeli krediyle.",
+      "openrouter": "OpenRouter",
+      "openrouterText": "Bir OpenRouter anahtarıyla, aynı fiyata.",
+      "connected": "Anahtar zaten bağlı"
+    },
+    "openRouter": {
+      "create": "OpenRouter'da bir anahtar oluşturun",
+      "createHint": "OpenRouter'daki krediyle. Jev, TypeSafe'teki ile aynı fiyattadır: milyon token başına US$ {{price}}. Kimin yanıt vereceğini seçmek yaklaşık US$ {{call}} tutar.",
+      "open": "OpenRouter'ı aç",
+      "placeholder": "OpenRouter anahtarınız",
+      "shape": "OpenRouter anahtarları sk-or-v1- ile başlar. Kontrol edip tekrar yapıştırın.",
+      "invalid": "OpenRouter bu anahtarı kabul etmedi. Anahtarlar sayfasından tekrar kopyalayın.",
+      "keyName": "OpenRouter anahtarı",
+      "same": "Sağlayıcı anahtarlarındaki",
+      "forAll": "Bu anahtar, bu sunucudaki tüm çalışma alanlarında Jev'in ücretini öder.",
+      "turnOn": "Jev'i aç",
+      "otherKey": "Başka anahtar kullan",
+      "line": {
+        "invalid": "OpenRouter bu anahtarı kabul etmedi. Yeni bir tane oluşturun.",
+        "no_credit": "OpenRouter'da kredi ekleyin. Jev kendiliğinden devam eder.",
+        "envInvalid": "OpenRouter bu anahtarı kabul etmedi. Bu sunucunun ayarlarından değiştirin (TYPESAFE_API_KEY)."
+      }
+    },
     "remove": {
       "title": "Jev anahtarı kaldırılsın mı?",
       "text": "Ajanlar onsuz da çalışmaya devam eder."
@@ -10233,6 +10292,10 @@
       "removeCopies": "Kaldır",
       "copiesRemoved_one": "Kullanılmayan {{count}} giriş kaldırıldı.",
       "copiesRemoved_other": "Kullanılmayan {{count}} giriş kaldırıldı.",
+      "removeAllDone": "{{n}} Grok oturumu kaldırıldı.",
+      "removeAllText": "{{computers}} üzerinde artık kendi ajanları için düşünmezler. Başkalarının oturumlarına dokunulmaz.",
+      "removeAllTitle": "{{n}} Grok oturumunun tümü kaldırılsın mı?",
+      "removeAllGrok": "Tüm Grok oturumlarını kaldır",
       "disconnect": "Bağlantıyı kes",
       "renameTitle": "{{label}} adını değiştir",
       "nameLabel": "Ad",
@@ -15034,7 +15097,8 @@
     },
     "agentGroup": {
       "notFound": "Bu departman artık yok.",
-      "tooMany": "Bu çalışma alanında zaten {{max}} departman var. Önce birini silin."
+      "tooMany": "Bu çalışma alanında zaten {{max}} departman var. Önce birini silin.",
+      "ambiguous": "İki departmanın adı {{name}}. Birinin adını değiştirip yeniden deneyin."
     },
     "rightHand": {
       "permanent": "Sağ kol çalışma alanının bir parçasıdır ve kanalların dışında kalır. Bir @bahsetme onu herhangi bir kanalda çağırır.",
@@ -16597,6 +16661,8 @@
         "openLatest": "En yeni mesaj",
         "textSize": "Metin boyutu",
         "textSizeHelp": "Mesajların, tüm sohbetlerde ve tüm cihazlarınızda",
+        "fullMessages": "Mesajların tamamını göster",
+        "fullMessagesHelp": "Uzun mesajları “Devamını gör” olmadan gösterir, tüm sohbetlerde ve tüm cihazlarınızda",
         "textSizePhone": "Telefonunuzun metin boyutunun üzerine, tüm uygulamada geçerlidir",
         "textXs": "Daha küçük",
         "textSm": "Küçük",

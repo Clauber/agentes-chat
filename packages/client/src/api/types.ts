@@ -31,13 +31,18 @@ export interface ServerTelemetry {
 export interface JevKey {
   /** `env`: `TYPESAFE_API_KEY`, read-only here. `settings`: added in Settings. Null: none. */
   source: "env" | "settings" | null;
+  /** Who the key is from: Jev called and paid through TypeSafe, or through OpenRouter. Null: no key. */
+  via: "typesafe" | "openrouter" | null;
   /** The key's last 4 characters (the key itself is never returned). */
   hint: string | null;
-  /** What its owner can fix: TypeSafe refused the key, or its account is out of credit. Else `ok`. */
+  /** What its owner can fix: TypeSafe or OpenRouter refused the key, or its account is out of credit. Else `ok`. */
   state: "off" | "ok" | "invalid" | "no_credit";
   /** Jev's calls this month (UTC), every workspace together. */
   month: { decisions: number; costUsd: number };
 }
+
+/** Jev's key to save: one pasted (TypeSafe's or OpenRouter's), or the workspace's own OpenRouter key. */
+export type JevKeyInput = string | { orgId: string; credentialId: string };
 
 /**
  * The installation's GIPHY key, for its pinned owner on a server that isn't agentes.chat's own (`GET
@@ -842,6 +847,8 @@ export interface Agent {
   brakes?: AgentBrakes;
   /** How much it asks before acting (ADR 0173); absent from an older server (`risky`). */
   approvalsLevel?: ApprovalsLevel;
+  /** Whether that level is its own choice; false: it follows the workspace's. Absent from an older server. */
+  approvalsLevelOwn?: boolean;
   /**
    * Its setup checklist at the top of its chat (ADR 0155 §2): the ready-made role it started from and the steps a
    * person confirmed. Null or absent: an agent made before it (none shows).
@@ -1033,10 +1040,10 @@ export interface AgentInput {
   mediaReplies?: boolean;
   /** The Autonomia it starts with (the last setup's, ADR 0094): only an admin or its own owner sends it. */
   autonomy?: CommandApproval;
-  /** Editing only: its autonomy brakes (ADR 0131); the fields given change. */
+  /** Its autonomy brakes (ADR 0131); the fields given change. Same permission as editing the agent. */
   brakes?: Partial<AgentBrakes>;
-  /** How much it asks before acting (ADR 0173); same permission as editing the agent. */
-  approvalsLevel?: ApprovalsLevel;
+  /** How much it asks before acting (ADR 0173), as its own choice; null follows the workspace's again. */
+  approvalsLevel?: ApprovalsLevel | null;
   /**
    * Creating only: the ready-made role it starts from, for its setup checklist (ADR 0155 §2), and what its card said
    * (ADR 0164): how it introduced itself, the personal starter it began as, the apps it will use at their levels.
@@ -2385,6 +2392,7 @@ export type ProposalSettingField =
   | "skill"
   | "name"
   | "look"
+  | "group"
   | "reports_to"
   | "archive"
   | "delete";
@@ -2394,8 +2402,8 @@ export type ProposalSettingField =
  * null (the workspace's default); `owner` a user id; `audience` `{ mode, userIds, roleIds }`; `channel_add` /
  * `channel_remove` / `reply_mode` its seat in `channelId` (null: not in it, else whether it answers without a
  * mention); `skill` whether it has the skill in `skillId` on (its name in `label.to`); `name` its name; `look`
- * `{ color, eyes, accessory }`; `reports_to` an agent id or null (Responde a); `archive` true. `label`: the server's
- * names for ids.
+ * `{ color, eyes, accessory }`; `reports_to` an agent id or null (Responde a); `group` its department's name or
+ * null; `archive` true. `label`: the server's names for ids.
  */
 export interface ProposalSettingLine {
   field: ProposalSettingField;
@@ -2504,10 +2512,12 @@ export interface OrgSettings {
   agentMediaAvailable: boolean;
   /** Who the workspace is for (ADR 0159); absent from an older server, which is a team's. */
   mode?: WorkspaceMode;
+  /** What agents without their own choice ask before acting (ADR 0173); absent from an older server. */
+  approvalsLevel?: ApprovalsLevel;
 }
 
-/** `OrgSettings` the server works out itself: never in a PATCH. */
-export type ReadOnlyOrgSettings = "gifsAvailable" | "agentMediaAvailable" | "voiceAvailable";
+/** `OrgSettings` the server works out itself, or sets through its own call: never in a PATCH. */
+export type ReadOnlyOrgSettings = "gifsAvailable" | "agentMediaAvailable" | "voiceAvailable" | "approvalsLevel";
 
 /** Automático's sizes: quick tasks, everyday work, hard work. */
 export type ModelTier = "small" | "medium" | "large";
@@ -7194,15 +7204,26 @@ export interface SidebarView {
 export interface IssuesView {
   layout: "board" | "list";
   group: "stage" | "assignee" | "priority";
-  /** `manual`: the board's own order (what people drag); by priority (high first) or by due date (soonest first). */
-  sort: "manual" | "priority" | "due";
+  /**
+   * `manual`: the board's own order (what people drag); by priority (high first), by due date (soonest first) or by
+   * the last change (newest first).
+   */
+  sort: "manual" | "priority" | "due" | "updated";
   /** What the cards show besides their number and title. */
   fields: Record<IssueCardField, boolean>;
   /** Only tasks with one of these assignees: `agent:<id>`, `person:<id>` or `none` (empty: every task). */
   assignees: string[];
   /** Only tasks with one of these priorities (empty: every task). */
   priorities: IssuePriority[];
+  /** Only tasks with one of these labels (empty: every task). */
+  labels: string[];
+  /** Which finished tasks show: every one, the ones changed in the last `DONE_RECENT_DAYS` days, or none. */
+  done: "all" | "recent" | "hidden";
   showCanceled: boolean;
+  /** Groups with no task on screen take no room (they come back while a card moves, to drop it there). */
+  hideEmpty: boolean;
+  /** The groups folded to their name and count: column ids, assignee keys or priorities. */
+  collapsed: string[];
 }
 export type IssueCardField = "project" | "assignee" | "priority" | "due" | "criteria" | "pullRequest" | "label";
 
