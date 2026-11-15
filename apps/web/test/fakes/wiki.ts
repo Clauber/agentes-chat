@@ -3,11 +3,61 @@
  * `GET …/wiki/pages`, `GET/PUT …/wiki/pages/{slug}`, `POST …/wiki/pages`,
  * `…/rename`, `…/history`, `…/versions/{n}`, `…/append`, `GET …/wiki/graph`,
  * `GET …/wiki/search?q=`. A stale `baseVersion` → 409 `version_conflict`.
+ * The repository the wiki is kept in (ADR 0186) is held per org: `repository` answers it, and connecting, syncing,
+ * saving how it writes and disconnecting change it as the server does.
  */
-import type { ApiClient, WikiAuthor, WikiBacklink, WikiPage, WikiPageSummary, WikiVersion } from "@agenteschat/client";
+import type {
+  ApiClient,
+  WikiAuthor,
+  WikiBacklink,
+  WikiPage,
+  WikiPageSummary,
+  WikiRepository,
+  WikiVersion,
+} from "@agenteschat/client";
 import { ApiError } from "@agenteschat/client";
 import { resolveWikiLink, wikiLinksIn, wikiSlug } from "@agenteschat/client/lib/wiki";
 import { clone, type MockContext, MockNotFoundError, minutesAgo, mockId, perOrg } from "./context";
+
+/** Each fake wiki's repositories, by org. */
+const repositoriesOf = new WeakMap<ApiClient["wiki"], Map<string, WikiRepository>>();
+
+/** A repository as the server answers it: `acme/notas`, its `main` branch, the wiki writing there, up to date. */
+export function wikiRepositoryOf(fields: Partial<WikiRepository> = {}): WikiRepository {
+  return {
+    provider: "github",
+    owner: "acme",
+    repo: "notas",
+    branch: "main",
+    path: "",
+    url: "https://github.com/acme/notas",
+    writable: true,
+    public: false,
+    commitMode: "direct",
+    prBranch: "agentes/wiki",
+    pullRequest: null,
+    status: "active",
+    errorCode: null,
+    syncing: false,
+    syncedAt: new Date(Date.now() - 5 * 60_000).toISOString(),
+    notifiedAt: null,
+    notes: 4,
+    pending: 0,
+    held: [],
+    removalsWaiting: null,
+    ...fields,
+  };
+}
+
+/**
+ * A fake wiki kept in a repository (`fields` over `wikiRepositoryOf`'s): stopped, read-only, with a pull request,
+ * states only GitHub brings about. Before the app renders, as the app reads it once as it opens.
+ */
+export function keepWikiRepository(wiki: ApiClient["wiki"], orgId: string, fields: Partial<WikiRepository> = {}) {
+  const repositories = repositoriesOf.get(wiki);
+  if (!repositories) throw new Error("not a fake wiki");
+  repositories.set(orgId, wikiRepositoryOf(fields));
+}
 
 interface Stored {
   page: Omit<WikiPage, "backlinks">;
@@ -127,7 +177,16 @@ export function createFakeWiki(ctx: MockContext, log: (method: string, ...args: 
     });
   };
   const me = async (): Promise<WikiAuthor> => ({ type: "person", id: (await ctx.lookup.me())?.user.id ?? "me" });
-  return {
+  const repositories = new Map<string, WikiRepository>();
+  /** The org's repository changed as the server changes it, and what the server answers: it, or null when none. */
+  const changeRepository = (orgId: string, change: (r: WikiRepository) => Partial<WikiRepository>) => {
+    const before = repositories.get(orgId);
+    if (!before) return null;
+    const after = { ...before, ...change(before) };
+    repositories.set(orgId, after);
+    return clone(after);
+  };
+  const fake: ApiClient["wiki"] = {
     tree: async (orgId) => (await store(orgId)).map(summary),
     get: async (orgId, slug) => withBacklinks(orgId, await find(orgId, slug)),
     search: async (orgId, q) => {
@@ -330,7 +389,8 @@ export function createFakeWiki(ctx: MockContext, log: (method: string, ...args: 
     },
     repository: async (orgId) => {
       log("wiki.repository", orgId);
-      return null;
+      const kept = repositories.get(orgId);
+      return kept ? clone(kept) : null;
     },
     checkRepository: async (orgId, input) => {
       log("wiki.checkRepository", orgId, input);
@@ -346,42 +406,49 @@ export function createFakeWiki(ctx: MockContext, log: (method: string, ...args: 
         url: `https://github.com/${owner}/${repo}`,
       };
     },
+    // Another repository, branch or folder replaces the one before, with nothing remembered of it.
     connectRepository: async (orgId, input) => {
       log("wiki.connectRepository", orgId, input);
-      const [owner = "", repo = ""] = input.repository.split("/");
-      return {
-        provider: "github",
+      const [owner = "", repo = ""] = input.repository.replace(/^https?:\/\/(www\.)?github\.com\//, "").split("/");
+      const connected = wikiRepositoryOf({
         owner,
         repo,
-        branch: "main",
+        branch: input.branch ?? "main",
         path: input.path ?? "",
         url: `https://github.com/${owner}/${repo}`,
-        writable: true,
-        public: false,
         commitMode: input.commitMode ?? "direct",
         prBranch: input.prBranch ?? "agentes/wiki",
-        pullRequest: null,
-        status: "active",
-        errorCode: null,
         syncing: true,
         syncedAt: null,
-        notifiedAt: null,
         notes: 0,
-        pending: 0,
-        held: [],
-        removalsWaiting: null,
-      };
+      });
+      repositories.set(orgId, connected);
+      return clone(connected);
     },
+    // Saving how it writes starts a stopped sync again.
     setRepositoryWriting: async (orgId, input) => {
       log("wiki.setRepositoryWriting", orgId, input);
-      return null;
+      return changeRepository(orgId, (r) => ({
+        commitMode: input.commitMode ?? r.commitMode,
+        prBranch: input.prBranch ?? r.prBranch,
+        status: "active",
+        errorCode: null,
+        removalsWaiting: null,
+        syncing: true,
+      }));
     },
     syncRepository: async (orgId, input) => {
       log("wiki.syncRepository", orgId, input);
-      return null;
+      return changeRepository(orgId, () => ({
+        status: "active",
+        errorCode: null,
+        removalsWaiting: null,
+        syncing: true,
+      }));
     },
     disconnectRepository: async (orgId) => {
       log("wiki.disconnectRepository", orgId);
+      repositories.delete(orgId);
     },
     import: async (orgId, input) => {
       log("wiki.import", orgId, input);
@@ -433,4 +500,6 @@ export function createFakeWiki(ctx: MockContext, log: (method: string, ...args: 
       return withBacklinks(orgId, s);
     },
   };
+  repositoriesOf.set(fake, repositories);
+  return fake;
 }

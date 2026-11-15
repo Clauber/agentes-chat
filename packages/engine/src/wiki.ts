@@ -1,6 +1,7 @@
 import { contentWords, type PubSub } from "@agenteschat/adapters";
 import {
   and,
+  arrayOverlaps,
   asc,
   type Database,
   desc,
@@ -1365,7 +1366,9 @@ export const wikiRepositoryMergeNote = (version: number) => `merged version ${ve
 
 /**
  * Names a page also answers to (a note's frontmatter `aliases`), added to the ones it has: `[[Alias]]` links reach
- * it, the ones written before it had the name too.
+ * it, the ones written before it had the name too. Never a name another page of the workspace holds (its slug or an
+ * earlier one), live or in the trash: the links written for that page, and the ones waiting for it to come back, stay
+ * its own.
  */
 export async function addWikiPageAliases(db: Database, orgId: string, pageId: string, names: string[]) {
   const wanted = [...new Set(names.map((n) => wikiSlug(n)).filter(Boolean))];
@@ -1376,7 +1379,15 @@ export async function addWikiPageAliases(db: Database, orgId: string, pageId: st
       .from(wikiPages)
       .where(and(eq(wikiPages.id, pageId), eq(wikiPages.orgId, orgId)));
     if (!page) return;
-    const aliases = [...new Set([...page.aliases, ...wanted])].filter((a) => a !== page.slug).slice(-20);
+    const others = await tx
+      .select({ id: wikiPages.id, slug: wikiPages.slug, aliases: wikiPages.aliases })
+      .from(wikiPages)
+      .where(
+        and(eq(wikiPages.orgId, orgId), or(inArray(wikiPages.slug, wanted), arrayOverlaps(wikiPages.aliases, wanted))),
+      );
+    const taken = new Set(others.filter((o) => o.id !== page.id).flatMap((o) => [o.slug, ...o.aliases]));
+    const fresh = wanted.filter((a) => !taken.has(a));
+    const aliases = [...new Set([...page.aliases, ...fresh])].filter((a) => a !== page.slug).slice(-20);
     if (aliases.length === page.aliases.length && aliases.every((a) => page.aliases.includes(a))) return;
     const [saved] = await tx.update(wikiPages).set({ aliases }).where(eq(wikiPages.id, page.id)).returning();
     if (saved) await claimLinks(tx, saved);

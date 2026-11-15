@@ -20,14 +20,18 @@ export interface NoteRemote {
    */
   commit(input: RemoteCommit): Promise<string | "moved">;
   /**
-   * The same commit on the wiki's own branch (`branch`, moved there whatever it held), and one open pull request from
-   * it into `base`, made or brought up to date: its number and address. `moved` as `commit`'s.
+   * The same commit on the wiki's own branch (`branch`), and one open pull request from it into `base`, made or
+   * brought up to date: its number, address and the commit now on the branch (`head`). The branch is made when
+   * missing, and moved only while it is at `owned` (the commit the wiki last put there): a branch someone else made or
+   * pushed to is refused (`RepoRefusal` `wiki.repo_pr_branch_taken`). `moved` as `commit`'s.
    */
-  propose(input: RemoteProposal): Promise<{ number: number; url: string } | "moved">;
+  propose(input: RemoteProposal): Promise<{ number: number; url: string; head: string } | "moved">;
   /** Where a pull request of the wiki's stands. */
   proposal(number: number): Promise<"open" | "merged" | "closed" | "missing">;
   /** Closes a pull request of the wiki's that no longer holds anything to change. */
   withdraw(number: number): Promise<void>;
+  /** Removes the wiki's own branch, only while it is still at `at`; a branch gone or moved by someone is left alone. */
+  dropBranch(branch: string, at: string): Promise<void>;
 }
 
 export interface RemoteProposal extends RemoteCommit {
@@ -35,6 +39,8 @@ export interface RemoteProposal extends RemoteCommit {
   base: string;
   title: string;
   body: string;
+  /** The commit the wiki last put on `branch`; null when it has put none (the branch must then be missing). */
+  owned: string | null;
 }
 
 export interface RemoteNote {

@@ -110,18 +110,38 @@ export async function publicBranch(access: PublicRepoAccess, branch: string | nu
   return { defaultBranch, branch: name, head };
 }
 
-/** `linkedRepository`'s refusals as the sync's: what a retry won't change stops it, the rest tries again later. */
+/** An archive past what is read: its download over 50 MB, or more files than a zip without zip64 lists. */
+const TOO_LARGE = new Set(["skill.repo_too_large", "skill.too_many_files"]);
+
+/**
+ * `linkedRepository`'s refusals as the sync's: what a retry won't change stops it, the rest tries again later. A
+ * retry downloads the whole archive again, so one that will fail the same way never gets one.
+ */
 function asSync(error: unknown): never {
   if (error instanceof TooManyError) throw new GitHubBusy(error.message);
   if (error instanceof GithubMissingError) throw new RepoRefusal("wiki.repo_missing");
   if (error instanceof ValidationError) {
     if (error.code === "github.unreachable") throw new GitHubBusy(error.message);
-    if (error.code === "skill.repo_too_large") throw new RepoRefusal("wiki.repo_too_large");
+    if (TOO_LARGE.has(error.code)) throw new RepoRefusal("wiki.repo_too_large");
+    // Not a zip, or a corrupt one: the same commit's archive reads the same way every time.
+    if (error.code === "skill.bad_zip") throw new RepoRefusal("wiki.repo_unreadable");
     if (error.code === "github.repo_missing") throw new RepoRefusal("wiki.repo_missing");
     // The commit is gone (the branch was rewritten): the next look starts from where it is now.
     if (error.code === "github.ref_missing") throw new Error(error.message);
   }
   throw error;
+}
+
+/**
+ * A note's bytes. Inflating fails the same way every time on the same bytes (a corrupt entry, or one that inflates
+ * past the size it declares), so the sync stops on it rather than download the archive again.
+ */
+function inflated(zip: Uint8Array, entry: ZipListing) {
+  try {
+    return inflateZipEntry(zip, entry);
+  } catch {
+    throw new RepoRefusal("wiki.repo_unreadable");
+  }
 }
 
 /** Archives read at once by this process: each is up to 50 MB in memory while its sync runs. */
@@ -144,9 +164,48 @@ async function oneArchiveAtATime<T>(run: () => Promise<T>): Promise<T> {
   }
 }
 
+/** A commit's archive: its bytes, and every file in it by its path from the repository's root. */
+interface Archive {
+  zip: Uint8Array;
+  files: Map<string, ZipListing>;
+}
+
 /**
- * The repository as a read-only `NoteRemote`: one archive read per sync. A note is inflated to tell its blob, and
- * again when `read`: only the archive stays in memory, never every note's text.
+ * How long the last archive listed stays after its last use: a first sync of a large repository goes in steps, each
+ * a job of its own soon after the one before, and each would download the whole archive again.
+ */
+const ARCHIVE_KEPT_MS = 5 * 60_000;
+/** The archive kept, one at most (up to 50 MB), by workspace, repository and commit. */
+let kept: { key: string; archive: Archive; timer: ReturnType<typeof setTimeout> } | null = null;
+
+function release() {
+  if (kept) clearTimeout(kept.timer);
+  kept = null;
+}
+
+function keep(key: string, archive: Archive) {
+  release();
+  const timer = setTimeout(release, ARCHIVE_KEPT_MS);
+  // Letting it go never holds the process open.
+  timer.unref?.();
+  kept = { key, archive, timer };
+}
+
+/** A commit's archive downloaded; the one kept is let go first, so that one never stays beside a download. */
+async function download(access: PublicRepoAccess, commit: string): Promise<Archive> {
+  release();
+  const repo = `${encodeURIComponent(access.owner)}/${encodeURIComponent(access.repo)}`;
+  const { zip, files } = await linkedRepository(
+    { db: access.db, fetch: access.fetch, resolveHost: access.resolveHost },
+    access.orgId,
+    `https://github.com/${repo}/tree/${commit}`,
+  ).catch(asSync);
+  return { zip, files };
+}
+
+/**
+ * The repository as a read-only `NoteRemote`: one archive read per commit, kept a while for the sync's next step. A
+ * note is inflated to tell its blob, and again when `read`: only the archive stays in memory, never every note's text.
  */
 export function publicRemote(access: PublicRepoAccess): NoteRemote {
   let archive: { zip: Uint8Array; entries: Map<string, ZipListing> } | null = null;
@@ -165,17 +224,14 @@ export function publicRemote(access: PublicRepoAccess): NoteRemote {
 
     list(commit, folder) {
       return oneArchiveAtATime(async () => {
-        const url = `https://github.com/${encodeURIComponent(access.owner)}/${encodeURIComponent(access.repo)}/tree/${commit}`;
-        const { zip, files: all } = await linkedRepository(
-          { db: access.db, fetch: access.fetch, resolveHost: access.resolveHost },
-          access.orgId,
-          url,
-        ).catch(asSync);
+        const key = `${access.orgId}:${access.owner}/${access.repo}@${commit}`;
+        const got = kept?.key === key ? kept.archive : await download(access, commit);
+        const { zip } = got;
         const prefix = folder ? `${folder}/` : "";
         const files = new Map<string, RemoteNote>();
         const entries = new Map<string, ZipListing>();
         let bytes = 0;
-        for (const [full, entry] of all) {
+        for (const [full, entry] of got.files) {
           if (!full.startsWith(prefix)) continue;
           const path = full.slice(prefix.length);
           if (!NOTE_FILE.test(path) || LEFT_OUT_PATH.test(path)) continue;
@@ -188,10 +244,12 @@ export function publicRemote(access: PublicRepoAccess): NoteRemote {
           // The sizes are the archive's word, and inflating stops at them: a lie can't take more memory than this.
           bytes += entry.size;
           if (bytes > PUBLIC_NOTES_MAX_BYTES) throw new RepoRefusal("wiki.repo_too_large");
-          const sha = gitBlobSha(inflateZipEntry(zip, entry));
+          const sha = gitBlobSha(inflated(zip, entry));
           entries.set(sha, entry);
           files.set(path, { sha, size: entry.size });
         }
+        // Only an archive whose notes were listed is worth another step: one refused here would be refused again.
+        keep(key, got);
         archive = { zip, entries };
         return { files };
       });
@@ -200,7 +258,7 @@ export function publicRemote(access: PublicRepoAccess): NoteRemote {
     async read(blob) {
       const entry = archive?.entries.get(blob);
       if (!archive || !entry) throw new Error(`note ${blob} isn't in the archive read`);
-      return Buffer.from(inflateZipEntry(archive.zip, entry)).toString("utf8");
+      return Buffer.from(inflated(archive.zip, entry)).toString("utf8");
     },
 
     commit() {
@@ -213,6 +271,10 @@ export function publicRemote(access: PublicRepoAccess): NoteRemote {
       return Promise.resolve("missing" as const);
     },
     withdraw() {
+      return Promise.resolve();
+    },
+    // It never made a branch there.
+    dropBranch() {
       return Promise.resolve();
     },
   };

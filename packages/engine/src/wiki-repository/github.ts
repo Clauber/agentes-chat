@@ -1,6 +1,13 @@
 import type { GitHubHttp } from "../git/github-app";
 import { LEFT_OUT_PATH, NOTE_FILE } from "./file";
-import { NOTES_MAX, type NoteRemote, type RemoteNote, RepoRefusal } from "./remote";
+import {
+  NOTES_MAX,
+  type NoteRemote,
+  type RemoteCommit,
+  type RemoteNote,
+  type RemoteProposal,
+  RepoRefusal,
+} from "./remote";
 
 /**
  * A wiki's repository on GitHub (ADR 0186): GitHub's git data API (refs, commits, trees, blobs) with an installation
@@ -13,7 +20,10 @@ export interface GitHubRepoAccess {
   repo: string;
 }
 
-/** GitHub didn't answer, or asked to wait (rate limits): the job tries again later; the sync keeps going. */
+/**
+ * GitHub didn't answer, asked to wait (rate limits) or stopped taking the app's token: the job tries again later, with
+ * a fresh token; the sync keeps going.
+ */
 export class GitHubBusy extends Error {
   constructor(message: string) {
     super(message);
@@ -23,10 +33,18 @@ export class GitHubBusy extends Error {
 
 const segments = (path: string) => path.split("/").map(encodeURIComponent).join("/");
 
-/** A call GitHub refuses for now: over a rate limit (primary or secondary), or a server error. */
-function busy(res: Response) {
+/** A secondary rate limit, or the abuse detection it was called before: a 403 may say so in its message alone. */
+const WAIT_MESSAGE = /secondary rate limit|abuse detection/i;
+
+/**
+ * A call GitHub refuses for now: a server error, or over a rate limit, primary or secondary, which a 403 says in its
+ * headers (none remaining, `retry-after`) or only in its message.
+ */
+function busy(res: Response, json: Record<string, unknown> | null) {
   if (res.status >= 500 || res.status === 429) return true;
-  return res.status === 403 && (res.headers.get("x-ratelimit-remaining") === "0" || res.headers.has("retry-after"));
+  if (res.status !== 403) return false;
+  if (res.headers.get("x-ratelimit-remaining") === "0" || res.headers.has("retry-after")) return true;
+  return typeof json?.message === "string" && WAIT_MESSAGE.test(json.message);
 }
 
 async function call(api: GitHubRepoAccess, method: string, path: string, body?: unknown) {
@@ -52,8 +70,11 @@ async function call(api: GitHubRepoAccess, method: string, path: string, body?: 
   } catch (error) {
     throw new GitHubBusy(`GitHub didn't answer ${method} ${path}: ${(error as Error).message}`);
   }
-  if (busy(res)) throw new GitHubBusy(`GitHub answered ${res.status} to ${method} ${path}`);
   const json = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+  // The installation token is cached until 5 minutes before it ends, and a sync may hold its repository for 10: GitHub
+  // no longer taking it says nothing of the repository, and the job tries again with a fresh one.
+  if (res.status === 401) throw new GitHubBusy(`GitHub no longer takes the app's token for ${method} ${path}`);
+  if (busy(res, json)) throw new GitHubBusy(`GitHub answered ${res.status} to ${method} ${path}`);
   return { status: res.status, json: json ?? {} };
 }
 
@@ -124,18 +145,14 @@ export function githubRemote(api: GitHubRepoAccess): NoteRemote {
     return sha;
   };
   /**
-   * A commit on top of `parent` writing and removing those files, its tree made in parts (a part's entries and bytes
-   * bounded, each built on the one before), or `moved` when the parent no longer has a path to remove.
+   * A commit on top of `input.parent` writing and removing those files, its tree made in parts (a part's entries and
+   * bytes bounded, each built on the one before), or `moved` when `from`, the branch the parent was read from, moved.
    */
-  const commitOn = async (
-    parent: string,
-    message: string,
-    writes: { path: string; text: string }[],
-    removes: string[],
-  ): Promise<string | "moved"> => {
+  const commitOn = async (from: string, input: RemoteCommit): Promise<string | "moved"> => {
+    const { parent, message } = input;
     const entries = [
-      ...writes.map((w) => ({ path: w.path, mode: "100644", type: "blob", content: w.text })),
-      ...removes.map((path) => ({ path, mode: "100644", type: "blob", sha: null as string | null })),
+      ...input.writes.map((w) => ({ path: w.path, mode: "100644", type: "blob", content: w.text })),
+      ...input.removes.map((path) => ({ path, mode: "100644", type: "blob", sha: null as string | null })),
     ];
     let base = await rootOf(parent);
     for (let at = 0; at < entries.length || at === 0; ) {
@@ -148,8 +165,13 @@ export function githubRemote(api: GitHubRepoAccess): NoteRemote {
         part.push(entry);
       }
       const made = await call(api, "POST", "/git/trees", { base_tree: base, tree: part });
-      // 422: a path to remove that the parent no longer has; the branch moved under us, or what we remember is off.
-      if (made.status === 422) return "moved";
+      if (made.status === 422) {
+        // A branch that moved meanwhile is listed again and the commit made on its new head. One still at the parent
+        // means GitHub refuses this tree for good (a file and a folder of one name, a path to remove that the parent
+        // lacks): starting over would ask for the same tree, and be refused again, forever.
+        if ((await branchHead(api, from)) !== parent) return "moved";
+        throw new RepoRefusal("wiki.repo_write_refused");
+      }
       if (made.status !== 201 || typeof made.json.sha !== "string") throw refused(made.status);
       base = made.json.sha;
       if (at >= entries.length) break;
@@ -157,6 +179,33 @@ export function githubRemote(api: GitHubRepoAccess): NoteRemote {
     const commit = await call(api, "POST", "/git/commits", { message, tree: base, parents: [parent] });
     if (commit.status !== 201 || typeof commit.json.sha !== "string") throw refused(commit.status);
     return commit.json.sha;
+  };
+  /** The open pull request from the wiki's branch into `base`, brought up to date, or a new one. */
+  const openProposal = async (input: RemoteProposal, made: string) => {
+    const by = encodeURIComponent(`${api.owner}:${input.branch}`);
+    const found = await call(
+      api,
+      "GET",
+      `/pulls?state=open&head=${by}&base=${encodeURIComponent(input.base)}&per_page=1`,
+    );
+    // Not knowing whether one is open would open a second one.
+    if (found.status !== 200 || !Array.isArray(found.json)) throw refused(found.status);
+    const open = (found.json as { number?: number; html_url?: string }[])[0];
+    if (open?.number) {
+      const updated = await call(api, "PATCH", `/pulls/${open.number}`, { title: input.title, body: input.body });
+      if (updated.status !== 200) throw refused(updated.status);
+      return { number: open.number, url: String(open.html_url ?? ""), head: made };
+    }
+    const pull = await call(api, "POST", "/pulls", {
+      title: input.title,
+      body: input.body,
+      head: input.branch,
+      base: input.base,
+      maintainer_can_modify: true,
+    });
+    const number = pull.json.number;
+    if (pull.status !== 201 || typeof number !== "number") throw refused(pull.status);
+    return { number, url: String(pull.json.html_url ?? ""), head: made };
   };
   return {
     async about() {
@@ -203,7 +252,7 @@ export function githubRemote(api: GitHubRepoAccess): NoteRemote {
     },
 
     async commit(input) {
-      const made = await commitOn(input.parent, input.message, input.writes, input.removes);
+      const made = await commitOn(input.branch, input);
       if (made === "moved") return "moved";
       const ref = await call(api, "PATCH", `/git/refs/heads/${segments(input.branch)}`, { sha: made, force: false });
       if (ref.status === 200) return made;
@@ -215,35 +264,29 @@ export function githubRemote(api: GitHubRepoAccess): NoteRemote {
     },
 
     async propose(input) {
-      const made = await commitOn(input.parent, input.message, input.writes, input.removes);
+      const made = await commitOn(input.base, input);
       if (made === "moved") return "moved";
-      // The wiki's branch is its own: rebuilt on the base each time, whatever it held.
-      const ref = await call(api, "PATCH", `/git/refs/heads/${segments(input.branch)}`, { sha: made, force: true });
-      if (ref.status === 404 || ref.status === 422) {
+      // The wiki's branch moves only from the commit the wiki last put there (`owned`): a branch someone else made, or
+      // pushed to since, is theirs (an administrator may name any branch here) and is never written over. Read right
+      // before the move, the commit already made: GitHub moves a ref without checking where it was.
+      const at = await branchHead(api, input.branch);
+      if (at === "missing") {
         const created = await call(api, "POST", "/git/refs", { ref: `refs/heads/${input.branch}`, sha: made });
+        // Made by someone since it was read, or a branch named as its folder (`agentes` for `agentes/wiki`).
+        if (created.status === 422) throw new RepoRefusal("wiki.repo_pr_branch_taken");
         if (created.status !== 201) throw refused(created.status);
-      } else if (ref.status !== 200) throw refused(ref.status);
-      const head = encodeURIComponent(`${api.owner}:${input.branch}`);
-      const found = await call(
-        api,
-        "GET",
-        `/pulls?state=open&head=${head}&base=${encodeURIComponent(input.base)}&per_page=1`,
-      );
-      const open = Array.isArray(found.json) ? (found.json as { number?: number; html_url?: string }[])[0] : undefined;
-      if (open?.number) {
-        await call(api, "PATCH", `/pulls/${open.number}`, { title: input.title, body: input.body });
-        return { number: open.number, url: String(open.html_url ?? "") };
+      } else if (at === input.owned) {
+        const ref = await call(api, "PATCH", `/git/refs/heads/${segments(input.branch)}`, { sha: made, force: true });
+        if (ref.status !== 200) throw refused(ref.status);
+      } else throw new RepoRefusal("wiki.repo_pr_branch_taken");
+      try {
+        return await openProposal(input, made);
+      } catch (error) {
+        // The branch already moved: whatever stops the pull request now, the sync remembers where the branch is, or its
+        // next try would take the wiki's own commit for someone else's.
+        if (error instanceof Error) Object.assign(error, { head: made });
+        throw error;
       }
-      const pull = await call(api, "POST", "/pulls", {
-        title: input.title,
-        body: input.body,
-        head: input.branch,
-        base: input.base,
-        maintainer_can_modify: true,
-      });
-      const number = pull.json.number;
-      if (pull.status !== 201 || typeof number !== "number") throw refused(pull.status);
-      return { number, url: String(pull.json.html_url ?? "") };
     },
 
     async proposal(number) {
@@ -257,6 +300,14 @@ export function githubRemote(api: GitHubRepoAccess): NoteRemote {
     async withdraw(number) {
       const { status } = await call(api, "PATCH", `/pulls/${number}`, { state: "closed" });
       if (status !== 200 && status !== 404 && status !== 422) throw refused(status);
+    },
+
+    async dropBranch(branch, at) {
+      // Only the wiki's own commit is taken away: a branch gone, or moved by someone since, is left as it is.
+      if ((await branchHead(api, branch)) !== at) return;
+      const { status } = await call(api, "DELETE", `/git/refs/heads/${segments(branch)}`);
+      // 404: gone meanwhile; 422: a rule keeps it (a protected branch). Either way it stays as GitHub has it.
+      if (status !== 204 && status !== 404 && status !== 422) throw refused(status);
     },
   };
 }

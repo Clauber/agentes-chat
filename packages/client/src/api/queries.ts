@@ -5422,7 +5422,8 @@ export const useWikiRepository = (orgId: string, enabled = true) => {
 
 /**
  * What connecting a repository would do (its branch, whether the wiki may write there), asked once the name stops
- * changing; a refusal is the query's error. Off while `repository` is empty.
+ * changing; a refusal is the query's error. Off while `repository` is empty. While only the branch is asked again, the
+ * last answer stays until the new one comes (`isPlaceholderData`), so what it decides on screen doesn't blink away.
  */
 export const useWikiRepositoryCheck = (orgId: string, repository: string, branch: string) => {
   const api = useApi();
@@ -5432,6 +5433,8 @@ export const useWikiRepositoryCheck = (orgId: string, repository: string, branch
     enabled: repository.length > 0,
     retry: false,
     staleTime: 60_000,
+    placeholderData: (previous, query) =>
+      query?.queryKey[1] === orgId && query.queryKey[3] === repository ? previous : undefined,
   });
 };
 

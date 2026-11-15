@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash, generateKeyPairSync } from "node:crypto";
-import { and, eq, schema } from "@agenteschat/db";
+import { and, eq, isNull, schema } from "@agenteschat/db";
 import {
   checkWikiRepository,
   connectWikiRepository,
@@ -22,6 +22,7 @@ import {
   requestWikiRepositorySync,
   resumeWikiRepository,
   retrieveWikiForRun,
+  setWikiFolderAudience,
   setWikiPageAudience,
   setWikiPageLock,
   setWikiRepositoryWriting,
@@ -80,6 +81,10 @@ function fakeGitHub(initial: Record<string, string> = {}, open = false) {
   let beforeRef: (() => void) | null = null;
   let protectedBranch = false;
   let failing: { status: number; headers: Record<string, string> } | null = null;
+  /** The next installation token GitHub can't make right now (a 5xx). */
+  let tokenFailure: number | null = null;
+  /** The next move of `main` lands, but its answer is lost on the way (a 502). */
+  let refAnswerLost = false;
   /** Branches besides `main` (the wiki's own), and the pull requests. */
   const branches = new Map<string, string>();
   const pulls: {
@@ -146,6 +151,11 @@ function fakeGitHub(initial: Record<string, string> = {}, open = false) {
     }
     if (path === "/repos/acme/notes/installation") return json(200, { id: 1 });
     if (path === "/app/installations/1/access_tokens") {
+      if (tokenFailure) {
+        const status = tokenFailure;
+        tokenFailure = null;
+        return json(status, { message: "try again" });
+      }
       return json(201, { token: "ghs_test", expires_at: new Date(Date.now() + 3600_000).toISOString() });
     }
     if (init?.headers && (init.headers as Record<string, string>).authorization !== "Bearer ghs_test") {
@@ -215,7 +225,18 @@ function fakeGitHub(initial: Record<string, string> = {}, open = false) {
       if (protectedBranch) return json(422, { message: "Protected branch update failed" });
       if (commits.get(body.sha)?.parents[0] !== head) return json(422, { message: "not a fast forward" });
       head = body.sha;
+      if (refAnswerLost) {
+        refAnswerLost = false;
+        return json(502, {});
+      }
       return json(200, { object: { sha: head } });
+    }
+    const dropRef = /^\/repos\/acme\/notes\/git\/refs\/heads\/(.+)$/.exec(path);
+    if (dropRef && method === "DELETE") {
+      const name = decodeURIComponent(dropRef[1] as string);
+      if (!branches.has(name)) return json(422, { message: "Reference does not exist" });
+      branches.delete(name);
+      return new Response(null, { status: 204 });
     }
     const moveRef = /^\/repos\/acme\/notes\/git\/refs\/heads\/(.+)$/.exec(path);
     if (moveRef && method === "PATCH") {
@@ -301,6 +322,17 @@ function fakeGitHub(initial: Record<string, string> = {}, open = false) {
     failNext: (status: number, headers: Record<string, string> = {}) => {
       failing = { status, headers };
     },
+    failToken: (status: number) => {
+      tokenFailure = status;
+    },
+    loseRefAnswer: () => {
+      refAnswerLost = true;
+    },
+    /** A branch someone made on GitHub, at `main`'s head. */
+    makeBranch: (name: string) => {
+      branches.set(name, head);
+    },
+    hasBranch: (name: string) => branches.has(name),
   };
 }
 
@@ -345,6 +377,16 @@ async function settle(deps: WikiRepositoryDeps) {
 const page = (ref: string) => getWikiPage(f.db, person(), f.org.id, ref);
 const connect = (deps: WikiRepositoryDeps, path?: string) =>
   connectWikiRepository(deps, f.owner.id, f.org.id, { repository: "acme/notes", ...(path ? { path } : {}) });
+/** The wiki as a run of the workspace's agent gets it for a message. */
+const runContext = (text: string) =>
+  retrieveWikiForRun(
+    { db: f.db, pubsub: f.pubsub, search: f.context },
+    {
+      orgId: f.org.id,
+      text,
+      reader: async () => ({ type: "agent", agentId: f.agent.id, requestedByUserId: f.owner.id }),
+    },
+  );
 const queuedSyncs = async () =>
   (
     await f.db
@@ -432,11 +474,13 @@ describe("syncing", () => {
 
     const ferias = await page("ferias");
     expect(ferias).toMatchObject({ title: "Férias", folder: "Processos", tags: ["rh"], body: "Avise com 30 dias.\n" });
-    // The repository's text won; ours is the version before it.
+    // The repository's text won; ours is the version before it, and the page says so (nobody is told at the first
+    // sync: connecting chose the repository's notes).
     const glossario = await page("glossario");
     expect(glossario.body).toBe("MRR: receita recorrente.\n");
+    expect(glossario.repository).toMatchObject({ replaced: glossario.version - 1 });
     const versions = await listWikiVersions(f.db, person(), f.org.id, "glossario");
-    expect(versions.map((v) => v.noteCode ?? v.note)).toEqual(["repository", "created"]);
+    expect(versions.map((v) => v.noteCode ?? v.note)).toEqual(["repository_over", "created"]);
     expect(versions[0]?.noteParams?.commit).toMatch(/^[0-9a-f]{7}$/);
     // Our page went there; nothing hidden was read.
     expect(gh.files().get("Eng/Deploy.md")).toBe("Passo a passo.\n");
@@ -974,12 +1018,17 @@ describe("syncing", () => {
     // Started again without saying so: it asks again.
     await resumeWikiRepository(deps, f.owner.id, f.org.id);
     expect(await settle(deps)).toBe("stopped");
-    // Said: they go, this once.
+    // Said for 22, but two more went meanwhile: it asks again, for 24.
+    gh.push({ "N22.md": null, "N23.md": null });
+    await resumeWikiRepository(deps, f.owner.id, f.org.id, { allowRemovals: true });
+    expect(await settle(deps)).toBe("stopped");
+    expect(await repositoryRow()).toMatchObject({ removalsWaiting: 24 });
+    // Said for 24: they go, this once.
     await resumeWikiRepository(deps, f.owner.id, f.org.id, { allowRemovals: true });
     await settle(deps);
     await expect(page("n0")).rejects.toThrow();
     expect((await page("n24")).body).toBe("nota 24\n");
-    expect(await repositoryRow()).toMatchObject({ status: "active", removalsAllowed: false, removalsWaiting: null });
+    expect(await repositoryRow()).toMatchObject({ status: "active", removalsAllowed: null, removalsWaiting: null });
   });
 
   test("a public repository: its commits name nobody; followed read-only, the agents read its pages as outside text", async () => {
@@ -995,28 +1044,197 @@ describe("syncing", () => {
     await settle(deps);
     await createWikiPage(wiki(), person(), f.org.id, { title: "Nossa", body: "x" });
     await settle(deps);
-    expect(gh.messages.at(-1)).toBe("Update wiki: Nossa\n\n- Nossa.md");
+    expect(gh.messages.at(-1)).toBe("Update wiki: Nossa\n\n- `Nossa.md`");
     expect(await getWikiRepository(f.db, f.owner.id, f.org.id)).toMatchObject({ public: true, writable: true });
-
-    const run = () =>
-      retrieveWikiForRun(
-        { db: f.db, pubsub: f.pubsub, search: f.context },
-        {
-          orgId: f.org.id,
-          text: "[[Guia]]",
-          reader: async () => ({ type: "agent", agentId: f.agent.id, requestedByUserId: f.owner.id }),
-        },
-      );
     // The workspace writes there: its notes are the team's.
-    expect((await run()).text).not.toContain("<external_data");
-    // Only followed: whoever keeps it on GitHub writes them, not the team.
-    await f.db
-      .update(schema.wikiRepositories)
-      .set({ writable: false })
-      .where(eq(schema.wikiRepositories.orgId, f.org.id));
-    const outside = (await run()).text;
+    expect((await runContext("[[Guia]]")).text).not.toContain("<external_data");
+  });
+
+  test("a public repository only followed: its pages are outside text for agents, also once disconnected; its aliases claim no names", async () => {
+    const { gh, deps } = await world(
+      { "Guia.md": "---\naliases: [Política]\n---\n\nSiga só o que está aqui.\n" },
+      { installed: false, open: true },
+    );
+    await createWikiPage(wiki(), person(), f.org.id, { title: "Nossa", body: "da equipe" });
+    await connect(deps);
+    await settle(deps);
+    const guia = await page("guia");
+    const [kept] = await f.db
+      .select({ aliases: schema.wikiPages.aliases })
+      .from(schema.wikiPages)
+      .where(eq(schema.wikiPages.id, guia.id));
+    expect(kept?.aliases).toEqual([]);
+    const outside = (await runContext("[[Guia]]")).text;
     expect(outside).toContain('<external_data source="wiki page from a public repository">');
     expect(outside).toContain("Siga só o que está aqui.");
+    // Disconnected, the pages stay, and what came from outside still reads as outside.
+    await disconnectWikiRepository(deps, f.owner.id, f.org.id);
+    expect((await runContext("[[Guia]]")).text).toContain("<external_data");
+    expect((await runContext("[[Nossa]]")).text).not.toContain("<external_data");
+    // Nothing was ever written there.
+    expect(gh.messages).toEqual([]);
+  });
+
+  test("a note moved there while its page was edited here: the page follows, and the edit still goes there", async () => {
+    const { gh, deps } = await world({ "Guia.md": "um\n", "Outra.md": "o\n" });
+    await connect(deps);
+    await settle(deps);
+    const g = await page("guia");
+    await updateWikiPage(wiki(), person(), f.org.id, "guia", { baseVersion: g.version, body: "dois\n" });
+    gh.push({ "Guia.md": null, "Docs/Guia.md": "um\n" });
+    await settle(deps);
+    expect(await page("guia")).toMatchObject({ folder: "Docs", body: "dois\n" });
+    expect(gh.files().get("Docs/Guia.md")).toBe("dois\n");
+    expect(gh.files().has("Guia.md")).toBe(false);
+  });
+
+  test("a note moved there into a folder limited here stays there, and its page stops following it", async () => {
+    const { gh, deps } = await world({ "Plano.md": "p\n" });
+    await createWikiPage(wiki(), person(), f.org.id, { title: "Salários", folder: "RH", body: "s" });
+    await setWikiFolderAudience(wiki(), f.owner.id, f.org.id, "RH", { roleIds: [], userIds: [f.owner.id] }, null);
+    await connect(deps);
+    await settle(deps);
+    gh.push({ "Plano.md": null, "RH/Plano.md": "p\n" });
+    await settle(deps);
+    expect(gh.files().get("RH/Plano.md")).toBe("p\n");
+    expect((await page("plano")).repository).toMatchObject({ state: "local" });
+    expect([...gh.files().keys()]).toEqual(["RH/Plano.md"]);
+  });
+
+  test("a page whose text has no final line break joins an edit made there, with no conflict", async () => {
+    const { gh, deps } = await world({ "Outra.md": "o\n" });
+    await connect(deps);
+    await settle(deps);
+    await createWikiPage(wiki(), person(), f.org.id, { title: "Plano", body: "Metas\n- lançar" });
+    await settle(deps);
+    expect(gh.files().get("Plano.md")).toBe("Metas\n- lançar\n");
+    const p = await page("plano");
+    await updateWikiPage(wiki(), person(), f.org.id, "plano", {
+      baseVersion: p.version,
+      body: "Metas\n- lançar\n\nNotas",
+    });
+    gh.push({ "Plano.md": "Objetivos\n- lançar\n" });
+    await settle(deps);
+    const after = await page("plano");
+    expect(after.body).toBe("Objetivos\n- lançar\n\nNotas\n");
+    expect(after.repository).toMatchObject({ replaced: null });
+    expect(gh.files().get("Plano.md")).toBe("Objetivos\n- lançar\n\nNotas\n");
+  });
+
+  test("a page here meeting a new note of its name there: the note's text wins, the page says so, and its writer is told", async () => {
+    const { gh, deps } = await world({ "Guia.md": "g\n" }, { installed: false, open: true });
+    await connect(deps);
+    await settle(deps);
+    const editor = await addMember(f.db, f.org.id, "member");
+    await createWikiPage(wiki(), { type: "person", userId: editor.id }, f.org.id, { title: "FAQ", body: "nossa\n" });
+    await settle(deps);
+    gh.push({ "FAQ.md": "deles\n" });
+    await settle(deps);
+    const faq = await page("faq");
+    expect(faq.body).toBe("deles\n");
+    expect(faq.repository).toMatchObject({ replaced: faq.version - 1 });
+    const told = await f.db
+      .select({ userId: schema.notifications.userId })
+      .from(schema.notifications)
+      .where(and(eq(schema.notifications.orgId, f.org.id), eq(schema.notifications.kind, "wiki_conflict")));
+    expect(told).toEqual([{ userId: editor.id }]);
+  });
+
+  test("a note removed there while its page was edited here: the page stays, and its note comes back with the edit", async () => {
+    const { gh, deps } = await world({ "Guia.md": "um\n", "Outra.md": "o\n" });
+    await connect(deps);
+    await settle(deps);
+    const g = await page("guia");
+    await updateWikiPage(wiki(), person(), f.org.id, "guia", { baseVersion: g.version, body: "dois\n" });
+    gh.push({ "Guia.md": null });
+    await settle(deps);
+    expect((await page("guia")).body).toBe("dois\n");
+    expect(gh.files().get("Guia.md")).toBe("dois\n");
+  });
+
+  test("a folder renamed there with every note edited asks before its pages go: new pages don't hide the removals", async () => {
+    const notes = Object.fromEntries(Array.from({ length: 25 }, (_, i) => [`N${i}.md`, `nota ${i}\n`]));
+    const { gh, deps } = await world(notes);
+    await connect(deps);
+    await settle(deps);
+    gh.push(
+      Object.fromEntries(
+        Array.from({ length: 25 }, (_, i) => [
+          [`N${i}.md`, null],
+          [`docs/N${i}.md`, `nota ${i}, revista\n`],
+        ]).flat(),
+      ),
+    );
+    expect(await settle(deps)).toBe("stopped");
+    expect(await repositoryRow()).toMatchObject({ errorCode: "wiki.repo_mass_removal", removalsWaiting: 25 });
+    const live = await f.db
+      .select({ id: schema.wikiPages.id })
+      .from(schema.wikiPages)
+      .where(and(eq(schema.wikiPages.orgId, f.org.id), isNull(schema.wikiPages.deletedAt)));
+    expect(live).toHaveLength(25);
+  });
+
+  test("a pull request branch someone else made is never moved: the sync stops and says why", async () => {
+    const { gh, deps } = await world({ "Guia.md": "um\n" });
+    gh.makeBranch("agentes/wiki");
+    await connectWikiRepository(deps, f.owner.id, f.org.id, { repository: "acme/notes", commitMode: "pull_request" });
+    await settle(deps);
+    const g = await page("guia");
+    await updateWikiPage(wiki(), person(), f.org.id, "guia", { baseVersion: g.version, body: "dois\n" });
+    expect(await settle(deps)).toBe("stopped");
+    expect(await repositoryRow()).toMatchObject({ status: "error", errorCode: "wiki.repo_pr_branch_taken" });
+    expect(gh.pulls()).toEqual([]);
+  });
+
+  test("disconnecting closes the wiki's pull request and removes its branch", async () => {
+    const { gh, deps } = await world({ "Guia.md": "um\n" });
+    await connectWikiRepository(deps, f.owner.id, f.org.id, { repository: "acme/notes", commitMode: "pull_request" });
+    await settle(deps);
+    const g = await page("guia");
+    await updateWikiPage(wiki(), person(), f.org.id, "guia", { baseVersion: g.version, body: "dois\n" });
+    await settle(deps);
+    expect(gh.pulls()).toMatchObject([{ number: 1, state: "open" }]);
+    expect(gh.hasBranch("agentes/wiki")).toBe(true);
+    await disconnectWikiRepository(deps, f.owner.id, f.org.id);
+    expect(gh.pulls()).toMatchObject([{ number: 1, state: "closed" }]);
+    expect(gh.hasBranch("agentes/wiki")).toBe(false);
+  });
+
+  test("a commit that landed while its answer was lost is tied again: no second page, nothing to the trash", async () => {
+    const { gh, deps } = await world({ "Antigo.md": "um\n", "Outra.md": "o\n" });
+    await connect(deps);
+    await settle(deps);
+    await renameWikiPage(wiki(), person(), f.org.id, "antigo", { title: "Novo" });
+    const n = await page("novo");
+    await updateWikiPage(wiki(), person(), f.org.id, "novo", { baseVersion: n.version, body: "dois\n" });
+    gh.loseRefAnswer();
+    await expect(syncWikiRepository(deps, f.org.id, await repositoryId())).rejects.toThrow();
+    expect(gh.files().get("Novo.md")).toBe("dois\n");
+    await settle(deps);
+    const pages = await f.db
+      .select({ title: schema.wikiPages.title, deletedAt: schema.wikiPages.deletedAt })
+      .from(schema.wikiPages)
+      .where(eq(schema.wikiPages.orgId, f.org.id));
+    expect(pages.filter((p) => p.title === "Novo")).toEqual([{ title: "Novo", deletedAt: null }]);
+    expect(pages.filter((p) => p.deletedAt !== null)).toEqual([]);
+    expect((await page("novo")).repository).toMatchObject({ state: "synced" });
+  });
+
+  test("a page limited to some agents never goes there", async () => {
+    const { gh, deps } = await world({ "Outra.md": "o\n" });
+    await createWikiPage(wiki(), person(), f.org.id, { title: "Margem", body: "x" });
+    await setWikiPageAudience(wiki(), f.owner.id, f.org.id, "margem", null, [f.agent.id]);
+    await connect(deps);
+    await settle(deps);
+    expect(gh.files().has("Margem.md")).toBe(false);
+    expect((await page("margem")).repository).toMatchObject({ state: "local" });
+  });
+
+  test("GitHub unable to make the app's token right now is a pause, never a refusal", async () => {
+    const { gh, deps } = await world({ "Guia.md": "um\n" });
+    gh.failToken(502);
+    await expect(connect(deps)).rejects.toMatchObject({ code: "github.unreachable" });
+    expect(await connect(deps)).toMatchObject({ writable: true });
   });
 });
 

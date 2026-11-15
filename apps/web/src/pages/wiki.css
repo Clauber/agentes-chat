@@ -1737,19 +1737,29 @@ html:not([data-pointer]) .wiki-graph__node:focus-visible {
   }
 }
 
-/* The wiki's repository (ADR 0186): a line at the column's foot while the two stopped following each other. */
+/* The wiki's repository (ADR 0186): while the two stopped following each other, a line held at the column's foot,
+   over the tree as it scrolls. It reaches over the column's padding to its edges, as the selection bar does. */
 .wiki-repo-stopped {
-  display: inline-flex;
+  position: sticky;
+  bottom: -18px;
+  z-index: 1;
+  display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 8px;
-  padding: 0 8px;
+  margin: auto -16px -18px;
+  padding: 12px 24px 16px;
   border: 0;
-  background: none;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
   font: inherit;
   font-size: 13px;
   text-align: start;
   cursor: pointer;
+}
+/* Import › GitHub's choice between keeping in sync and importing once, above whichever body it swaps in: as far from
+   that body's first field as its fields are from each other. */
+.wiki-repo-choice {
+  padding-bottom: 14px;
 }
 .wiki-repo-warn {
   color: var(--warn);

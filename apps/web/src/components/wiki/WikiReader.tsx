@@ -295,12 +295,15 @@ function PageMeta({
   chooseAudience,
   onAudience,
   onHistory,
+  onRepository,
   onTag,
 }: {
   page: WikiPageData;
   chooseAudience: boolean;
   onAudience: () => void;
   onHistory: () => void;
+  /** Opens the wiki's repository dialog, from the page's mark once the sync stopped. */
+  onRepository?: () => void;
   onTag: (tag: string) => void;
 }) {
   const { t, i18n } = useTranslation();
@@ -389,7 +392,7 @@ function PageMeta({
           {t("wiki.locked")}
         </Chip>
       )}
-      <WikiRepositoryMark page={page} onHistory={onHistory} />
+      <WikiRepositoryMark page={page} onHistory={onHistory} onRepository={onRepository} />
       {/* Kept in the wiki's repository: the mark above already says GitHub. */}
       {isImportedPage(page.source?.type) && !(page.repository && page.source?.type === "github") && (
         <span className="wiki-chip">
@@ -628,6 +631,7 @@ export function WikiReader({
   onCreate,
   onDiscard,
   onTag,
+  onRepository,
 }: {
   slug?: string;
   initial?: { title: string; folder: string };
@@ -635,6 +639,8 @@ export function WikiReader({
   onCreate: (title: string, folder?: string) => void;
   onDiscard?: () => void;
   onTag: (tag: string) => void;
+  /** Opens the wiki's repository dialog, from the page's mark while the sync is stopped. */
+  onRepository?: () => void;
 }) {
   const { t, i18n } = useTranslation();
   const { org, me } = useOrg();
@@ -1068,6 +1074,7 @@ export function WikiReader({
                 chooseAudience={choosesAudience}
                 onAudience={() => setAudienceOpen(true)}
                 onHistory={() => setHistoryOpen(true)}
+                onRepository={onRepository}
                 onTag={onTag}
               />
               <div className="wiki-page__body wiki-prose">

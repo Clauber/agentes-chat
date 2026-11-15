@@ -11644,7 +11644,27 @@ export const ptBR = {
         checking: "Conferindo o repositório…",
         canWrite: "{{repo}}, branch {{branch}}: o app do GitHub lê e escreve lá.",
         readOnly: "{{repo}}, branch {{branch}}: público, então a wiki acompanha sem escrever lá.",
+        /** A private repository the GitHub app is installed on, allowed only to read it. */
+        readOnlyPrivate:
+          "{{repo}}, branch {{branch}}: o app do GitHub só pode ler, então a wiki acompanha sem escrever lá.",
         installForWrite: "Para escrever lá também, instale o app do GitHub nesse repositório.",
+        installForWritePrivate:
+          "Para escrever lá também, dê ao app do GitHub permissão para escrever nesse repositório.",
+        /** Before anything is typed, in a workspace where GitHub isn't connected: beside "Abrir Conectores". */
+        privateNeedsApp:
+          "Um repositório privado precisa do app do GitHub instalado nele. Um público funciona como está.",
+        /** Under a repository the GitHub app doesn't reach (its error is said above), beside "Abrir Conectores". */
+        reach: {
+          not_installed: "Instale o app do GitHub nesse repositório e volte para conectá-lo.",
+          no_app: "Nenhum app do GitHub está configurado ainda, então só dá para acompanhar repositórios públicos.",
+          refused:
+            "O app do GitHub está nesse repositório, mas não pode lê-lo. Aceite as permissões dele no GitHub e volte para conectá-lo.",
+        },
+        /** The repository list's last option, once its search holds a repository's name that the list doesn't. */
+        useAddress: "Usar {{repo}}",
+        /** Changing the repository, branch or folder the wiki follows. */
+        replaces:
+          "Conectar substitui o que a wiki acompanha agora. As páginas ficam aqui, e as notas no GitHub ficam como estão.",
         openConnectors: "Abrir Conectores",
         more: "Pasta e branch",
         search: "Buscar repositórios",
@@ -11679,10 +11699,19 @@ export const ptBR = {
           "O pull request #{{number}} foi fechado sem ser aceito: essas mudanças esperam aqui até mudarem de novo.",
         readOnly:
           "O app do GitHub não está instalado em {{repo}}, ou só pode ler: a wiki acompanha o repositório, e o que muda aqui fica aqui. Instale o app nele, com permissão para escrever, para mandar as mudanças daqui também.",
+        readOnlyPrivate:
+          "O app do GitHub só pode ler {{repo}}: a wiki acompanha o repositório, e o que muda aqui fica aqui. Dê ao app permissão para escrever lá para mandar as mudanças daqui também.",
         noteDisconnect: "Desconectar deixa as páginas aqui e as notas lá, como estão.",
         noteStopped: "Enquanto isso, o que for escrito aqui fica aqui e vai para o repositório quando ele voltar.",
         allowRemovals: "Mandar essas páginas para a lixeira",
+        /** Opens the connect form filled in with what the wiki follows now: connecting there replaces it. */
+        change: "Trocar repositório, branch ou pasta",
         disconnect: "Desconectar",
+        /** Under "Desconectar {{name}}?". */
+        disconnectText:
+          "A wiki deixa de acompanhar {{repo}}. As páginas ficam aqui e as notas ficam no GitHub, como estão.",
+        disconnectTextPr:
+          "A wiki deixa de acompanhar {{repo}} e fecha o pull request #{{number}} dela lá. As páginas ficam aqui e as notas ficam no GitHub, como estão.",
         open: "Abrir no GitHub",
         syncNow: "Atualizar agora",
         retry: "Tentar de novo",
@@ -11699,6 +11728,8 @@ export const ptBR = {
         noneDesc: "A wiki recebe o que muda no GitHub, e o que muda aqui fica aqui.",
         branch: "Branch do pull request",
         branchHelp: "A wiki refaz essa branch a cada mudança: edite a wiki, não essa branch.",
+        /** Under the pull request's branch, once the sync stopped because GitHub has a branch of that name already. */
+        branchTaken: "Essa branch já existe no GitHub e não é da wiki. Escolha outro nome.",
         now: {
           direct: "A wiki faz commits direto em {{branch}}.",
           pull_request: "A wiki propõe as mudanças num pull request para {{branch}}.",
@@ -11721,25 +11752,60 @@ export const ptBR = {
         depth: "Pastas demais umas dentro das outras",
         other: "Não deu para virar página",
       },
+      /** Why the sync stopped, for an admin: what to do next, with the dialog's buttons ("Tentar de novo"). */
       why: {
         not_installed:
-          "O app do GitHub não alcança mais {{repo}}, e ele não é público. Um admin adiciona o repositório ao app no GitHub, e a wiki volta a acompanhá-lo.",
+          "O app do GitHub não alcança mais {{repo}}, e ele não é público. Adicione o repositório ao app no GitHub, a partir de Conectores, e clique em Tentar de novo.",
         refused:
-          "O app do GitHub não pode ler {{repo}}. Um admin aceita as permissões do app no GitHub, e a wiki volta a acompanhá-lo.",
-        branch_missing: "A branch em que a wiki ficava sumiu de {{repo}}. Conecte o repositório de novo.",
-        empty: "{{repo}} ainda não tem nenhum arquivo. Adicione um primeiro arquivo e tente de novo.",
-        missing: "{{repo}} sumiu, ou não dá mais para lê-lo.",
-        too_large: "{{repo}} tem notas demais para acompanhar. Conecte uma das pastas dele.",
-        owner_gone: "Quem conectou {{repo}} não é mais admin aqui. Um admin retoma por aqui.",
+          "O app do GitHub não pode ler {{repo}}. Aceite as permissões do app no GitHub, a partir de Conectores, e clique em Tentar de novo.",
+        branch_missing:
+          "A branch em que a wiki ficava, {{branch}}, sumiu de {{repo}}. Escolha outra branch, ou traga-a de volta no GitHub e clique em Tentar de novo.",
+        empty: "{{repo}} ainda não tem nenhum arquivo. Adicione um primeiro arquivo e clique em Tentar de novo.",
+        missing: "{{repo}} sumiu, ou não dá mais para lê-lo. Se ele mudou de lugar ou de nome, escolha-o de novo.",
+        too_large: "{{repo}} tem notas demais para acompanhar. Escolha uma das pastas dele.",
+        owner_gone: "Quem conectou {{repo}} não é mais admin aqui. Clique em Tentar de novo para seguir em seu nome.",
         folder_missing:
-          "A pasta da wiki sumiu de {{repo}}, ou está vazia. Nada foi apagado aqui: conecte o repositório de novo com a pasta certa.",
+          "A pasta da wiki sumiu de {{repo}}, ou está vazia. Nada foi apagado aqui. Escolha a pasta certa, ou devolva as notas no GitHub e clique em Tentar de novo.",
         no_app:
-          "{{repo}} não é público, e nenhum app do GitHub está configurado para alcançá-lo. Um admin configura um em Conectores, e a wiki volta a acompanhá-lo.",
+          "{{repo}} não é público, e nenhum app do GitHub está configurado para alcançá-lo. Configure um em Conectores e clique em Tentar de novo.",
         protected:
-          "{{repo}} não aceita commits direto nessa branch (ela é protegida). Escolha “Por pull request”, ou deixe o app do GitHub enviar para ela.",
+          "{{repo}} não aceita commits direto nessa branch (ela é protegida). Escolha “Por pull request” abaixo e salve, ou deixe o app do GitHub enviar para ela e clique em Tentar de novo.",
         mass_removal:
-          "Muitas notas foram removidas de {{repo}} de uma vez ({{count}}), então a wiki parou antes de mandar as páginas delas para a lixeira. Se foi de propósito, mande-as para a lixeira. Se não foi, devolva as notas no GitHub e tente de novo.",
-        other: "A wiki parou de acompanhar {{repo}}. Tente de novo.",
+          "Muitas notas foram removidas de {{repo}} de uma vez ({{count}}), então a wiki parou antes de mandar as páginas delas para a lixeira. Se foi de propósito, mande-as para a lixeira. Se não foi, devolva as notas no GitHub e clique em Tentar de novo.",
+        pr_branch_taken:
+          "A branch do pull request, {{prBranch}}, já existe em {{repo}} e não é da wiki. Escolha outro nome para ela abaixo, ou apague essa branch no GitHub e clique em Tentar de novo.",
+        write_refused:
+          "O GitHub recusou a última mudança da wiki em {{repo}}, por exemplo uma página e uma pasta com o mesmo nome. Renomeie o que conflita, aqui ou no GitHub, e clique em Tentar de novo.",
+        unreadable:
+          "Não deu para ler a cópia de {{repo}} no GitHub. Clique em Tentar de novo daqui a pouco. Se continuar parando, instale o app do GitHub no repositório.",
+        other: "A wiki parou de acompanhar {{repo}}. Clique em Tentar de novo.",
+      },
+      /** The same, for everyone else who writes the wiki: they see it stopped, and an admin starts it again. */
+      whyMember: {
+        not_installed:
+          "O app do GitHub não alcança mais {{repo}}, e ele não é público. Um admin pode adicionar o repositório ao app no GitHub e retomar.",
+        refused:
+          "O app do GitHub não pode ler {{repo}}. Um admin pode aceitar as permissões do app no GitHub e retomar.",
+        branch_missing:
+          "A branch em que a wiki ficava, {{branch}}, sumiu de {{repo}}. Um admin pode escolher outra branch e retomar.",
+        empty: "{{repo}} ainda não tem nenhum arquivo. Quando tiver, um admin pode retomar.",
+        missing: "{{repo}} sumiu, ou não dá mais para lê-lo. Se ele mudou de lugar, um admin pode escolhê-lo de novo.",
+        too_large: "{{repo}} tem notas demais para acompanhar. Um admin pode escolher uma das pastas dele.",
+        owner_gone: "Quem conectou {{repo}} não é mais admin aqui. Um admin pode retomar.",
+        folder_missing:
+          "A pasta da wiki sumiu de {{repo}}, ou está vazia. Nada foi apagado aqui. Um admin pode escolher a pasta certa e retomar.",
+        no_app:
+          "{{repo}} não é público, e nenhum app do GitHub está configurado para alcançá-lo. Um admin pode configurar um em Conectores e retomar.",
+        protected:
+          "{{repo}} não aceita commits direto nessa branch (ela é protegida). Um admin pode fazer a wiki escrever por pull request e retomar.",
+        mass_removal:
+          "Muitas notas foram removidas de {{repo}} de uma vez ({{count}}), então a wiki parou antes de mandar as páginas delas para a lixeira. Um admin decide se elas vão e retoma.",
+        pr_branch_taken:
+          "A branch do pull request, {{prBranch}}, já existe em {{repo}} e não é da wiki. Um admin pode escolher outro nome para ela e retomar.",
+        write_refused:
+          "O GitHub recusou a última mudança da wiki em {{repo}}, por exemplo uma página e uma pasta com o mesmo nome. Um admin precisa olhar e retomar.",
+        unreadable: "Não deu para ler a cópia de {{repo}} no GitHub. Um admin pode retomar.",
+        other: "A wiki parou de acompanhar {{repo}}. Um admin pode retomar.",
       },
       page: {
         synced: "No GitHub",
@@ -11787,6 +11853,10 @@ export const ptBR = {
         read: "Ler as notas",
         error: { notGithub: "Cole um link do github.com." },
         mode: { label: "Como as notas vêm", sync: "Manter sincronizado", once: "Importar uma vez" },
+        /** The link names the repository the wiki is kept in: for an admin, then for everyone else. */
+        kept: "A wiki já mantém {{repo}} sincronizado: as notas dele chegam sozinhas, e importá-las uma vez cria cópias. Para trazer agora o que mudou lá, clique em “Atualizar agora” em “Manter sincronizado”.",
+        keptMember:
+          "A wiki já mantém {{repo}} sincronizado: as notas dele chegam sozinhas, e importá-las uma vez cria cópias.",
       },
       anotherLink: "Trocar link",
       dropTitle: "Solte o .zip da vault aqui",

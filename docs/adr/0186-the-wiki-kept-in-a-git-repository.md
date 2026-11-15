@@ -48,7 +48,12 @@ never reaches the repository. Teams don't want a second copy of what they know t
      `wiki_conflict` notice. Conflict markers are never written into a page: agents and people read pages as they
      are.
    The same text on both sides (one edit made twice, a pull request merged as proposed) is no conflict and writes
-   nothing. A locked page follows the repository too: the lock says who edits here. A page sent to the trash here
+   nothing. Texts are compared and joined as the files hold them, with a final line break. The repository's version,
+   the join and what the sync remembers land in one transaction, so a save made between them is never written over.
+   A page here meeting a new note of its name there (nothing tied them yet) takes the note's text the same way, marked
+   over the page's version, its last writer told (not at the first sync: connecting chose the repository's notes). A
+   note removed there while its page changed here keeps the page, and its note goes back: an edit is never thrown away
+   for a removal. A locked page follows the repository too: the lock says who edits here. A page sent to the trash here
    whose note changed there comes back, with its history and links.
 3. **A note is a page.** Every `.md`/`.markdown` file under the folder is a page: its path is the page's folder and
    title, its frontmatter is kept as written, and its `tags` and `aliases` are the page's tags and extra names.
@@ -65,8 +70,9 @@ never reaches the repository. Teams don't want a second copy of what they know t
    its wiki in queues its sync, and the app's own commit, told back, is let go. Every 5 minutes each connected
    repository is looked at anyway, for a webhook that never came (an app made before `push` was in its events, or a
    server GitHub can't reach). A sync on a branch that didn't move asks GitHub only where the branch is.
-6. **Pages limited to some people never leave here.** A page that becomes limited has its note removed from the
-   repository; a note that lands in a folder limited here becomes a limited page that stops following its note.
+6. **Pages limited to some people, or to some agents, never leave here.** A page that becomes limited has its note
+   removed from the repository (checked again right before each write); a note that lands in, or is moved into, a
+   folder limited here becomes a limited page that stops following its note, and the note stays there as it is.
 7. **Notes that can't be pages are held aside**, with why (too long, a name that can't be a title, folders too deep),
    until their file changes; the dialog lists them. A page whose note grew too long to read here isn't written over it.
 8. **Stopping and retrying.** What a retry won't change stops the sync with a reason until an administrator starts it
@@ -74,9 +80,15 @@ never reaches the repository. Teams don't want a second copy of what they know t
    `wiki.repo_empty`, `wiki.repo_protected` for a branch that takes no direct commits, `wiki.repo_folder_missing` for a
    folder that lists no note while pages came from it, so a renamed folder never empties the wiki,
    `wiki.repo_mass_removal` for more than 20 notes removed there at once that are also more than half of the wiki's,
+   counted before any page is made for a new note (a folder renamed with its notes edited still asks),
    `wiki.repo_too_large`, `wiki.repo_owner_gone`, `wiki.repo_no_app`). On `wiki.repo_mass_removal` no page went to the
    trash: the administrator either puts the notes back on GitHub and tries again, or starts the sync again saying
-   those pages may go (`allowRemovals`, used once: `removals_allowed`). GitHub not answering or asking to wait (5xx,
+   those pages may go (`allowRemovals`: that many, once, `removals_allowed`; more removed by then asks again). Also
+   `wiki.repo_pr_branch_taken` (see 11), `wiki.repo_write_refused` (GitHub refused the change itself, for instance a
+   file and a folder of one name) and `wiki.repo_unreadable` (a public repository's archive that can't be read). GitHub
+   failing to make the app's token (5xx, 429, rate limited), a token expiring mid-sync (401) and a secondary rate limit
+   keep it on and retry. A sync renews its hold while it runs, and one whose hold was taken over stops, so two never
+   write at once however long a first sync takes. GitHub not answering or asking to wait (5xx,
    429, a 403 over a rate limit) keeps it on: the job retries with the outbox's backoff and the app says it is trying
    again (`wiki.repo_unreachable` while `active`). Meanwhile saves stay here and go out when it runs again.
 9. **Whose changes.** What comes from the repository is saved with the rights of the administrator who connected the
@@ -98,7 +110,11 @@ never reaches the repository. Teams don't want a second copy of what they know t
       created, renamed or moved here never comes back as a second page. A pull request closed without merging is
       `declined`: the same changes aren't proposed again until they change. A pull request with nothing left to
       propose is closed, as is one left open when the wiki stops proposing. A protected branch is the reason to use
-      it: the wiki's branch takes the commits, a person merges them.
+      it: the wiki's branch takes the commits, a person merges them. The wiki's branch is made when missing and moved
+      only while it is where the wiki left it (`pr_head`): a branch someone else made or pushed to, whatever its name,
+      stops the sync (`wiki.repo_pr_branch_taken`) and is never overwritten. Disconnecting, connecting another
+      repository, branch or folder, or naming another pull request branch closes the open pull request and removes
+      the wiki's branch (while it is still where the wiki left it).
     - `none`: the wiki only follows the repository.
     Each page says where it stands: in the pull request (a link to it), or declined there.
 12. **A public repository without the app is followed read-only.** When the GitHub App isn't installed on the
@@ -119,14 +135,20 @@ never reaches the repository. Teams don't want a second copy of what they know t
     state, how it writes, the wiki's pull request, whether it is public, removals waiting for an administrator) and `wiki_repository_files` (per note: the git blob and the page's version both sides last agreed on, the
     title and folder that note was written under, its frontmatter): a later change on either side is told apart by
     comparing with them.
-15. **What the team didn't write is outside text.** Pages that follow a public repository the workspace doesn't write
-    to are written by whoever keeps it on GitHub: what agents read of them (the run's wiki context, `search_wiki`,
-    `read_wiki_page`, the workspace search) goes in the outside-text envelope (`untrustedBlock`, ADR 0053), as an email
-    does, never as the team's instructions. A repository the workspace writes to through the app is its own: its
-    pages are read as the team's, like the rest of the wiki (ADR 0167).
+15. **What the team didn't write is outside text.** Pages whose text came from a public repository the workspace
+    doesn't write to are written by whoever keeps it on GitHub: they are marked (`wiki_pages.outside`, so they stay
+    outside text after the repository is disconnected), and what agents read of them (the run's wiki context,
+    `search_wiki`, `read_wiki_page` with the titles linking to a page, the workspace search, a mission's `get_context`)
+    goes in the outside-text envelope (`untrustedBlock`, ADR 0053), as an email does, never as the team's
+    instructions. Their frontmatter `aliases` claim no names here, and no alias ever takes another page's name. A
+    repository the workspace writes to through the app is its own: its pages are read as the team's, like the rest of
+    the wiki (ADR 0167), and the mark is cleared once the workspace writes there.
 16. **Writing to a public repository is said before it happens.** What the wiki writes there, agents' edits
     included, anyone can read: the dialog says so beside the choice of how the wiki writes, and offers a pull request
-    first for a public repository, so a person reads what is published.
+    first for a public repository, so a person decides what lands on the branch. The pull request's branch lives in the
+    same repository, so on a public one what the wiki proposes is public once pushed, merged or not. Routines and
+    unattended runs (no person behind the call) don't write to a wiki kept in a public repository: what they would
+    write would be published with nobody having asked; they say it in the conversation instead.
 17. **Names someone types are checked.** The followed branch must be a name git takes (`git check-ref-format`'s
     rules, `wiki.repo_branch_name`): it goes into GitHub's addresses and git's own requests. The list of notes held
     aside, paths of a repository members may not reach on GitHub, goes to administrators only.
@@ -146,7 +168,8 @@ never reaches the repository. Teams don't want a second copy of what they know t
   from where.
 - A rule on the branch that refuses the app's commits (protection, required reviews, signed commits) stops the sync
   with `wiki.repo_protected`, until the wiki writes through a pull request or the app may push to it.
-- The wiki's pull request branch is the wiki's: what someone pushes to it is replaced at the next change. Review
-  happens in the pull request, edits in the wiki or the followed branch.
+- The wiki's pull request branch is the wiki's: someone pushing to it stops the sync (`wiki.repo_pr_branch_taken`)
+  until the branch is deleted on GitHub or another one is named. Review happens in the pull request, edits in the wiki
+  or the followed branch.
 - A page limited to some people after its note went there leaves the repository only when the pull request that
   removes it is merged, when the wiki writes through one.

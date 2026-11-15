@@ -87,9 +87,16 @@ export function parseNoteFile(text: string): NoteFile {
   };
 }
 
-/** Tags as the wiki keeps them, to tell whether a page's differ from its file's. */
+/** The most tags a page keeps (`WIKI_LIMITS.tags`): a note with more keeps them all there. */
+const PAGE_TAGS = 20;
+
+/**
+ * Tags as the wiki keeps them (`cleanTags`: lowercased, at most 20), to tell whether a page's differ from its file's:
+ * a note's 21st tag, or its capitals, never read as a change made here that rewrites the note's tags.
+ */
 export const tagKey = (tags: readonly string[]) =>
   [...new Set(tags.map((t) => t.trim().replace(/^#/, "").toLowerCase().slice(0, 40)).filter(Boolean))]
+    .slice(0, PAGE_TAGS)
     .sort()
     .join("\n");
 

@@ -11603,7 +11603,25 @@ export const en = {
         checking: "Checking the repository…",
         canWrite: "{{repo}}, {{branch}} branch: the GitHub app reads and writes there.",
         readOnly: "{{repo}}, {{branch}} branch: public, so the wiki follows it without writing there.",
+        /** A private repository the GitHub app is installed on, allowed only to read it. */
+        readOnlyPrivate:
+          "{{repo}}, {{branch}} branch: the GitHub app may only read it, so the wiki follows it without writing there.",
         installForWrite: "To write there too, install the GitHub app on this repository.",
+        installForWritePrivate: "To write there too, give the GitHub app permission to write on this repository.",
+        /** Before anything is typed, in a workspace where GitHub isn't connected: beside "Open Connectors". */
+        privateNeedsApp: "A private repository needs the GitHub app installed on it. A public one works as it is.",
+        /** Under a repository the GitHub app doesn't reach (its error is said above), beside "Open Connectors". */
+        reach: {
+          not_installed: "Install the GitHub app on this repository, then come back to connect it.",
+          no_app: "No GitHub app is set up yet, so only public repositories can be followed.",
+          refused:
+            "The GitHub app is on this repository but may not read it. Accept its permissions on GitHub, then come back to connect it.",
+        },
+        /** The repository list's last option, once its search holds a repository's name that the list doesn't. */
+        useAddress: "Use {{repo}}",
+        /** Changing the repository, branch or folder the wiki follows. */
+        replaces:
+          "Connecting replaces what the wiki follows now. The pages stay here, and the notes on GitHub stay as they are.",
         openConnectors: "Open Connectors",
         more: "Folder and branch",
         search: "Search repositories",
@@ -11637,10 +11655,19 @@ export const en = {
           "Pull request #{{number}} was closed without merging: those changes wait here until they change again.",
         readOnly:
           "The GitHub app isn't installed on {{repo}}, or may only read it: the wiki follows it, and what changes here stays here. Install the app on it, allowed to write, to send the changes from here too.",
+        readOnlyPrivate:
+          "The GitHub app may only read {{repo}}: the wiki follows it, and what changes here stays here. Give the app permission to write there to send the changes from here too.",
         noteDisconnect: "Disconnecting leaves the pages here and the notes there, as they are.",
         noteStopped: "Meanwhile, what is written here stays here and goes to the repository once it is back.",
         allowRemovals: "Send those pages to the trash",
+        /** Opens the connect form filled in with what the wiki follows now: connecting there replaces it. */
+        change: "Change repository, branch or folder",
         disconnect: "Disconnect",
+        /** Under "Disconnect {{name}}?". */
+        disconnectText:
+          "The wiki stops following {{repo}}. The pages stay here and the notes stay on GitHub, as they are.",
+        disconnectTextPr:
+          "The wiki stops following {{repo}} and closes its pull request #{{number}} there. The pages stay here and the notes stay on GitHub, as they are.",
         open: "Open on GitHub",
         syncNow: "Update now",
         retry: "Try again",
@@ -11657,6 +11684,8 @@ export const en = {
         noneDesc: "The wiki gets what changes on GitHub, and what changes here stays here.",
         branch: "The pull request's branch",
         branchHelp: "The wiki rebuilds it at every change: edit the wiki, not this branch.",
+        /** Under the pull request's branch, once the sync stopped because GitHub has a branch of that name already. */
+        branchTaken: "This branch already exists on GitHub and isn't the wiki's. Choose another name.",
         now: {
           direct: "The wiki commits straight on {{branch}}.",
           pull_request: "The wiki proposes its changes in a pull request into {{branch}}.",
@@ -11679,25 +11708,61 @@ export const en = {
         depth: "Too many folders inside one another",
         other: "It couldn't become a page",
       },
+      /** Why the sync stopped, for an admin: what to do next, with the dialog's buttons ("Try again"). */
       why: {
         not_installed:
-          "The GitHub app no longer reaches {{repo}}, and it isn't public. An admin adds the repository to the app on GitHub, and the wiki follows it again.",
+          "The GitHub app no longer reaches {{repo}}, and it isn't public. Add the repository to the app on GitHub, from Connectors, then press Try again.",
         refused:
-          "The GitHub app may not read {{repo}}. An admin accepts the app's permissions on GitHub, and the wiki follows it again.",
-        branch_missing: "The branch the wiki was kept on is gone from {{repo}}. Connect the repository again.",
-        empty: "{{repo}} has no file yet. Add a first file to it and try again.",
-        missing: "{{repo}} is gone, or can no longer be read.",
-        too_large: "{{repo}} holds too many notes to follow. Connect one of its folders instead.",
-        owner_gone: "Whoever connected {{repo}} is no longer an admin here. An admin starts it again here.",
+          "The GitHub app may not read {{repo}}. Accept the app's permissions on GitHub, from Connectors, then press Try again.",
+        branch_missing:
+          "The branch the wiki was kept on, {{branch}}, is gone from {{repo}}. Choose another branch, or bring it back on GitHub and press Try again.",
+        empty: "{{repo}} has no file yet. Add a first file to it, then press Try again.",
+        missing: "{{repo}} is gone, or can no longer be read. If it moved or was renamed, choose it again.",
+        too_large: "{{repo}} holds too many notes to follow. Choose one of its folders instead.",
+        owner_gone:
+          "Whoever connected {{repo}} is no longer an admin here. Press Try again to keep it going in your name.",
         folder_missing:
-          "The wiki's folder is gone from {{repo}}, or is empty. Nothing was deleted here: connect the repository again with the right folder.",
+          "The wiki's folder is gone from {{repo}}, or is empty. Nothing was deleted here. Choose the right folder, or bring the notes back on GitHub and press Try again.",
         no_app:
-          "{{repo}} isn't public, and no GitHub app is set up to reach it. An admin sets one up in Connectors, and the wiki follows it again.",
+          "{{repo}} isn't public, and no GitHub app is set up to reach it. Set one up in Connectors, then press Try again.",
         protected:
-          "{{repo}} takes no commits straight on that branch (it is protected). Choose “Through a pull request”, or let the GitHub app push to it.",
+          "{{repo}} takes no commits straight on that branch (it is protected). Choose “Through a pull request” below and save, or let the GitHub app push to it and press Try again.",
         mass_removal:
-          "Many notes were removed from {{repo}} at once ({{count}}), so the wiki stopped before sending their pages to the trash. If it was on purpose, send them to the trash. If not, put the notes back on GitHub and try again.",
-        other: "The wiki stopped following {{repo}}. Try again.",
+          "Many notes were removed from {{repo}} at once ({{count}}), so the wiki stopped before sending their pages to the trash. If it was on purpose, send them to the trash. If not, put the notes back on GitHub and press Try again.",
+        pr_branch_taken:
+          "The pull request's branch, {{prBranch}}, already exists in {{repo}} and isn't the wiki's. Choose another name for it below, or delete that branch on GitHub and press Try again.",
+        write_refused:
+          "GitHub refused the wiki's last change to {{repo}}, for instance a page and a folder with the same name. Rename what clashes, here or on GitHub, then press Try again.",
+        unreadable:
+          "GitHub's copy of {{repo}} couldn't be read. Press Try again in a while. If it keeps stopping, install the GitHub app on the repository.",
+        other: "The wiki stopped following {{repo}}. Press Try again.",
+      },
+      /** The same, for everyone else who writes the wiki: they see it stopped, and an admin starts it again. */
+      whyMember: {
+        not_installed:
+          "The GitHub app no longer reaches {{repo}}, and it isn't public. An admin can add the repository to the app on GitHub and start it again.",
+        refused:
+          "The GitHub app may not read {{repo}}. An admin can accept the app's permissions on GitHub and start it again.",
+        branch_missing:
+          "The branch the wiki was kept on, {{branch}}, is gone from {{repo}}. An admin can choose another branch and start it again.",
+        empty: "{{repo}} has no file yet. Once it has one, an admin can start it again.",
+        missing: "{{repo}} is gone, or can no longer be read. If it moved, an admin can choose it again.",
+        too_large: "{{repo}} holds too many notes to follow. An admin can choose one of its folders instead.",
+        owner_gone: "Whoever connected {{repo}} is no longer an admin here. An admin can start it again.",
+        folder_missing:
+          "The wiki's folder is gone from {{repo}}, or is empty. Nothing was deleted here. An admin can choose the right folder and start it again.",
+        no_app:
+          "{{repo}} isn't public, and no GitHub app is set up to reach it. An admin can set one up in Connectors and start it again.",
+        protected:
+          "{{repo}} takes no commits straight on that branch (it is protected). An admin can have the wiki write through a pull request and start it again.",
+        mass_removal:
+          "Many notes were removed from {{repo}} at once ({{count}}), so the wiki stopped before sending their pages to the trash. An admin decides whether they go, and starts it again.",
+        pr_branch_taken:
+          "The pull request's branch, {{prBranch}}, already exists in {{repo}} and isn't the wiki's. An admin can choose another name for it and start it again.",
+        write_refused:
+          "GitHub refused the wiki's last change to {{repo}}, for instance a page and a folder with the same name. An admin needs to look at it and start it again.",
+        unreadable: "GitHub's copy of {{repo}} couldn't be read. An admin can start it again.",
+        other: "The wiki stopped following {{repo}}. An admin can start it again.",
       },
       page: {
         synced: "On GitHub",
@@ -11746,6 +11811,10 @@ export const en = {
         read: "Read the notes",
         error: { notGithub: "Paste a github.com link." },
         mode: { label: "How the notes come", sync: "Keep in sync", once: "Import once" },
+        /** The link names the repository the wiki is kept in: for an admin, then for everyone else. */
+        kept: "The wiki already keeps {{repo}} in sync: its notes come in by themselves, and importing them once makes copies. To bring in what changed there now, press “Update now” in “Keep in sync”.",
+        keptMember:
+          "The wiki already keeps {{repo}} in sync: its notes come in by themselves, and importing them once makes copies.",
       },
       anotherLink: "Change link",
       dropTitle: "Drop the vault .zip here",

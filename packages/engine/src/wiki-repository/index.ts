@@ -286,6 +286,27 @@ async function resolveRepository(
   return { facts, branch, path, writable: reached.writable };
 }
 
+/** How long a person's request waits for GitHub to close the wiki's pull request: past it, GitHub keeps them. */
+const WITHDRAW_WAIT_MS = 10_000;
+
+/**
+ * The wiki's pull request closed and its branch removed (only while the branch is where the wiki left it), when the
+ * wiki stops proposing from it: disconnected, another repository, branch or folder, or another pull request branch.
+ * Best effort: GitHub not answering, or the app no longer allowed to, leaves them as they are.
+ */
+async function withdrawProposal(deps: WikiRepositoryDeps, row: Repository) {
+  if (!row.prNumber && !row.prHead) return;
+  const work = (async () => {
+    const reached = await reachRepository(deps, row.orgId, { ...row, commitMode: "pull_request" });
+    if ("miss" in reached || !reached.writable) return;
+    if (row.prNumber && (await reached.remote.proposal(row.prNumber)) === "open") {
+      await reached.remote.withdraw(row.prNumber);
+    }
+    if (row.prHead) await reached.remote.dropBranch(row.prBranch, row.prHead);
+  })().catch(() => undefined);
+  await Promise.race([work, new Promise((done) => setTimeout(done, WITHDRAW_WAIT_MS))]);
+}
+
 /** What connecting a repository would do, before it is connected: the dialog says it as the address is typed. */
 export interface WikiRepositoryCheck {
   owner: string;
@@ -340,16 +361,21 @@ export async function connectWikiRepository(
   await requirePermission(db, userId, orgId, WIKI_REPOSITORY_PERMISSION);
   const commitMode = input.commitMode ?? "direct";
   const { facts, branch, path, writable } = await resolveRepository(deps, orgId, { ...input, commitMode });
-  const prBranch = cleanBranch(input.prBranch ?? WIKI_PR_BRANCH, branch);
+  const sameAs = (before: Repository | undefined) =>
+    before !== undefined &&
+    before.provider === "github" &&
+    before.owner.toLowerCase() === facts.owner.toLowerCase() &&
+    before.repo.toLowerCase() === facts.repo.toLowerCase() &&
+    before.branch === branch &&
+    before.path === path;
+  // Another repository, branch or folder replaces the one before: its pull request no longer proposes anything.
+  const [replaced] = await db.select().from(wikiRepositories).where(eq(wikiRepositories.orgId, orgId));
+  if (replaced && !sameAs(replaced)) await withdrawProposal(deps, replaced);
   const row = await db.transaction(async (tx) => {
     const [before] = await tx.select().from(wikiRepositories).where(eq(wikiRepositories.orgId, orgId));
-    const same =
-      before &&
-      before.provider === "github" &&
-      before.owner.toLowerCase() === facts.owner.toLowerCase() &&
-      before.repo.toLowerCase() === facts.repo.toLowerCase() &&
-      before.branch === branch &&
-      before.path === path;
+    const same = sameAs(before);
+    // The same repository keeps the pull request branch it has unless another is named.
+    const prBranch = cleanBranch(input.prBranch ?? (same && before ? before.prBranch : WIKI_PR_BRANCH), branch);
     // Another repository, branch or folder: what was remembered of the one before no longer says anything.
     if (before && !same) await tx.delete(wikiRepositories).where(eq(wikiRepositories.id, before.id));
     const [saved] =
@@ -420,15 +446,32 @@ export async function setWikiRepositoryWriting(
 ): Promise<WikiRepositoryView | null> {
   const { db } = deps;
   await requirePermission(db, userId, orgId, WIKI_REPOSITORY_PERMISSION);
+  const [current] = await db.select().from(wikiRepositories).where(eq(wikiRepositories.orgId, orgId));
+  if (!current) return null;
+  const nextBranch = input.prBranch === undefined ? current.prBranch : cleanBranch(input.prBranch, current.branch);
+  // Another pull request branch: the one from the old branch no longer proposes anything.
+  const rebranched = nextBranch !== current.prBranch;
+  if (rebranched) await withdrawProposal(deps, current);
+  let queued = false;
   const row = await db.transaction(async (tx) => {
     const [before] = await tx.select().from(wikiRepositories).where(eq(wikiRepositories.orgId, orgId));
     if (!before) return null;
     const commitMode = input.commitMode ?? commitModeOf(before.commitMode);
     const prBranch = input.prBranch === undefined ? before.prBranch : cleanBranch(input.prBranch, before.branch);
     if (commitMode === before.commitMode && prBranch === before.prBranch) return before;
+    // Stopped: changing how it writes is the way out of some stops (a protected branch), so it starts again.
+    const resumed = before.status === "error";
     const [saved] = await tx
       .update(wikiRepositories)
-      .set({ commitMode, prBranch, updatedAt: new Date() })
+      .set({
+        commitMode,
+        prBranch,
+        updatedAt: new Date(),
+        ...(prBranch !== before.prBranch
+          ? { prNumber: null, prUrl: null, prState: null, prSignature: null, prFiles: null, prHead: null }
+          : {}),
+        ...(resumed ? { status: "active", errorCode: null, createdByUserId: userId, dirty: false } : {}),
+      })
       .where(eq(wikiRepositories.id, before.id))
       .returning();
     await recordAudit(tx, {
@@ -436,18 +479,24 @@ export async function setWikiRepositoryWriting(
       actor: { type: "person", id: userId },
       action: "wiki.repository_writing",
       target: { type: "wiki", id: orgId },
-      details: { from: before.commitMode, to: commitMode, prBranch },
+      details: { from: before.commitMode, to: commitMode, prBranch, ...(resumed ? { resumed: true } : {}) },
     });
-    await requestWikiRepositorySync(tx, orgId);
+    queued = await requestWikiRepositorySync(tx, orgId);
     return saved ?? null;
   });
-  return row ? viewOf(db, row, true) : null;
+  // A sync is on its way: the app shows it updating at once.
+  return row ? viewOf(db, queued ? { ...row, dirty: true } : row, true) : null;
 }
 
-/** Stops keeping the wiki in its repository: the pages stay here and the notes stay there, as they are. */
+/**
+ * Stops keeping the wiki in its repository: the pages stay here and the notes stay there, as they are; the wiki's open
+ * pull request is closed (best effort).
+ */
 export async function disconnectWikiRepository(deps: WikiRepositoryDeps, userId: string, orgId: string) {
   const { db } = deps;
   await requirePermission(db, userId, orgId, WIKI_REPOSITORY_PERMISSION);
+  const [current] = await db.select().from(wikiRepositories).where(eq(wikiRepositories.orgId, orgId));
+  if (current) await withdrawProposal(deps, current);
   await db.transaction(async (tx) => {
     const [gone] = await tx.delete(wikiRepositories).where(eq(wikiRepositories.orgId, orgId)).returning();
     if (!gone) return;
@@ -483,15 +532,19 @@ export async function resumeWikiRepository(
     const [before] = await tx.select().from(wikiRepositories).where(eq(wikiRepositories.orgId, orgId));
     if (!before) return null;
     const allowRemovals = options.allowRemovals === true && before.errorCode === "wiki.repo_mass_removal";
+    const stopped = before.status === "error";
     const [saved] = await tx
       .update(wikiRepositories)
       .set({
         status: "active",
         errorCode: null,
-        createdByUserId: userId,
         dirty: false,
         updatedAt: new Date(),
-        ...(allowRemovals ? { removalsAllowed: true } : {}),
+        // Whose rights the repository's changes are saved with changes only when a stopped sync is started again (and
+        // that is recorded); syncing now leaves it as it is.
+        ...(stopped ? { createdByUserId: userId } : {}),
+        // Exactly that many: more removed there by then asks again.
+        ...(allowRemovals ? { removalsAllowed: before.removalsWaiting } : {}),
       })
       .where(eq(wikiRepositories.id, before.id))
       .returning();

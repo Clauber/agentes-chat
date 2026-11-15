@@ -84,6 +84,8 @@ export function WikiPage({ slug, newTitle }: { slug?: string; newTitle?: string 
   const [importing, setImporting] = useState<{ files?: Promise<VaultFile[]> } | null>(null);
   const [navOpen, setNavOpen] = useState(false);
   const [tag, setTag] = useState<string | null>(null);
+  // The repository the wiki is kept in (ADR 0186): opened from the line at the column's foot or a page's mark.
+  const [repositoryOpen, setRepositoryOpen] = useState(false);
   const current = pages.find((p) => p.slug === slug);
   // The open page's outline goes in the tree, under its row (the page itself reads in one column).
   const openPage = useWikiPage(org.id, slug ?? null).data;
@@ -118,7 +120,7 @@ export function WikiPage({ slug, newTitle }: { slug?: string; newTitle?: string 
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() !== "n" || e.metaKey || e.ctrlKey || e.altKey || typingInField(document.activeElement))
         return;
-      if (writing || importing) return;
+      if (writing || importing || repositoryOpen) return;
       e.preventDefault();
       startNew();
     };
@@ -142,7 +144,18 @@ export function WikiPage({ slug, newTitle }: { slug?: string; newTitle?: string 
     );
   else if (view === "graph") center = <WikiGraphView onOpen={() => setView("home")} />;
   else if (view === "trash") center = <WikiTrash />;
-  else if (slug) center = <WikiReader key={slug} slug={slug} pages={pages} onCreate={startNew} onTag={setTag} />;
+  else if (slug)
+    center = (
+      <WikiReader
+        key={slug}
+        slug={slug}
+        pages={pages}
+        onCreate={startNew}
+        onTag={setTag}
+        // Who writes the wiki sees why a page's note isn't on GitHub, as the line at the column's foot shows them.
+        onRepository={writes ? () => setRepositoryOpen(true) : undefined}
+      />
+    );
   else if (tree.isLoading) center = <LoadingCards count={4} />;
   else if (pages.length === 0)
     center = <WikiEmpty onNew={() => startNew()} onImport={() => setImporting({})} onNav={() => setNavOpen(true)} />;
@@ -185,8 +198,10 @@ export function WikiPage({ slug, newTitle }: { slug?: string; newTitle?: string 
         }}
         onNew={() => startNew()}
         onImport={() => setImporting({})}
+        onRepository={() => setRepositoryOpen(true)}
         onClose={() => setNavOpen(false)}
       />
+      {repositoryOpen && <WikiRepositoryDialog onClose={() => setRepositoryOpen(false)} />}
       {navOpen && (
         <button
           type="button"
@@ -225,6 +240,7 @@ function WikiNav({
   onTrash,
   onNew,
   onImport,
+  onRepository,
   onClose,
 }: {
   pages: WikiPageSummary[];
@@ -240,6 +256,8 @@ function WikiNav({
   onTrash: () => void;
   onNew: () => void;
   onImport: () => void;
+  /** Opens the wiki's repository dialog (ADR 0186), from the line at the column's foot. */
+  onRepository: () => void;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
@@ -254,8 +272,6 @@ function WikiNav({
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulk, setBulk] = useState<"delete" | "agents" | null>(null);
-  // The repository the wiki is kept in (ADR 0186): connecting one, or how it is going.
-  const [repositoryOpen, setRepositoryOpen] = useState(false);
   const uid = useId();
   // The side column's own "…", named apart from the open page's: "Mais ações: Wiki".
   const moreLabel = t("artifacts.more", { title: t("wiki.title") });
@@ -396,7 +412,6 @@ function WikiNav({
 
   return (
     <aside className="wiki-nav" data-open={open || undefined} aria-label={t("wiki.nav")}>
-      {repositoryOpen && <WikiRepositoryDialog onClose={() => setRepositoryOpen(false)} />}
       {audienceFolder !== null && (
         <WikiAudienceDialog folder={audienceFolder} onClose={() => setAudienceFolder(null)} />
       )}
@@ -585,7 +600,8 @@ function WikiNav({
           </div>
         </section>
       )}
-      <WikiRepositoryStopped onOpen={() => setRepositoryOpen(true)} />
+      {/* Held at the column's foot over the tree; while pages are picked, their bar takes that place. */}
+      {!selecting && <WikiRepositoryStopped onOpen={onRepository} />}
     </aside>
   );
 }

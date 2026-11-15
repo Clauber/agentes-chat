@@ -54,7 +54,7 @@ import {
 } from "@/lib/obsidian";
 import { useToast } from "@/lib/toast";
 import { ObsidianMark } from "./ObsidianMark";
-import { stateLine, WikiRepositoryPanel } from "./WikiRepository";
+import { stateLine, useWikiRepositoryPanel, WikiRepositoryPanel, wikiRepositoryTitle } from "./WikiRepository";
 import "@/components/import-flow.css";
 import "./vault.css";
 
@@ -398,6 +398,13 @@ export function VaultReading({
 const GITHUB_MARK = { iconUrl: "/connectors/github.svg", brandColor: null };
 const SOURCES: WikiImportSource[] = ["obsidian", "github", "files"];
 
+/** The `owner/name` a GitHub link points into, in lower case (GitHub's names don't tell case apart). */
+function linkedRepository(link: string) {
+  if (!isGithubLink(link)) return null;
+  const [owner, repo] = new URL(link).pathname.split("/").filter(Boolean);
+  return owner && repo ? `${owner}/${repo.replace(/\.git$/i, "")}`.toLowerCase() : null;
+}
+
 /**
  * "Importar", in two steps: where the notes come from, as a grid of cards (an Obsidian vault, a GitHub link,
  * Markdown files), then that source's own way in ("Voltar" picks another). From there the same for all: review what
@@ -406,7 +413,8 @@ const SOURCES: WikiImportSource[] = ["obsidian", "github", "files"];
  * to connect GitHub, as Instalar skill does. `files` starts it already reading (dropped on the page).
  *
  * GitHub's step also keeps the wiki in a repository (ADR 0186), one choice away from importing once: "Keep in sync"
- * connects one (administrators) or shows the one connected, whose state the GitHub card says on the first step.
+ * connects one (administrators) or shows the one connected, whose state the GitHub card says on the first step. The
+ * choice sits once above the body it swaps, and what was typed in either way stays when the other is picked.
  */
 export function WikiImportDialog({
   files,
@@ -447,11 +455,16 @@ export function WikiImportDialog({
   const github = catalog.data?.connectors.find((c) => c.id === "github");
   /** The repository the wiki is kept in, if any: GitHub's step shows it rather than a link to read once. */
   const kept = useWikiRepository(org.id).data ?? null;
+  const keptName = kept ? `${kept.owner}/${kept.repo}` : null;
   const admin = can(org, "administrator");
   /** Kept in sync, or read once; only who may connect a repository (or sees one connected) gets the choice. */
   const [githubMode, setGithubMode] = useState<"sync" | "once" | null>(null);
   const syncable = admin || kept !== null;
   const mode = syncable ? (githubMode ?? "sync") : "once";
+  /** "Keep in sync"'s own state, held here so it outlives a switch to importing once and back. */
+  const panel = useWikiRepositoryPanel();
+  /** The link names the repository the wiki is already kept in: importing it once would copy its notes. */
+  const linksKept = (link: string) => keptName !== null && linkedRepository(link) === keptName.toLowerCase();
 
   const read = async (f: Promise<VaultFile[]>, n?: string, source?: WikiImportSource) => {
     const r = await reader.read(f, n, source);
@@ -466,6 +479,8 @@ export function WikiImportDialog({
     }
     setLinkError(null);
     setFetching(true);
+    // The kept repository's notes are pages already: one named like a page is skipped, unless someone says otherwise.
+    setConflict(linksKept(link) ? "skip" : "keep_both");
     try {
       const notes = await api.wiki.githubNotes(org.id, link);
       setFetching(false);
@@ -847,7 +862,6 @@ export function WikiImportDialog({
             void readLink();
           }}
         >
-          {githubChoice}
           <Field
             label={t("wiki.import.github.label")}
             id="wiki-import-url"
@@ -859,7 +873,8 @@ export function WikiImportDialog({
           >
             <Input
               value={url}
-              autoFocus
+              // Picked on the choice above, the focus stays on the choice.
+              autoFocus={!githubChoice}
               onChange={(e) => {
                 setUrl(e.target.value);
                 setLinkError(null);
@@ -869,6 +884,11 @@ export function WikiImportDialog({
               inputMode="url"
             />
           </Field>
+          {keptName && linksKept(url.trim()) && (
+            <Alert tone="neutral">
+              {t(admin ? "wiki.import.github.kept" : "wiki.import.github.keptMember", { repo: keptName })}
+            </Alert>
+          )}
           {said && (
             <div className="skill-hidden">
               <Alert tone="neutral">{said.text}</Alert>
@@ -915,39 +935,36 @@ export function WikiImportDialog({
       );
   }
 
-  // Kept in sync: the repository's own panel, the choice first and "Voltar" in its footer.
-  if (from === "github" && mode === "sync" && !report && !importing && !done && reader.state.step !== "reading") {
-    return (
-      <Dialog
-        open
-        onOpenChange={(o) => !o && onClose()}
-        title={kept ? t("wiki.repo.manage.title") : t("wiki.repo.connect.title")}
-        description={kept ? undefined : t("wiki.repo.connect.description")}
-        closeLabel={t("common.close")}
-        width={680}
-      >
-        <WikiRepositoryPanel
-          onClose={onClose}
-          lead={githubChoice}
-          back={<Button onClick={backToSources}>{t("common.back")}</Button>}
-        />
-      </Dialog>
-    );
-  }
+  // GitHub's step, before a link is read: kept in sync (the repository's own panel, "Back" in its footer) or a link
+  // read once. One dialog for both, the choice once above whichever body it swaps in, so it keeps the focus.
+  const githubStep = from === "github" && !report && !importing && !done && reader.state.step !== "reading";
+  const keepsInSync = githubStep && mode === "sync";
+  const head = keepsInSync ? wikiRepositoryTitle(t, kept, panel.changing) : { title, description };
 
   return (
     <Dialog
       open
       onOpenChange={(o) => !o && !importing && onClose()}
-      title={title}
-      description={description}
+      title={head.title}
+      description={head.description}
       closeLabel={t("common.close")}
       width={680}
     >
-      <DialogBody>
-        <div className="vault-dialog">{body}</div>
-      </DialogBody>
-      {footer && <DialogFooter>{footer}</DialogFooter>}
+      {githubStep && githubChoice && <div className="ac-dialog__tools wiki-repo-choice">{githubChoice}</div>}
+      {keepsInSync ? (
+        <WikiRepositoryPanel
+          onClose={onClose}
+          state={panel}
+          back={<Button onClick={backToSources}>{t("common.back")}</Button>}
+        />
+      ) : (
+        <>
+          <DialogBody>
+            <div className="vault-dialog">{body}</div>
+          </DialogBody>
+          {footer && <DialogFooter>{footer}</DialogFooter>}
+        </>
+      )}
       <ConnectFlow
         flow={flow}
         returnTo={`${window.location.pathname}${window.location.search}`}

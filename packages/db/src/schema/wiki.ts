@@ -45,6 +45,11 @@ export const wikiPages = pgTable(
     audienceUserIds: text().array().notNull().default(sql`'{}'::text[]`),
     /** Limited to some agents: only `audienceAgentIds` read it. Independent of `restricted`. */
     agentsLimited: boolean().notNull().default(false),
+    /**
+     * Its text came from a repository the workspace doesn't write to (a public one it only follows, ADR 0186): agents
+     * read it as outside text, even after the repository is disconnected. Cleared when the workspace writes there.
+     */
+    outside: boolean().notNull().default(false),
     audienceAgentIds: uuid().array().notNull().default(sql`'{}'::uuid[]`),
     /** Only these people edit it, among those who see it and hold `edit_wiki`. Administrators always do. */
     editorsLimited: boolean().notNull().default(false),
@@ -239,6 +244,11 @@ export const wikiRepositories = pgTable(
     prState: text(),
     prSignature: text(),
     /**
+     * The commit the wiki last put on `prBranch`: the branch is moved, or removed, only while it is still there (or
+     * missing), so a branch someone else made or pushed to is never overwritten.
+     */
+    prHead: text(),
+    /**
      * The notes the pull request writes, by path (relative to `path`), and the page each comes from at which version,
      * name and blob: merged, each note goes back to its page, never a new one.
      */
@@ -256,10 +266,11 @@ export const wikiRepositories = pgTable(
     notifiedAt: timestamp({ withTimezone: true }),
     /**
      * Notes removed there at once, more than the sync takes without asking (`wiki.repo_mass_removal`): their pages
-     * stay out of the trash until an administrator lets the next sync remove them (`removalsAllowed`, used once).
+     * stay out of the trash until an administrator lets the next sync remove that many (`removalsAllowed`, used once;
+     * more than that asks again).
      */
     removalsWaiting: integer(),
-    removalsAllowed: boolean().notNull().default(false),
+    removalsAllowed: integer(),
     /** Who connected it, or started it again: what comes from the repository is saved with their rights. */
     createdByUserId: text().references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
