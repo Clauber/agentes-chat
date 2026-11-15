@@ -10925,6 +10925,10 @@ export const en = {
     keys: "Enter sends · Esc deletes",
     keysHold: "Release to send · Esc deletes",
     keysPaused: "Paused · Space listens · Enter sends · Esc deletes",
+    /** Esc on a take with text typed beside it: the take's row asks in place, before "Delete" and "Keep". */
+    askDiscard: "Delete the audio? Your text stays.",
+    askDelete: "Delete",
+    askKeep: "Keep",
     pausePlay: "Pause",
     seek: "Audio position",
     speedAt: "Speed {{speed}}×",

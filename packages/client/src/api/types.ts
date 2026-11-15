@@ -3093,6 +3093,11 @@ export interface MessageVoice {
   expiresAt?: string;
   /** No engine could make out the words: there are none to open. */
   noWords?: boolean;
+  /**
+   * Typed beside the take: `body` starts with it, then a blank line, then the words (`voiceParts`). Absent on a
+   * message from before typed text could go with a take: its `body` is the words.
+   */
+  text?: string;
 }
 
 /** A recording I sent didn't become a message: nothing was said, or the conversation refused it. */

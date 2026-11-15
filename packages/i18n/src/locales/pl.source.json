@@ -25738,6 +25738,15 @@
   "voice.keysPaused": {
     "value": "Paused · Space listens · Enter sends · Esc deletes"
   },
+  "voice.askDiscard": {
+    "value": "Delete the audio? Your text stays."
+  },
+  "voice.askDelete": {
+    "value": "Delete"
+  },
+  "voice.askKeep": {
+    "value": "Keep"
+  },
   "voice.pausePlay": {
     "value": "Pause"
   },
