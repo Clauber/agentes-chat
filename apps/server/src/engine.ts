@@ -135,7 +135,12 @@ import {
   withComposio,
   withJudgeFallback,
 } from "@agenteschat/engine";
-import { createOpenAIEmbeddings, createVoyageEmbeddings, type ModelProvider } from "@agenteschat/providers";
+import {
+  createOpenAIEmbeddings,
+  createVoyageEmbeddings,
+  DEFAULT_MODELS,
+  type ModelProvider,
+} from "@agenteschat/providers";
 import { type AppleTokenRevoker, appleTokenRevoker } from "./auth";
 import { hookConfig } from "./routes/app/context";
 import { version } from "./version";
@@ -231,8 +236,8 @@ export function buildEngine(o: EngineOptions) {
     db,
     gateway,
     search: adapters.search,
-    summaryModel: config.SUMMARY_MODEL,
-    cheapModels: { openai: config.OPENAI_CHEAP_MODEL },
+    summaryModel: config.SUMMARY_MODEL ?? DEFAULT_MODELS.claudeCheap,
+    cheapModels: { openai: config.OPENAI_CHEAP_MODEL ?? DEFAULT_MODELS.openaiCheap },
     pubsub: adapters.pubsub,
     judge: o.judge,
     schedules: o.schedules,
@@ -257,8 +262,11 @@ export function buildEngine(o: EngineOptions) {
     fetch: o.jevFetch,
   });
   // The small model that routes and judges on an organization's keys (ADR 0074): the deployment's own on a
-  // Claude or an OpenAI key, the catalog's routing pick on the others.
-  const smallModels = { anthropic: config.ROUTER_MODEL, openai: config.OPENAI_CHEAP_MODEL };
+  // Claude or an OpenAI key (else the model registry's picks, ADR 0195), the catalog's routing pick on the others.
+  const smallModels = {
+    anthropic: config.ROUTER_MODEL ?? DEFAULT_MODELS.claudeRouter,
+    openai: config.OPENAI_CHEAP_MODEL ?? DEFAULT_MODELS.openaiCheap,
+  };
   // Semantic judgments (stop requests, hand-offs, permission changes): Jev while the installation has its key,
   // with the org's small model as fallback (also past a workspace's platform AI for the month, ADR 0079).
   if (!context.judge) {
