@@ -50,6 +50,22 @@ describe("pricing", () => {
     expect(MODEL_CATALOG["claude-fable-5-1"]?.tier).toBeUndefined();
   });
 
+  test("Fable 5.2: $8 / $0.20 / $10 / $40, one block in the registry, chosen only by people", () => {
+    const perMTok = [usage(1e6, 0), usage(0, 0, 1e6), usage(0, 0, 0, 1e6), usage(0, 1e6)].map(
+      (u) => costNanoUsd("claude-fable-5-2", u) / 1e9,
+    );
+    expect(perMTok).toEqual([8, 0.2, 10, 40]);
+    expect(MODEL_CATALOG["claude-fable-5-2"]).toMatchObject({ provider: "anthropic", serverSideFallback: true });
+    // Its family holds no role: no tier, not suggested, and Claude Code's aliases stay on Opus, Sonnet and Haiku.
+    const fable = MODEL_CATALOG["claude-fable-5-2"];
+    expect([fable?.tier, fable?.recommended, fable?.cheap, fable?.router]).toEqual([
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    ]);
+  });
+
   test("1-hour cache writes cost twice the input price, and reservations allow for them", () => {
     // Opus 5.5: $4 input, $5 per million for 5-minute writes, $8 for 1-hour ones.
     const written = { ...usage(0, 0, 0, 1_000_000), cacheWriteLongTokens: 800_000 };

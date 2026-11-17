@@ -2,7 +2,7 @@
   "about": "Every model agentes.chat knows (ADR 0195): what it is, where it runs (`on`: an API key's provider, `commandcode`, a coding plan through Claude Code as `plan:<id>`, ChatGPT through Codex as `codex`, a computer's CLI as `cli:<name>`) and at what price there, in USD per million tokens. `roles` says which family does what on each of them: the family's newest model there (`released`) takes the role. Within a route, models keep the file's order (a plan's picker groups them by maker, the aliases' makers first, and Automático's fallback on a plan takes its first free tagged one). The catalog, the plans' model lists, Claude Code's aliases and the CLIs' fallback lists are all read from this file (`packages/providers/src/registry.ts`).",
   "updatedAt": "2026-11-17",
   "sources": {
-    "anthropic": "First-party list prices, platform.claude.com pricing (2026-10-20, Claude Fable 5.1 2026-11-09); windows from the models overview. Cache writes at the 5-minute rate (1.25 × input); a 1-hour write costs `LONG_CACHE_WRITE` × input.",
+    "anthropic": "First-party list prices, platform.claude.com pricing (2026-10-20, Claude Fable 5.1 2026-11-09, Claude Fable 5.2 2026-11-17); windows from the models overview. Cache writes at the 5-minute rate (1.25 × input); a 1-hour write costs `LONG_CACHE_WRITE` × input.",
     "openai": "Standard tier, developers.openai.com/api/docs/pricing (2026-10-20, GPT-6.1 Terra 2026-10-31, GPT-6 Astra 2026-11-09); cache writes at the 30-minute rate. Above 272K prompt tokens, input, cached input and cache writes cost 2×, output 1.5×. Windows from each model's page (2026-10-26, Terra's 2026-10-31, Astra's 2026-11-09).",
     "gemini": "Interactions API, Standard tier, ai.google.dev/gemini-api/docs/pricing (2026-10-27). Thinking is billed as output. Caching is implicit with no write charge, so a cache write costs the input rate (none is ever reported). `intro`: half price until that day.",
     "deepseek": "DeepSeek's pricing page (2026-10-24). A cache write costs the input rate. Its peak rates are stored (off-peak is half), so budgets err high.",
@@ -80,6 +80,20 @@
     "plan:opencode": { "sonnet": "minimax-m", "haiku": "claude-haiku" }
   },
   "models": {
+    "claude-fable-5-2": {
+      "label": "Claude Fable 5.2",
+      "maker": "anthropic",
+      "family": "claude-fable",
+      "released": "2026-11-09",
+      "contextWindow": 1000000,
+      "note": "Its whole 1M-token window at these prices (2026-11-17).",
+      "on": {
+        "anthropic": {
+          "prices": { "input": 8, "output": 40, "cacheRead": 0.2, "cacheWrite": 10 },
+          "serverSideFallback": true
+        }
+      }
+    },
     "claude-fable-5-1": {
       "label": "Claude Fable 5.1",
       "maker": "anthropic",
