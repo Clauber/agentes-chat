@@ -1006,7 +1006,7 @@ describe("Criar agente: what gets created", () => {
     await startAs("Assistente");
     await proceed(4);
     const list = await openBrain();
-    expect(optionsIn(list, "OpenCode Go")).toHaveLength(32);
+    expect(optionsIn(list, "OpenCode Go")).toHaveLength(33);
     await typeIn(screen().getByRole("combobox", { name: "Buscar modelos" }), "free");
     expect(
       within(list)
@@ -1014,8 +1014,8 @@ describe("Criar agente: what gets created", () => {
         .map((o) => o.textContent),
     ).toEqual([
       "LongCat 2.5 FreeGrátis",
+      "Hy4 Flash FreeGrátis",
       "Beam FreeGrátis",
-      "Crouton Alpha FreeGrátis",
       "Iceman Contributor FreeGrátis",
     ]);
     await typeIn(screen().getByRole("combobox", { name: "Buscar modelos" }), "deepseek flash");
