@@ -138,7 +138,7 @@ import {
 import {
   createOpenAIEmbeddings,
   createVoyageEmbeddings,
-  DEFAULT_MODELS,
+  defaultModels,
   type ModelProvider,
 } from "@agenteschat/providers";
 import { type AppleTokenRevoker, appleTokenRevoker } from "./auth";
@@ -232,12 +232,14 @@ export function buildEngine(o: EngineOptions) {
     embeddings,
     errors: o.errors,
   });
+  // The registry's picks where the environment names no model (ADR 0195): a registry with none stops the start here.
+  const defaults = defaultModels();
   const context: ContextDeps = {
     db,
     gateway,
     search: adapters.search,
-    summaryModel: config.SUMMARY_MODEL ?? DEFAULT_MODELS.claudeCheap,
-    cheapModels: { openai: config.OPENAI_CHEAP_MODEL ?? DEFAULT_MODELS.openaiCheap },
+    summaryModel: config.SUMMARY_MODEL ?? defaults.claudeCheap,
+    cheapModels: { openai: config.OPENAI_CHEAP_MODEL ?? defaults.openaiCheap },
     pubsub: adapters.pubsub,
     judge: o.judge,
     schedules: o.schedules,
@@ -264,8 +266,8 @@ export function buildEngine(o: EngineOptions) {
   // The small model that routes and judges on an organization's keys (ADR 0074): the deployment's own on a
   // Claude or an OpenAI key (else the model registry's picks, ADR 0195), the catalog's routing pick on the others.
   const smallModels = {
-    anthropic: config.ROUTER_MODEL ?? DEFAULT_MODELS.claudeRouter,
-    openai: config.OPENAI_CHEAP_MODEL ?? DEFAULT_MODELS.openaiCheap,
+    anthropic: config.ROUTER_MODEL ?? defaults.claudeRouter,
+    openai: config.OPENAI_CHEAP_MODEL ?? defaults.openaiCheap,
   };
   // Semantic judgments (stop requests, hand-offs, permission changes): Jev while the installation has its key,
   // with the org's small model as fallback (also past a workspace's platform AI for the month, ADR 0079).

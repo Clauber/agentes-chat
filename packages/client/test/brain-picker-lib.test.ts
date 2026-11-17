@@ -316,9 +316,11 @@ describe("OpenCode (ADR 0132) in Quem pensa", () => {
     const goModels = keyed.slice(3).map((o) => (o.pick as { model: string }).model);
     expect(goModels.every((m) => m.startsWith("opencode-go/"))).toBe(true);
     expect(goModels).toContain("opencode-go/deepseek-v4.1-flash");
-    // Go thinks through Claude Code, where OpenCode's free tier never answers: a hint says where they run.
+    // Go thinks through Claude Code, where OpenCode's free tier never answers: a hint says where they run. Go's own
+    // free models (`hy4-flash-free`) are its list's, not the free tier's.
     const go = options.filter((o) => "accountId" in o.pick && o.pick.accountId === "acc-go");
-    expect(go.some((o) => o.value.endsWith("-flash-free"))).toBe(false);
+    for (const id of ["deepseek-v4.1-flash-free", "glm-5.3-flash-free", "mimo-v2.6-flash-free"])
+      expect(go.some((o) => o.value.endsWith(`/${id}`))).toBe(false);
     expect(go[0]?.hint).toBe("brain.opencodeFreeHint");
     expect(options.find((o) => o.value === "claude@m1/auto")?.hint).toBeUndefined();
     expect(planFreeHint(t, CODING_PLANS.opencode)).toBe("brain.opencodeFreeHint");

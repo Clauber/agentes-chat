@@ -1,4 +1,4 @@
-import { type RegistryPrices, type RegistryRole, roleModel, routeModels } from "./registry";
+import { type RegistryPrices, type RegistryRole, roleModel, routeModels, sentId } from "./registry";
 import type { ModelUsage } from "./types";
 
 /**
@@ -30,9 +30,10 @@ export interface ProviderInfo {
 }
 
 /**
- * Model providers agentes.chat can talk to. Adding one is an entry here,
- * catalog rows with its prices, and an adapter for its protocol; the database
- * stores the provider id as text, so no migration is needed.
+ * Model providers agentes.chat can talk to. Adding one is an entry here, its
+ * models on its route in the model registry (`models.json`, ADR 0195), and an
+ * adapter for its protocol; the database stores the provider id as text, so no
+ * migration is needed.
  */
 export const PROVIDERS = {
   anthropic: { label: "Claude", protocol: "anthropic" },
@@ -156,14 +157,16 @@ const catalogId = (provider: ProviderId, id: string) => (provider === "commandco
 
 /**
  * The API providers' models in the registry (`models.json`, ADR 0195), in `PROVIDERS`' order and then the file's,
- * with the roles the registry gives each one there. Command Code's are its long list (`pick: false`).
+ * with the roles the registry gives each one there. Command Code's are its long list (`pick: false`). A row without
+ * prices is left out (we never make a call we can't price; the registry test fails on it), never a load error: the
+ * apps and the runner import this file too.
  */
 function catalogFromRegistry(): Record<string, ModelInfo> {
   const catalog: Record<string, ModelInfo> = {};
   for (const provider of PROVIDER_IDS) {
     const holds = (role: RegistryRole, id: string) => roleModel(provider, role) === id;
     for (const [id, model, r] of routeModels(provider)) {
-      if (!r.prices) throw new Error(`models.json: ${id} has no prices on ${provider}`);
+      if (!r.prices) continue;
       const tier = MODEL_TIERS.find((t) => holds(t, id));
       const contextWindow = r.contextWindow ?? model.contextWindow;
       const long = r.longContext;
@@ -406,18 +409,28 @@ export function outputTokensWithin(model: string, promptTokens: number, nanoUsd:
 export const nanoUsdToUsd = (nano: number) => nano / 1e9;
 export const usdToNanoUsd = (usd: number) => Math.round(usd * 1e9);
 
-/** The Claude model behind Claude Code's alias (`opus` → the newest Opus in the registry), for its price and name. */
-export const claudeCodeAliasModel = (alias: "opus" | "sonnet" | "haiku") => roleModel("claude-code", alias);
+/**
+ * The Claude model behind Claude Code's alias (`opus` → the newest Opus in the registry), by the id Claude's route
+ * sends (its catalog id), for its price and name.
+ */
+export function claudeCodeAliasModel(alias: "opus" | "sonnet" | "haiku"): string | null {
+  const id = roleModel("claude-code", alias);
+  return id ? sentId("anthropic", id) : null;
+}
 
-/** A role the registry must fill (the deployment's defaults read it): a load error when it doesn't. */
 function required(model: string | null, what: string): string {
   if (!model) throw new Error(`models.json names no ${what}`);
   return model;
 }
 
-/** What the deployment runs where its environment names no model (`ROUTER_MODEL`, `SUMMARY_MODEL`, `OPENAI_CHEAP_MODEL`). */
-export const DEFAULT_MODELS = {
-  claudeRouter: required(routerModelOf("anthropic"), "routing model for Claude"),
-  claudeCheap: required(cheapModelOf("anthropic"), "cheap Claude model"),
-  openaiCheap: required(cheapModelOf("openai"), "cheap OpenAI model"),
-};
+/**
+ * What the server runs where its environment names no model (`ROUTER_MODEL`, `SUMMARY_MODEL`, `OPENAI_CHEAP_MODEL`):
+ * the registry's picks. Only the server asks, so it refuses to start when the registry names none; the apps never do.
+ */
+export function defaultModels() {
+  return {
+    claudeRouter: required(routerModelOf("anthropic"), "routing model for Claude"),
+    claudeCheap: required(cheapModelOf("anthropic"), "cheap Claude model"),
+    openaiCheap: required(cheapModelOf("openai"), "cheap OpenAI model"),
+  };
+}

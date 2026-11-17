@@ -1,5 +1,5 @@
 {
-  "about": "Every model agentes.chat knows (ADR 0195): what it is, where it runs (`on`: an API key's provider, `commandcode`, a coding plan through Claude Code as `plan:<id>`, ChatGPT through Codex as `codex`, a computer's CLI as `cli:<name>`) and at what price there, in USD per million tokens. `roles` says which family does what on each of them: the family's newest model there (`released`) takes the role. Within a route, models keep the file's order (a plan's picker groups them by maker, the aliases' makers first, and Automático's fallback on a plan takes its first free tagged one). The catalog, the plans' model lists, Claude Code's aliases and the CLIs' fallback lists are all read from this file (`packages/providers/src/registry.ts`).",
+  "about": "Every model agentes.chat knows (ADR 0195): what it is, where it runs (`on`: an API key's provider, `commandcode`, a coding plan through Claude Code as `plan:<id>`, ChatGPT through Codex as `codex`, a computer's CLI as `cli:<name>`) and at what price there, in USD per million tokens. `roles` says which family does what on each of them: the family's newest model there (`released`, each model's first release day as models.dev lists it, the maker's own where it gives one) takes the role, so every model of a family a role names has one. Within a route, models keep the file's order (a plan's picker groups them by maker, the aliases' makers first, and Automático's fallback on a plan takes its first free tagged one). The catalog, the plans' model lists, Claude Code's aliases and the CLIs' fallback lists are all read from this file (`packages/providers/src/registry.ts`).",
   "updatedAt": "2026-11-17",
   "sources": {
     "anthropic": "First-party list prices, platform.claude.com pricing (2026-10-20, Claude Fable 5.1 2026-11-09, Claude Fable 5.2 2026-11-17); windows from the models overview. Cache writes at the 5-minute rate (1.25 × input); a 1-hour write costs `LONG_CACHE_WRITE` × input.",
@@ -276,7 +276,6 @@
     "kimi-k3-256k": {
       "label": "K3 256K",
       "maker": "moonshot",
-      "family": "kimi-k3",
       "on": { "plan:kimi": { "id": "k3-256k" } }
     },
     "kimi-k2.7-code": {

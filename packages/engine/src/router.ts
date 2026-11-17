@@ -16,7 +16,7 @@ import {
 } from "@agenteschat/db";
 import {
   cheapModelOf,
-  DEFAULT_MODELS,
+  defaultModels,
   ensureOpenRouterModels,
   isKnownModel,
   modelInfo,
@@ -619,7 +619,7 @@ export async function cheapModelForOrg(db: Database, orgId: string, perProvider:
   const model = perProvider[provider] ?? cheapModelOf(provider);
   if (model) return model;
   if (provider === "openrouter") throw new ProviderError("could not reach provider", true);
-  return perProvider.anthropic ?? DEFAULT_MODELS.claudeCheap;
+  return perProvider.anthropic ?? defaultModels().claudeCheap;
 }
 
 /**

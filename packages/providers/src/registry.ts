@@ -60,17 +60,11 @@ export interface RegistryModel {
   on: Record<string, RegistryRoute>;
 }
 
-/** Automático's tiers, the catalog's picks, and Claude Code's aliases (on `claude-code` and the plans). */
-export type RegistryRole =
-  | "large"
-  | "medium"
-  | "small"
-  | "recommended"
-  | "cheap"
-  | "router"
-  | "opus"
-  | "sonnet"
-  | "haiku";
+/** The roles on an API provider's route: Automático's tiers and the catalog's picks. */
+export const API_ROLES = ["large", "medium", "small", "recommended", "cheap", "router"] as const;
+/** The roles on `claude-code` and on a coding plan: Claude Code's aliases. */
+export const ALIAS_ROLES = ["opus", "sonnet", "haiku"] as const;
+export type RegistryRole = (typeof API_ROLES)[number] | (typeof ALIAS_ROLES)[number];
 
 export interface Registry {
   updatedAt: string;
@@ -86,6 +80,13 @@ export const REGISTRY = data as unknown as Registry;
 /** Routes whose roles are resolved on another route's models: Claude Code's aliases run Claude's API models. */
 const RESOLVED_ON: Record<string, string> = { "claude-code": "anthropic" };
 
+/** The route whose models hold a route's roles: itself, or the one `RESOLVED_ON` names. */
+export const resolvedOn = (route: string) => RESOLVED_ON[route] ?? route;
+
+/** The id a route sends for a model: its own `id` there, else the model's. */
+export const sentId = (route: string, id: string, registry: Registry = REGISTRY) =>
+  registry.models[id]?.on[route]?.id ?? id;
+
 /** The models a route offers, in the file's order: the model's id, the model and its route. */
 export function routeModels(route: string, registry: Registry = REGISTRY): [string, RegistryModel, RegistryRoute][] {
   return Object.entries(registry.models).flatMap(([id, m]) => {
@@ -94,7 +95,10 @@ export function routeModels(route: string, registry: Registry = REGISTRY): [stri
   });
 }
 
-/** Of a family's models on a route, the newest: the latest `released`, the first in the file among equals. */
+/**
+ * Of a family's models on a route, the newest: the latest `released` (a model without one counts as the oldest, so
+ * the registry test asks for one in every family a role names), the first in the file among equals.
+ */
 function newest(registry: Registry, route: string, family: string): string | null {
   let best: [string, string] | null = null;
   for (const [id, m] of routeModels(route, registry)) {
@@ -111,7 +115,7 @@ export function resolveRoles(registry: Registry = REGISTRY): Map<string, Map<Reg
   for (const [route, roles] of Object.entries(registry.roles)) {
     const held = new Map<RegistryRole, string>();
     for (const [role, family] of Object.entries(roles) as [RegistryRole, string][]) {
-      const id = newest(registry, RESOLVED_ON[route] ?? route, family);
+      const id = newest(registry, resolvedOn(route), family);
       if (id) held.set(role, id);
     }
     holders.set(route, held);

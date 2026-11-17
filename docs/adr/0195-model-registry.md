@@ -5,7 +5,7 @@
 - Extends: ADR 0018 (providers and the catalog), ADR 0059 §8 (coding plans as key accounts), ADR 0087 (OpenRouter's
   list), ADR 0132 (OpenCode's free tier), ADR 0142 (Grok Build), ADR 0143 (Antigravity), ADR 0149 (Fast mode)
 - Code: `packages/providers/src/models.json` (the data), `registry.ts` (`REGISTRY`, `routeModels`, `resolveRoles`,
-  `roleModel`), `catalog.ts` (`MODEL_CATALOG` read from it, `claudeCodeAliasModel`, `DEFAULT_MODELS`), `plans.ts`
+  `roleModel`, `sentId`), `catalog.ts` (`MODEL_CATALOG` read from it, `claudeCodeAliasModel`, `defaultModels`), `plans.ts`
   (each plan's `claudeCode.models`, `FAST_MODE_MODELS`, `GROK_BUILD_MODELS`, `ANTIGRAVITY_MODELS`,
   `OPENCODE_FREE_MODELS`); `packages/engine/src/brain-settings.ts` (`CLAUDE_CODE_MODELS`); `packages/config/src/schema.ts`
   and `apps/server/src/engine.ts` (`ROUTER_MODEL`, `SUMMARY_MODEL`, `OPENAI_CHEAP_MODEL` unset by default); tests
@@ -30,22 +30,27 @@ that a newer model then had to take over by hand.
    so every cost stays an exact integer. `sources` says where and when each route's data was read.
 2. **Roles by family.** `roles` gives each role on each route to a family (`anthropic`: `medium` and `recommended` to
    `claude-sonnet`; `plan:zai`: `sonnet` to `glm`; `claude-code`: Claude Code's aliases, on Claude's API models). The
-   family's newest model on that route (latest `released`, the file's order among equals) holds it. A newer model of a
-   family is one new block: it takes the family's roles everywhere with no other change; the older one stays
-   choosable. A family with no role (Claude Fable, GPT-6 Astra) is never picked by "Automático", only by people.
+   family's newest model on that route (latest `released`, each model's first release day) holds it, and a role
+   names the model: what a route sends for it is that route's own `id`. A newer model of a family is one new block:
+   it takes the family's roles everywhere with no other change; the older one stays choosable. A family with no role
+   (Claude Fable, GPT-6 Astra, Gemini 4 Carbon) is never picked by "Automático", only by people. API routes take
+   `API_ROLES`, Claude Code and the plans `ALIAS_ROLES`.
 3. **Everything else reads it.** `MODEL_CATALOG` is the API routes' models, in `PROVIDERS`' order and then the file's,
    with the roles they hold; Command Code's are its long list (`pick: false`). Each plan's models are its route's, each
    maker's together, the aliases' makers first; a plan of one maker names none. Claude Code's aliases, Fast mode's list
    and the CLIs' fallback lists come from their routes. `ROUTER_MODEL`, `SUMMARY_MODEL` and `OPENAI_CHEAP_MODEL` are
-   unset by default: the registry's routing and cheap picks (`DEFAULT_MODELS`) stand in, and the server refuses to
+   unset by default: the registry's routing and cheap picks (`defaultModels()`) stand in, and the server refuses to
    start if the file names none. `AGENT_DEFAULT_MODEL`, unused since new agents start on "Automático", is gone.
+   Nothing in the file is a load error for the apps or the runner, which import it too: an API route without prices
+   is left out of the catalog, and only the server asks for the defaults.
 4. **What stays in code.** Where a key goes (`PROVIDERS`' addresses, a plan's endpoint and key variable) never comes from
    the registry: the runner keeps its own copy of `plans.ts`, so data that may one day be read from elsewhere can't
    send a key to another address. Lists read at run time stay as they are (OpenRouter's, a workspace's own endpoint,
    a plan's `modelsUrl`, what a computer's CLI lists) and keep the registry as their fallback.
 5. **Pure data.** `registry.ts` imports only the JSON, so the runner and the apps read it as they read `plans.ts`.
    A test checks the file: every model runs somewhere real, an API route always has prices and a plan never does, every
-   role reaches a model, no two models of a family on a route came out the same day, no route sends one id twice.
+   role is one its route takes and reaches a model, every model of a family a role names has a release day and no two
+   of them on a route share one, each alias runs a model of its own, no route sends one id twice.
 
 ## Consequences
 
