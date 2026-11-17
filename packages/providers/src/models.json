@@ -3,8 +3,8 @@
   "updatedAt": "2026-11-17",
   "sources": {
     "anthropic": "First-party list prices, platform.claude.com pricing (2026-10-20, Claude Fable 5.1 2026-11-09, Claude Fable 5.2 2026-11-17); windows from the models overview. Cache writes at the 5-minute rate (1.25 × input); a 1-hour write costs `LONG_CACHE_WRITE` × input.",
-    "openai": "Standard tier, developers.openai.com/api/docs/pricing (2026-10-20, GPT-6.1 Terra 2026-10-31, GPT-6 Astra 2026-11-09); cache writes at the 30-minute rate. Above 272K prompt tokens, input, cached input and cache writes cost 2×, output 1.5×. Windows from each model's page (2026-10-26, Terra's 2026-10-31, Astra's 2026-11-09).",
-    "gemini": "Interactions API, Standard tier, ai.google.dev/gemini-api/docs/pricing (2026-10-27). Thinking is billed as output. Caching is implicit with no write charge, so a cache write costs the input rate (none is ever reported). `intro`: half price until that day.",
+    "openai": "Standard tier, developers.openai.com/api/docs/pricing (2026-10-20, GPT-6.1 Terra 2026-10-31, GPT-6 Astra 2026-11-09, GPT-6.2 Sol and Astra 2026-11-17); cache writes at the 30-minute rate. Above 272K prompt tokens, input, cached input and cache writes cost 2×, output 1.5×. Windows from each model's page (2026-10-26, Terra's 2026-10-31, Astra's 2026-11-09, 6.2's 2026-11-17).",
+    "gemini": "Interactions API, Standard tier, ai.google.dev/gemini-api/docs/pricing (2026-10-27; Gemini 4 Carbon and Hydrogen 2026-11-17). Thinking is billed as output. Caching is implicit with no write charge, so a cache write costs the input rate (none is ever reported). `intro`: half price until that day.",
     "deepseek": "DeepSeek's pricing page (2026-10-24). A cache write costs the input rate. Its peak rates are stored (off-peak is half), so budgets err high.",
     "moonshot": "Kimi's pricing page (2026-10-24). A cache write costs the input rate.",
     "zai": "Z.ai's pricing page (2026-10-24). A cache write costs the input rate.",
@@ -13,8 +13,8 @@
     "plan:zai": "docs.z.ai/devpack/tool/claude and docs.z.ai/devpack/overview (2026-10-24, 2026-10-30). Every tier has both models; Flash spends about a third of GLM-5.3's credits per token.",
     "plan:kimi": "kimi.com/code/docs (Claude Code; models page, 2026-10-30). `kimi-for-coding` (K2.8 Preview), K3.1 Pro and both K3 need Plus or above, the high-speed models Pro or above. K3.1 Pro Highspeed spends about 2× K3.1 Pro's quota; K2.7 Code Highspeed about 3× K2.7 Code's (not in the plan). K3 256K spends about half of K3's.",
     "plan:minimax": "platform.minimax.io/docs/coding-plan/claude-code and /intro (2026-10-24, 2026-10-30).",
-    "plan:opencode": "opencode.ai/v2/docs/console/go and its live list (opencode.ai/inference/go/v1/models; 31 models on 2026-11-09, all here), which replaces this one once read: what only we know of each model is its role and tag. Each model has its own monthly cap; `cheap`: 20,000 or more requests a month by OpenCode's estimates. DeepSeek's models answer only once the OpenCode workspace allows the Global region, the ones that train on what they're sent only once it allows that. Zen's own free models aren't Go's: they answer only to the OpenCode CLI (`cli:opencode-free`).",
-    "codex": "Models ChatGPT's Fast mode serves (developers.openai.com/api/docs/guides/fast-mode), ids as Codex lists them in its `service_tiers` (codex-cli 0.166.0): Codex drops the tier without a word for any other model. Codex's model picker lists the `openai` rows.",
+    "plan:opencode": "opencode.ai/v2/docs/console/go and its live list (opencode.ai/inference/go/v1/models; 32 models on 2026-11-17, all here), which replaces this one once read: what only we know of each model is its role and tag. Each model has its own monthly cap; `cheap`: 20,000 or more requests a month by OpenCode's estimates. DeepSeek's models answer only once the OpenCode workspace allows the Global region, the ones that train on what they're sent only once it allows that. Zen's own free models aren't Go's: they answer only to the OpenCode CLI (`cli:opencode-free`).",
+    "codex": "Models ChatGPT's Fast mode serves (developers.openai.com/api/docs/guides/fast-mode), ids as Codex lists them in its `service_tiers` (codex-cli 0.166.0; GPT-6.2 Sol and Astra from the guide and the pricing page's Fast table, 2026-11-17): Codex drops the tier without a word for any other model. Codex's model picker lists the `openai` rows.",
     "cli:grok": "Grok Build's models where the computer listed none (`grok models` asks xAI: none offline): grok-4.5 and grok-4.6 as Grok Build 1.0.34 listed them, grok-4.7 as OpenCode Go lists it (2026-11-04).",
     "cli:antigravity": "The Antigravity CLI's models where the computer listed none (`agy models` asks Google: none offline), each at its thinking `levels` (antigravity.google/docs/models, 2026-11-04): Gemini 4 Argon on paid Google AI Pro, Ultra and Enterprise, Gemini 3.8 Flash on every plan.",
     "cli:opencode-free": "OpenCode's free tier (ADR 0132): models OpenCode serves at no cost and only to its own CLI (opencode.ai/docs/zen, 2026-11-02; read again 2026-11-09), where `opencode models` listed none."
@@ -37,9 +37,9 @@
     },
     "gemini": {
       "large": "gemini-argon",
-      "medium": "gemini-flash",
+      "medium": "gemini-everyday",
       "small": "gemini-flash-lite",
-      "recommended": "gemini-flash",
+      "recommended": "gemini-everyday",
       "cheap": "gemini-flash-lite",
       "router": "gemini-flash-lite"
     },
@@ -292,6 +292,11 @@
         "plan:opencode": {}
       }
     },
+    "qwen4-max": {
+      "label": "Qwen4 Max",
+      "maker": "Alibaba",
+      "on": { "plan:opencode": {} }
+    },
     "qwen3.8-max": {
       "label": "Qwen3.8 Max",
       "maker": "Alibaba",
@@ -433,6 +438,44 @@
         "cli:opencode-free": { "id": "opencode/mimo-v2.6-flash-free", "label": "MiMo V2.6 Flash Free" }
       }
     },
+    "gpt-6.2-astra": {
+      "label": "GPT-6.2 Astra",
+      "maker": "openai",
+      "family": "gpt-astra",
+      "released": "2026-11-17",
+      "contextWindow": 1050000,
+      "note": "OpenAI's flagship (\"our most capable model\"), at 4× GPT-6.2 Sol's prices.",
+      "on": {
+        "openai": {
+          "prices": { "input": 8, "output": 40, "cacheRead": 0.4, "cacheWrite": 10 },
+          "longContext": {
+            "aboveInputTokens": 272000,
+            "prices": { "input": 16, "output": 60, "cacheRead": 0.8, "cacheWrite": 20 }
+          },
+          "reasoning": true
+        },
+        "codex": { "fast": true }
+      }
+    },
+    "gpt-6.2-sol": {
+      "label": "GPT-6.2 Sol",
+      "maker": "openai",
+      "family": "gpt-sol",
+      "released": "2026-11-17",
+      "contextWindow": 1050000,
+      "note": "OpenAI's everyday model. It refuses reasoning effort `none`, so `none` goes as `low`.",
+      "on": {
+        "openai": {
+          "prices": { "input": 2, "output": 10, "cacheRead": 0.1, "cacheWrite": 2.5 },
+          "longContext": {
+            "aboveInputTokens": 272000,
+            "prices": { "input": 4, "output": 15, "cacheRead": 0.2, "cacheWrite": 5 }
+          },
+          "reasoning": true
+        },
+        "codex": { "fast": true }
+      }
+    },
     "gpt-6-astra": {
       "label": "GPT-6 Astra",
       "maker": "openai",
@@ -561,6 +604,23 @@
       "released": "2026-07-09",
       "on": { "plan:opencode": {}, "codex": { "fast": true } }
     },
+    "gemini-4-carbon": {
+      "label": "Gemini 4 Carbon",
+      "maker": "gemini",
+      "family": "gemini-carbon",
+      "released": "2026-11-10",
+      "contextWindow": 1048576,
+      "note": "Google's strongest reasoning model; it thinks more per turn than Argon.",
+      "on": {
+        "gemini": {
+          "prices": { "input": 4, "output": 20, "cacheRead": 0.2, "cacheWrite": 4 },
+          "intro": {
+            "until": "2026-12-01",
+            "prices": { "input": 2, "output": 10, "cacheRead": 0.1, "cacheWrite": 2 }
+          }
+        }
+      }
+    },
     "gemini-4-argon": {
       "label": "Gemini 4 Argon",
       "maker": "gemini",
@@ -579,10 +639,19 @@
         "cli:antigravity": { "levels": ["high", "medium"] }
       }
     },
+    "gemini-4-hydrogen": {
+      "label": "Gemini 4 Hydrogen",
+      "maker": "gemini",
+      "family": "gemini-everyday",
+      "released": "2026-11-12",
+      "contextWindow": 1048576,
+      "note": "Google's recommended upgrade from Gemini 3.8 Flash, at one price across its whole window.",
+      "on": { "gemini": { "prices": { "input": 1.5, "output": 7.5, "cacheRead": 0.075, "cacheWrite": 1.5 } } }
+    },
     "gemini-3.8-flash": {
       "label": "Gemini 3.8 Flash",
       "maker": "gemini",
-      "family": "gemini-flash",
+      "family": "gemini-everyday",
       "released": "2026-09-02",
       "contextWindow": 1048576,
       "on": {
@@ -697,6 +766,11 @@
       "maker": "Tencent",
       "on": { "plan:opencode": {} }
     },
+    "hy4-flash-free": {
+      "label": "Hy4 Flash Free",
+      "maker": "Tencent",
+      "on": { "plan:opencode": { "free": true } }
+    },
     "step-5-preview": {
       "label": "Step 5 Preview",
       "maker": "StepFun",
@@ -762,7 +836,7 @@
     "crouton-alpha-free": {
       "label": "Crouton Alpha Free",
       "maker": "OpenCode",
-      "on": { "plan:opencode": { "free": true }, "cli:opencode-free": { "id": "opencode/crouton-alpha-free" } }
+      "on": { "cli:opencode-free": { "id": "opencode/crouton-alpha-free" } }
     },
     "iceman-contributor-free": {
       "label": "Iceman Contributor Free",

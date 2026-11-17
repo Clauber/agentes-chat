@@ -94,6 +94,25 @@ describe("pricing", () => {
     );
   });
 
+  test("GPT-6.2 Sol and Astra: $2 / $0.10 / $2.50 / $10 and $8 / $0.40 / $10 / $40, 2× and 1.5× above 272K", () => {
+    expect(costNanoUsd("gpt-6.2-sol", usage(100_000, 1000, 100_000, 72_000))).toBe(
+      100_000 * 2000 + 1000 * 10000 + 100_000 * 100 + 72_000 * 2500,
+    );
+    expect(costNanoUsd("gpt-6.2-sol", usage(100_001, 1000, 100_000, 72_000))).toBe(
+      100_001 * 4000 + 1000 * 15000 + 100_000 * 200 + 72_000 * 5000,
+    );
+    expect(costNanoUsd("gpt-6.2-astra", usage(100_000, 1000, 100_000, 72_000))).toBe(
+      100_000 * 8000 + 1000 * 40000 + 100_000 * 400 + 72_000 * 10000,
+    );
+    expect(costNanoUsd("gpt-6.2-astra", usage(100_001, 1000, 100_000, 72_000))).toBe(
+      100_001 * 16000 + 1000 * 60000 + 100_000 * 800 + 72_000 * 20000,
+    );
+    // The newest Sol takes its line's roles; the newest Astra, like every Astra, none.
+    expect(MODEL_CATALOG["gpt-6.2-sol"]).toMatchObject({ tier: "medium", recommended: true, reasoning: true });
+    expect(MODEL_CATALOG["gpt-6.1-sol"]?.tier).toBeUndefined();
+    expect(MODEL_CATALOG["gpt-6.2-astra"]?.tier).toBeUndefined();
+  });
+
   test("GPT-6.1 Terra: $1 / $0.05 / $1.25 / $5, and $2 / $0.10 / $2.50 / $7.50 above 272K prompt tokens", () => {
     expect(costNanoUsd("gpt-6.1-terra", usage(100_000, 1000, 100_000, 72_000))).toBe(
       100_000 * 1000 + 1000 * 5000 + 100_000 * 50 + 72_000 * 1250,
@@ -137,8 +156,8 @@ describe("pricing", () => {
       );
     expect(recommended).toEqual([
       ["claude-sonnet-5-5"],
-      ["gpt-6.1-sol"],
-      ["gemini-3.8-flash"],
+      ["gpt-6.2-sol"],
+      ["gemini-4-hydrogen"],
       ["deepseek-flash"],
       ["kimi-k3.1-pro"],
       ["glm-5.3"],
@@ -179,7 +198,7 @@ describe("pricing", () => {
       null,
     ]);
     const line = (provider: string) => MODEL_TIERS.map((tier) => modelForTier(provider, tier));
-    expect(line("gemini")).toEqual(["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-4-argon"]);
+    expect(line("gemini")).toEqual(["gemini-3.5-flash-lite", "gemini-4-hydrogen", "gemini-4-argon"]);
     expect(line("deepseek")).toEqual(["deepseek-flash", "deepseek-flash", "deepseek-v4-pro"]);
     expect(line("moonshot")).toEqual(["kimi-k3.1-pro", "kimi-k3.1-pro", "kimi-k3.1-pro"]);
     expect(line("zai")).toEqual(["glm-5.3-flash", "glm-5.3", "glm-5.3"]);
@@ -224,6 +243,11 @@ describe("pricing", () => {
     expect(perMTok("gemini-4-argon", "2026-12-01T00:00:00Z")).toEqual([4, 20, 0.2, 4]);
     expect(perMTok("gemini-3.8-flash", "2026-12-31T23:59:59Z")).toEqual([0.75, 3.75, 0.075, 0.75]);
     expect(perMTok("gemini-3.8-flash", "2027-01-01T00:00:00Z")).toEqual([1.5, 7.5, 0.15, 1.5]);
+    // Carbon: Argon's prices and day; Hydrogen: one price, no introduction.
+    expect(perMTok("gemini-4-carbon", "2026-11-30T23:59:59Z")).toEqual([2, 10, 0.1, 2]);
+    expect(perMTok("gemini-4-carbon", "2026-12-01T00:00:00Z")).toEqual([4, 20, 0.2, 4]);
+    expect(perMTok("gemini-4-hydrogen", "2026-11-17T12:00:00Z")).toEqual([1.5, 7.5, 0.075, 1.5]);
+    expect(perMTok("gemini-4-hydrogen", "2027-06-01T00:00:00Z")).toEqual([1.5, 7.5, 0.075, 1.5]);
     expect(perMTok("gemini-3.5-flash-lite", "2026-10-27T12:00:00Z")).toEqual([0.3, 2.5, 0.03, 0.3]);
     expect(perMTok("gemini-3.5-flash-lite", "2027-06-01T00:00:00Z")).toEqual([0.3, 2.5, 0.03, 0.3]);
     const argon = MODEL_CATALOG["gemini-4-argon"];

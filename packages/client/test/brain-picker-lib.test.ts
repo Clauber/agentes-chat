@@ -166,8 +166,8 @@ describe("Quem pensa as one list (the new agent's step)", () => {
     expect(options.filter((o) => o.free).map((o) => o.value)).toEqual([
       "some-free-model",
       "opencode@m1#acc-go/longcat-2.5-free",
+      "opencode@m1#acc-go/hy4-flash-free",
       "opencode@m1#acc-go/beam-free",
-      "opencode@m1#acc-go/crouton-alpha-free",
       "opencode@m1#acc-go/iceman-contributor-free",
     ]);
     expect(finds(options, "deepseek-v4.1-flash")).toEqual(["opencode@m1#acc-go/deepseek-v4.1-flash"]);
