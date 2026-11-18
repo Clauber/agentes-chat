@@ -2151,6 +2151,7 @@ export const ptBR = {
     phone: "Celular",
     phoneOn: "No app do celular, com o aparelho bloqueado também",
     phoneOff: "Ative no app do celular",
+    phoneOpen: "Abrir",
     mac: "App do Mac",
     macHelp: "Enquanto o app estiver aberto, mesmo em segundo plano",
     on: "Ligado",
@@ -2461,6 +2462,58 @@ export const ptBR = {
     localOnlyHow:
       "No app do agentes.chat desse computador, ligue Acessar pelo celular e pela equipe em Preferências › Servidores. Depois volte aqui.",
     localOnlyHere: "Ligue Acessar pelo celular e pela equipe. Depois volte aqui.",
+  },
+  surface: {
+    link: {
+      /** A recorded consent: keep the meaning, and "parar" as the word the service recognises. */
+      consent:
+        "{{assistant}} do agentes.chat pode mandar mensagens no {{surface}} sobre seus workspaces, e ligar só quando for urgente e você permitir. Escreva parar para desativar.",
+      title: "Fale com {{assistant}} no {{surface}}",
+      qr: "QR code que abre o {{surface}} com o seu código digitado",
+      making: "Gerando seu código",
+      code: "Seu código {{code}}",
+      open: "Abrir o {{surface}}",
+      stepScan: "Escaneie o código com o celular, ou abra o app",
+      stepSend: "Envie a mensagem como está",
+      stepSendText: "Isto avança sozinho quando sua mensagem chegar.",
+      stepConfirm: "Confira o remetente e confirme aqui",
+      showCode: "Mostrar o código de novo",
+      confirmTitle: "Este é o seu {{surface}}?",
+      sentBy: "Este remetente enviou seu código",
+      onlyYou: "Vincule só se for você.",
+      workspace: "Responde em {{workspace}}",
+      confirm: "Sim, vincular",
+      notMe: "Não sou eu",
+      doneTitle: "{{surface}} vinculado",
+      doneText: "{{assistant}} responde você por lá a partir de agora.",
+      newCode: "Gerar um novo código",
+      done: "Pronto",
+    },
+    row: {
+      hint: "Fale com {{assistant}} e receba as respostas no {{surface}}.",
+      link: "Vincular",
+      none: "{{assistant}} pode mandar mensagens para você lá",
+      pending: "Um remetente espera a sua confirmação",
+      unlink: "Desvincular",
+      unlinkTitle: "Desvincular o {{surface}}?",
+      unlinkText: "{{assistant}} para de responder você por lá. Você pode vincular de novo quando quiser.",
+      unlinked: "{{surface}} desvinculado",
+    },
+    undo: {
+      title: "Desvincular o app de chat?",
+      lead: "Sua conta acabou de ser vinculada a um app de chat. Se não foi você, desvincule aqui.",
+      button: "Desvincular",
+      done: "{{surface}} desvinculado",
+      doneLead: "{{display}} não alcança mais a sua conta.",
+      ended: "Já desvinculado",
+      endedLead: "{{display}} no {{surface}} já tinha sido desvinculado. Não há mais nada a fazer.",
+      gone: "Este link para desfazer não funciona mais",
+      sender: "Esse remetente",
+    },
+    via: "via {{surface}}",
+    viaTip: "Enviada por {{person}} pelo {{surface}}",
+    forwarded: "encaminhada via {{surface}}",
+    forwardedTip: "{{person}} encaminhou isto do {{surface}}. As palavras são de outra pessoa.",
   },
   team: {
     title: "Equipe",
@@ -3575,10 +3628,19 @@ export const ptBR = {
     /** What the person already has, before the new sign-ins: accounts on the agent's computer, the workspace's keys. */
     have: {
       title: "Já conectadas",
-      titleFor: "Já conectadas, para o {{name}}",
-      titleFor_female: "Já conectadas, para a {{name}}",
       other: "Ou conecte outra",
       manageKeys: "Gerenciar ou apagar chaves",
+      /** Over the accounts already connected: what picking one does. */
+      pickLine: "Escolha uma conta já conectada aqui. O {{name}} pensa com ela.",
+      pickLine_female: "Escolha uma conta já conectada aqui. A {{name}} pensa com ela.",
+      /** Under a person's group: their accounts the viewer can't pick (not lent, or signed out), counted per account. */
+      onlyOwner_one: "Mais {{count}} conta de {{name}} que só {{name}} pode dar.",
+      onlyOwner_other: "Mais {{count}} contas de {{name}} que só {{name}} pode dar.",
+      /** After the email of one's own account made for all agents: how many other agents think with it. */
+      moreAgents_one: "e mais {{count}} agente",
+      moreAgents_other: "e mais {{count}} agentes",
+      /** Someone else's plan, with room left (their row has no meter word otherwise). */
+      plenty: "Com folga",
     },
     /** Connect opened from an agent's conversation (ADR 0160, addendum): what is already connected, to pick from. */
     chat: {
@@ -15155,6 +15217,20 @@ export const ptBR = {
     },
   },
   errors: {
+    surface: {
+      off: "A vinculação de apps de chat foi desligada. Recarregue para ver suas configurações como estão agora.",
+      notAllowed: "Vincular um app de chat ainda não está aberto para sua conta. Continue usando o app aqui até abrir.",
+      noAssistant:
+        "O assistente deste workspace não está configurado para falar com você. Escolha outro workspace para vincular.",
+      noWorkspace: "Você não está mais neste workspace. Escolha outro workspace para vincular.",
+      linkGone:
+        "Este vínculo não está mais esperando: expirou depois de 10 minutos ou foi cancelado. Gere um novo código para começar de novo.",
+      taken:
+        "Esse remetente está vinculado a outra conta do agentes.chat. Desvincule lá e depois envie um novo código.",
+      undoGone: "Este link de desfazer já foi usado ou expirou. Desvincule nas suas configurações de notificações.",
+      codeGone:
+        "Este código está errado, já foi usado ou expirou depois de 10 minutos. Gere um novo código e envie de novo.",
+    },
     wallpaper: {
       notYours: "Essa foto não é sua.",
       invalid: "Esse fundo não existe.",
@@ -15196,7 +15272,8 @@ export const ptBR = {
       accountInUse: "Essa conta já pensa para outro agente.",
       noAiYet: "Ainda não há IA conectada.",
       filePurged: "Este arquivo foi apagado há mais de 30 dias e não pode voltar.",
-      looksSecret: "Isso parece uma senha ou uma chave, e todo mundo aqui veria.",
+      looksSecret:
+        "Isso parece uma senha ou uma chave, e todo mundo aqui veria. Peça ao agente para pedir em particular.",
       blockSpec:
         "Este bloco tem um erro nas partes ou nas fórmulas, então não pode ser mostrado. Corrija e tente de novo.",
       takeControl: "Assuma o controle do perfil primeiro.",
@@ -15218,6 +15295,8 @@ export const ptBR = {
       neverHappens: "Este agendamento nunca acontece.",
       soleOwner:
         "Você é a única pessoa dona de um workspace com outros membros. Passe a posse a alguém, ou apague o workspace, antes.",
+      soleOwnerOutside:
+        "Você é a única pessoa dona de um workspace em que as outras pessoas são colaboradores externos, que não podem ser donos. Convide um membro e torne essa pessoa dona, ou apague o workspace, antes.",
       testFirst: "Teste a conexão com estes dados antes de ligar.",
       voiceLength: "A gravação está longa ou curta demais.",
       sendAgain: "O arquivo não chegou inteiro. Envie de novo.",
@@ -15341,6 +15420,7 @@ export const ptBR = {
       answered: "Alguém já respondeu este pedido.",
       expired: "Este pedido expirou: ninguém respondeu em 14 dias.",
       codeNeeded: "Verifique seu e-mail primeiro.",
+      outsideClosed: "Esta conta foi bloqueada ou está sendo excluída, então não pode entrar. O pedido foi fechado.",
     },
     /** An emailed code refused: asking to join (ADR 0072) and deleting (ADR 0088) alike. */
     code: {
@@ -17192,7 +17272,7 @@ export const ptBR = {
         wallpaper: {
           title: "Fundo",
           help: "Muda só para você, em todos os seus aparelhos",
-          rowHelp: "Atrás de todas as conversas, só para você. Uma conversa pode ter o seu pelo menu dela.",
+          rowHelp: "Atrás de todas as conversas, só para você, a não ser que uma conversa tenha o seu pelo menu dela.",
           rowSub: "Só para você, em todas as conversas",
           onlyHere: "Só em {{name}}, só para você",
           none: "Sem fundo",
@@ -18520,6 +18600,9 @@ export const ptBR = {
       file_saved: "Arquivo salvo.",
       issue_work_start: "Pode fazer a tarefa #{{number}}.",
       issue_taken: "Peguei a tarefa #{{number}}.",
+      surfaceUnlinked:
+        "{{surface}} foi desvinculado porque a identidade mudou. Vincule de novo em Configurações se foi você.",
+      surfaceVoiceDropped: "Não consegui entender esse áudio. Pode mandar de novo ou escrever?",
       done: "Pronto.",
       /**
        * A stretch's pause card (ADR 0089): `agents` their names, `count` how many; `percent` the share of each one's
@@ -19494,6 +19577,8 @@ export const ptBR = {
     serverOwner: "Você instalou este servidor. As configurações dele vão ficar sem dono aqui, só no ambiente dele.",
     blockers: "Antes de apagar",
     soleOwner: "Você é a única pessoa dona de {{name}}. Torne outra pessoa dona, ou apague {{name}}.",
+    soleOwnerOutside:
+      "Você é a única pessoa dona de {{name}}, e as outras pessoas lá são colaboradores externos, que não podem ser donos. Convide um membro e torne essa pessoa dona, ou apague {{name}}.",
     soleOwnerSettingUp:
       "Você é a única pessoa dona de {{name}}. Termine de configurar para tornar outra pessoa dona, ou apague {{name}}.",
     openPeople: "Abrir Pessoas",
