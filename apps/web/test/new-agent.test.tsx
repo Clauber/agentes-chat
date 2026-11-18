@@ -1012,12 +1012,7 @@ describe("Criar agente: what gets created", () => {
       within(list)
         .getAllByRole("option")
         .map((o) => o.textContent),
-    ).toEqual([
-      "LongCat 2.5 FreeGrátis",
-      "Hy4 Flash FreeGrátis",
-      "Beam FreeGrátis",
-      "Iceman Contributor FreeGrátis",
-    ]);
+    ).toEqual(["LongCat 2.5 FreeGrátis", "Hy4 Flash FreeGrátis", "Beam FreeGrátis", "Iceman Contributor FreeGrátis"]);
     await typeIn(screen().getByRole("combobox", { name: "Buscar modelos" }), "deepseek flash");
     await click(screen().getByRole("option", { name: /^DeepSeek V4\.1 Flash/ }));
     expect(brainBox().textContent).toStartWith("DeepSeek V4.1 Flash pelo OpenCode Go");
