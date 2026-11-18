@@ -17,7 +17,7 @@ Models were written in several places, each in its own shape: the catalog of API
 (`MODEL_CATALOG`), each coding plan's models, ChatGPT's Fast mode list, the CLIs' fallback lists, Claude Code's aliases,
 and the deployment's default models in the environment's schema. One model could appear four or five times (GLM-5.3:
 its maker's key, Command Code, the GLM Coding Plan, OpenCode Go). A new model meant finding every list, and the roles
-("Automático"'s sizes, the suggested model, the cheap one, the routing pick, each plan's aliases) were flags on rows
+(Automatic's sizes, the suggested model, the cheap one, the routing pick, each plan's aliases) were flags on rows
 that a newer model then had to take over by hand.
 
 ## Decision
@@ -33,14 +33,14 @@ that a newer model then had to take over by hand.
    family's newest model on that route (latest `released`, each model's first release day) holds it, and a role
    names the model: what a route sends for it is that route's own `id`. A newer model of a family is one new block:
    it takes the family's roles everywhere with no other change; the older one stays choosable. A family with no role
-   (Claude Fable, GPT-6 Astra, Gemini 4 Carbon) is never picked by "Automático", only by people. API routes take
+   (Claude Fable, GPT-6 Astra, Gemini 4 Carbon) is never picked by Automatic, only by people. API routes take
    `API_ROLES`, Claude Code and the plans `ALIAS_ROLES`.
 3. **Everything else reads it.** `MODEL_CATALOG` is the API routes' models, in `PROVIDERS`' order and then the file's,
    with the roles they hold; Command Code's are its long list (`pick: false`). Each plan's models are its route's, each
    maker's together, the aliases' makers first; a plan of one maker names none. Claude Code's aliases, Fast mode's list
    and the CLIs' fallback lists come from their routes. `ROUTER_MODEL`, `SUMMARY_MODEL` and `OPENAI_CHEAP_MODEL` are
    unset by default: the registry's routing and cheap picks (`defaultModels()`) stand in, and the server refuses to
-   start if the file names none. `AGENT_DEFAULT_MODEL`, unused since new agents start on "Automático", is gone.
+   start if the file names none. `AGENT_DEFAULT_MODEL`, unused since new agents start on Automatic, is gone.
    Nothing in the file is a load error for the apps or the runner, which import it too: an API route without prices
    is left out of the catalog, and only the server asks for the defaults.
 4. **What stays in code.** Where a key goes (`PROVIDERS`' addresses, a plan's endpoint and key variable) never comes from

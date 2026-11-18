@@ -49,7 +49,7 @@ describe("the model registry (models.json)", () => {
   test("every role is one its route takes, and goes to a family that has a model there", () => {
     const held = resolveRoles();
     const problems = Object.entries(REGISTRY.roles).flatMap(([route, roles]) => {
-      // Claude Code and the plans take its aliases; an API provider takes Automático's tiers and the catalog's picks.
+      // Claude Code and the plans take its aliases; an API provider takes Automatic's tiers and the catalog's picks.
       const takes: readonly string[] = route === "claude-code" || route.startsWith("plan:") ? ALIAS_ROLES : API_ROLES;
       const known = route === "claude-code" || ROUTES.has(route);
       return [

@@ -726,7 +726,7 @@ describe("the agent's AI", () => {
     };
     const view = (effectiveModel: string) => ({ brain: "claude_code" as const, effectiveModel, options: [claude] });
     const go = modelRows(t, view("deepseek-v4.1-flash"), planOf("opencode"));
-    // Automático and the 32 models of Go's list.
+    // Automatic and the 32 models of Go's list.
     expect(go).toHaveLength(33);
     expect(go[0]).toEqual({
       value: "auto",

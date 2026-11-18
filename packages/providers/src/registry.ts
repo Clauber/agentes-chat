@@ -60,7 +60,7 @@ export interface RegistryModel {
   on: Record<string, RegistryRoute>;
 }
 
-/** The roles on an API provider's route: Automático's tiers and the catalog's picks. */
+/** The roles on an API provider's route: Automatic's tiers and the catalog's picks. */
 export const API_ROLES = ["large", "medium", "small", "recommended", "cheap", "router"] as const;
 /** The roles on `claude-code` and on a coding plan: Claude Code's aliases. */
 export const ALIAS_ROLES = ["opus", "sonnet", "haiku"] as const;
