@@ -29,11 +29,12 @@ that a newer model then had to take over by hand.
    Prices are in USD per million tokens, as providers publish them; `catalog.ts` turns them into nano-USD per token,
    so every cost stays an exact integer. `sources` says where and when each route's data was read.
 2. **Roles by family.** `roles` gives each role on each route to a family (`anthropic`: `medium` and `recommended` to
-   `claude-sonnet`; `plan:zai`: `sonnet` to `glm`; `claude-code`: Claude Code's aliases, on Claude's API models). The
+   `claude-sonnet`; `plan:zai`: `sonnet` to `glm`; `claude-code`: Claude Code's aliases, on Claude's API models, `fable` among them). The
    family's newest model on that route (latest `released`, each model's first release day) holds it, and a role
    names the model: what a route sends for it is that route's own `id`. A newer model of a family is one new block:
    it takes the family's roles everywhere with no other change; the older one stays choosable. A family with no role
-   (Claude Fable, GPT-6 Astra, Gemini 4 Carbon) is never picked by Automatic, only by people. API routes take
+   (GPT-6 Astra, Gemini 4 Carbon) is never picked by Automatic, only by people; Claude Fable's one role is Claude
+   Code's `fable` alias, which people choose. API routes take
    `API_ROLES`, Claude Code and the plans `ALIAS_ROLES`.
 3. **Everything else reads it.** `MODEL_CATALOG` is the API routes' models, in `PROVIDERS`' order and then the file's,
    with the roles they hold; Command Code's are its long list (`pick: false`). Each plan's models are its route's, each

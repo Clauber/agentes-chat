@@ -7,7 +7,8 @@ const read = (path: string) => readFileSync(join(import.meta.dir, "../../src/fea
 
 describe("the agent's computer and a browser profile's live view are pushed screens", () => {
   test("pushed with the opaque bar, never a modal the app's sheets, pickers and toasts would open under", () => {
-    expect(ownOptionsOf("computer/[agentId]")).toBe("solid,");
+    // The opaque bar, without the side insets as padding: the computer's screen places its edges by them (ADR 0212).
+    expect(ownOptionsOf("computer/[agentId]")).toBe("{ ...solid, contentStyle: { backgroundColor: colors.bg } },");
     expect(ownOptionsOf("browser-profile/[profileId]")).toBe("solid,");
   });
 
@@ -86,7 +87,7 @@ describe("lists load, fail and empty in the app's own states", () => {
     expect(devices).toContain('<EmptyState size="inline" title={t(copy.title)} subtitle={t(copy.text)} />');
     expect(devices).not.toContain("styles.empty");
     const gallery = read("connectors/ConnectorsScreen.tsx");
-    expect(gallery).toContain('<FirstUse place="connectors" acts={admin} size="inline" />');
+    expect(gallery).toMatch(/<FirstUse\s+place="connectors"\s+acts=\{mayAdd\}\s+size="inline"/);
     expect(gallery).not.toContain("EmptyHint");
   });
 });

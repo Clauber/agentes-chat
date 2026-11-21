@@ -62,8 +62,8 @@ export interface RegistryModel {
 
 /** The roles on an API provider's route: Automatic's tiers and the catalog's picks. */
 export const API_ROLES = ["large", "medium", "small", "recommended", "cheap", "router"] as const;
-/** The roles on `claude-code` and on a coding plan: Claude Code's aliases. */
-export const ALIAS_ROLES = ["opus", "sonnet", "haiku"] as const;
+/** The roles on `claude-code` and on a coding plan: Claude Code's aliases (`fable` is Claude's own, no plan maps it). */
+export const ALIAS_ROLES = ["fable", "opus", "sonnet", "haiku"] as const;
 export type RegistryRole = (typeof API_ROLES)[number] | (typeof ALIAS_ROLES)[number];
 
 export interface Registry {

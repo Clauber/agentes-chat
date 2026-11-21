@@ -1,4 +1,4 @@
-import { type RegistryPrices, type RegistryRole, roleModel, routeModels, sentId } from "./registry";
+import { type ALIAS_ROLES, type RegistryPrices, type RegistryRole, roleModel, routeModels, sentId } from "./registry";
 import type { ModelUsage } from "./types";
 
 /**
@@ -413,7 +413,7 @@ export const usdToNanoUsd = (usd: number) => Math.round(usd * 1e9);
  * The Claude model behind Claude Code's alias (`opus` → the newest Opus in the registry), by the id Claude's route
  * sends (its catalog id), for its price and name.
  */
-export function claudeCodeAliasModel(alias: "opus" | "sonnet" | "haiku"): string | null {
+export function claudeCodeAliasModel(alias: (typeof ALIAS_ROLES)[number]): string | null {
   const id = roleModel("claude-code", alias);
   return id ? sentId("anthropic", id) : null;
 }

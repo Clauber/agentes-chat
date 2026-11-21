@@ -70,6 +70,7 @@ import { listedText } from "../lib/voice";
 import type { Wallpaper } from "../lib/wallpaper";
 import type { AudienceChoice } from "../lib/who-sees";
 import type { WikiAccess } from "../lib/wiki";
+import { liveRefOf, type ResolvedMark } from "../live/types";
 import type { RealtimeConnection } from "../realtime/connection";
 import { readUnknownMembers, setOrgDeletion } from "../realtime/machines";
 import type { ApiClient } from "./client";
@@ -103,6 +104,7 @@ import type {
   Approval,
   ApprovalCoverInput,
   ApprovalsLevel,
+  Artifact,
   ArtifactContent,
   ArtifactDetail,
   ArtifactFilters,
@@ -127,6 +129,8 @@ import type {
   DmRead,
   DmTarget,
   EndpointModel,
+  FileConversation,
+  FileConversationRef,
   ForeignMailbox,
   GifCategory,
   GifKey,
@@ -164,6 +168,8 @@ import type {
   Person,
   PersonalTokenInput,
   PersonLimits,
+  ProblemReportPreviewInput,
+  ProblemReportSendInput,
   Proposal,
   ReactionCount,
   ReminderInput,
@@ -252,6 +258,29 @@ export const channelsQuery = (api: ApiClient, orgId: string) =>
     queryFn: () => api.chat.channels(orgId),
     staleTime: 30_000,
     ...BACK_TO_TAB,
+  });
+
+/** The workspace's people (`usePeople`); also for a `select` of one person. */
+export const peopleQuery = (api: ApiClient, orgId: string) =>
+  queryOptions({ queryKey: keys.people(orgId), queryFn: () => api.orgs.people(orgId), staleTime: 30_000 });
+
+/** The agents' statuses (`useAgentStatuses`); also for a `select` of one agent. */
+export const agentStatusQuery = (api: ApiClient, orgId: string) =>
+  queryOptions({
+    queryKey: keys.agentStatus(orgId),
+    queryFn: () => api.agents.statuses(orgId),
+    staleTime: 15_000,
+    refetchInterval: 30_000,
+    enabled: orgId.length > 0,
+  });
+
+/** Which agents have an AI (`useAiStatus`); also for a `select` of one agent. */
+export const aiStatusQuery = (api: ApiClient, orgId: string) =>
+  queryOptions({
+    queryKey: keys.aiStatus(orgId),
+    queryFn: () => api.agents.aiStatus(orgId),
+    staleTime: 30_000,
+    enabled: orgId.length > 0,
   });
 /**
  * An invitation's preview (its page, and the sign-in that leads to it). One that got no answer is asked twice more:
@@ -385,6 +414,28 @@ export function useSetServerTelemetry() {
   return useMutation({
     mutationFn: (enabled: boolean) => api.system.setTelemetry(enabled),
     onSuccess: (telemetry) => qc.setQueryData(keys.telemetry, telemetry),
+  });
+}
+
+/** A problem report gathered for the person to read before sending; asked again each time the dialog opens. */
+export const useProblemReportPreview = (input: ProblemReportPreviewInput, enabled: boolean) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: ["problem-report", input] as const,
+    queryFn: () => api.system.previewProblemReport(input),
+    enabled,
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
+  });
+};
+
+export function useSendProblemReport() {
+  const api = useApi();
+  // The dialog says why it failed, with its way out, under its buttons.
+  return useMutation({
+    mutationFn: (input: ProblemReportSendInput) => api.system.sendProblemReport(input),
+    meta: { silent: true },
   });
 }
 
@@ -536,6 +587,15 @@ export function useDeleteWorkspace(orgId: string) {
       });
       void qc.invalidateQueries({ queryKey: keys.me });
     },
+  });
+}
+
+/** Resets a workspace (owners): its apps read everything again when it is done (`org.reset`). */
+export function useResetWorkspace(orgId: string) {
+  const api = useApi();
+  return useMutation({
+    mutationFn: (proof: DeletionProofInput) => api.orgs.reset(orgId, proof),
+    meta: { silent: true },
   });
 }
 
@@ -806,6 +866,10 @@ export function useRevokeInvitation(orgId: string) {
 
 // ── Agents ──────────────────────────────────────────────────────────────────
 
+/** The agents my lists and pickers name: a private agent (`listed: false`) stays out for whom it is unlisted. */
+const listedAgents = (list: Agent[]) => list.filter((a) => a.listed !== false);
+
+/** The team's agents my lists name (`listed`); the directories resolve every agent's name and face (`useAllAgents`). */
 export const useAgents = (orgId: string, enabled = true) => {
   const api = useApi();
   return useQuery({
@@ -813,6 +877,21 @@ export const useAgents = (orgId: string, enabled = true) => {
     queryFn: () => api.agents.list(orgId),
     staleTime: 30_000,
     enabled,
+    select: listedAgents,
+    ...BACK_TO_TAB,
+  });
+};
+
+/**
+ * Every agent of the team the server sent, unlisted ones too (`listed: false`): only for the directories, which name a
+ * message's author and open a link to its public card. A list or picker reads `useAgents`.
+ */
+export const useAllAgents = (orgId: string) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.agents(orgId),
+    queryFn: () => api.agents.list(orgId),
+    staleTime: 30_000,
     ...BACK_TO_TAB,
   });
 };
@@ -1837,6 +1916,48 @@ export function cacheMessageMeta(
 }
 
 /**
+ * A comment on a picture, a video or a PDF was resolved or opened again (ADR 0208, `message.resolved`): its
+ * `meta.resolved` in every loaded list of its channel (the file's conversation and its pins read the same thread).
+ */
+export function cacheResolved(
+  qc: ReturnType<typeof useQueryClient>,
+  orgId: string,
+  channelId: string,
+  messageId: string,
+  resolved: ResolvedMark | null,
+) {
+  cacheMessageMeta(qc, orgId, channelId, messageId, () => ({ resolved: resolved ?? undefined }));
+}
+
+/** "Resolve" / "Reopen" on a comment with a pin: at once here, then as the server says (`message.resolved`). */
+export function useResolveComment(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { channelId: string; messageId: string; resolved: boolean; by: ResolvedMark["by"] }) =>
+      api.live.resolveComment(orgId, input.messageId, input.resolved),
+    onMutate: (input) => {
+      cacheResolved(
+        qc,
+        orgId,
+        input.channelId,
+        input.messageId,
+        input.resolved ? { by: input.by, at: new Date().toISOString() } : null,
+      );
+    },
+    onSuccess: (res, input) => cacheResolved(qc, orgId, input.channelId, input.messageId, res.resolved),
+    onError: (_error, input) =>
+      cacheResolved(
+        qc,
+        orgId,
+        input.channelId,
+        input.messageId,
+        input.resolved ? null : { by: input.by, at: new Date().toISOString() },
+      ),
+  });
+}
+
+/**
  * An agent's proposal of a new agent was decided (ADR 0081): the decision on its card in the chat, which already
  * holds the draft, and its own query again.
  */
@@ -1888,6 +2009,8 @@ function postBody({ body, clientId, threadId, meta, steer }: PostInput) {
   const replyTo = replyOf(meta)?.messageId;
   const attachments = artifactRefs(meta).map((r) => r.id);
   const media = messageMediaOf(meta);
+  // The quote bar of a live file's conversation (ADR 0199): the server adds the file's kind and title.
+  const about = liveRefOf(meta);
   return {
     body,
     clientId,
@@ -1897,6 +2020,9 @@ function postBody({ body, clientId, threadId, meta, steer }: PostInput) {
     ...(threadId && meta?.[OPEN_THREAD] === true ? { openThread: true } : {}),
     ...(steer ? { steer } : {}),
     ...(media ? { media: postedMedia(media) } : {}),
+    ...(about
+      ? { liveRef: { artifactId: about.artifactId, ...(about.selection ? { selection: about.selection } : {}) } }
+      : {}),
   };
 }
 
@@ -2502,11 +2628,12 @@ export const useCatalog = () => {
   return useQuery({ queryKey: keys.catalog, queryFn: () => api.connectors.catalog(), staleTime: 10 * 60_000 });
 };
 
-export const useConnections = (orgId: string, enabled = true) => {
+/** `others`: also everyone else's personal ones (who manages connectors gets them, as read-only rows). */
+export const useConnections = (orgId: string, enabled = true, { others = false } = {}) => {
   const api = useApi();
   return useQuery({
-    queryKey: keys.connections(orgId),
-    queryFn: () => api.connectors.list(orgId),
+    queryKey: others ? [...keys.connections(orgId), "others"] : keys.connections(orgId),
+    queryFn: () => api.connectors.list(orgId, { others }),
     staleTime: 30_000,
     enabled,
   });
@@ -2516,7 +2643,7 @@ export function useConnectWithKey(orgId: string) {
   const api = useApi();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { connector: string; apiKey: string; label?: string }) =>
+    mutationFn: (input: { connector: string; apiKey: string; label?: string; personal?: boolean }) =>
       api.connectors.connectWithKey(orgId, input),
     // A new connection is every agent's: their access trees change too, and so do the repositories GitHub reaches.
     onSuccess: () =>
@@ -2531,8 +2658,8 @@ export function useConnectWithKey(orgId: string) {
 export function useStartOAuth(orgId: string) {
   const api = useApi();
   return useMutation({
-    mutationFn: ({ connector, returnTo }: { connector: string; returnTo: string }) =>
-      api.connectors.startOAuth(orgId, connector, { returnTo }),
+    mutationFn: ({ connector, returnTo, personal }: { connector: string; returnTo: string; personal?: boolean }) =>
+      api.connectors.startOAuth(orgId, connector, { returnTo, ...(personal ? { personal } : {}) }),
   });
 }
 
@@ -2552,6 +2679,37 @@ export function useRenameConnection(orgId: string) {
         qc.invalidateQueries({ queryKey: keys.access(orgId) }),
       ]),
     meta: { silent: true },
+  });
+}
+
+/** "Tirar de um agente": the agent loses every grant on the connection; its access tree and the lists change. */
+export function useTakeConnectionOffAgent(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ connectionId, agentId }: { connectionId: string; agentId: string }) =>
+      api.connectors.takeOffAgent(orgId, connectionId, agentId),
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: keys.access(orgId) }),
+        qc.invalidateQueries({ queryKey: keys.connections(orgId) }),
+        qc.invalidateQueries({ queryKey: keys.customServers(orgId) }),
+      ]),
+  });
+}
+
+/** Moves the person's own connection to the team: it leaves Pessoal for Equipe, and every member sees it. */
+export function useMoveConnectionToTeam(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.connectors.moveToTeam(orgId, id),
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: keys.connections(orgId) }),
+        qc.invalidateQueries({ queryKey: keys.customServers(orgId) }),
+        qc.invalidateQueries({ queryKey: keys.access(orgId) }),
+      ]),
   });
 }
 
@@ -2734,11 +2892,11 @@ export const useMailProviders = (orgId: string, enabled = true) => {
 };
 
 /** The organization's mailboxes (no passwords), with the agents that use each. */
-export const useMailAccounts = (orgId: string, enabled = true) => {
+export const useMailAccounts = (orgId: string, enabled = true, { others = false } = {}) => {
   const api = useApi();
   return useQuery({
-    queryKey: keys.mailAccounts(orgId),
-    queryFn: () => api.mail.accounts(orgId),
+    queryKey: others ? [...keys.mailAccounts(orgId), "others"] : keys.mailAccounts(orgId),
+    queryFn: () => api.mail.accounts(orgId, { others }),
     enabled,
     staleTime: 30_000,
     retry: false,
@@ -2999,7 +3157,7 @@ function levelsChanged(qc: QueryClient, orgId: string) {
 
 export const usePeople = (orgId: string) => {
   const api = useApi();
-  return useQuery({ queryKey: keys.people(orgId), queryFn: () => api.orgs.people(orgId), staleTime: 30_000 });
+  return useQuery(peopleQuery(api, orgId));
 };
 
 /**
@@ -3221,13 +3379,7 @@ export function useCancelUsageQueue(orgId: string, agentId: string) {
  */
 export const useAgentStatuses = (orgId: string, enabled = true) => {
   const api = useApi();
-  return useQuery({
-    queryKey: keys.agentStatus(orgId),
-    queryFn: () => api.agents.statuses(orgId),
-    staleTime: 15_000,
-    refetchInterval: 30_000,
-    enabled: enabled && orgId.length > 0,
-  });
+  return useQuery({ ...agentStatusQuery(api, orgId), enabled: enabled && orgId.length > 0 });
 };
 
 /**
@@ -3590,9 +3742,7 @@ export const useAiStatus = (
 ) => {
   const api = useApi();
   return useQuery({
-    queryKey: keys.aiStatus(orgId),
-    queryFn: () => api.agents.aiStatus(orgId),
-    staleTime: 30_000,
+    ...aiStatusQuery(api, orgId),
     enabled: enabled && orgId.length > 0,
     refetchInterval: typeof pollMs === "function" ? (query) => pollMs(query.state.data) : pollMs,
   });
@@ -4140,9 +4290,14 @@ export function useCorrectMessage(orgId: string) {
 
 // ── Invites, custom MCP ─────────────────────────────────────────────────────
 
-export const useCustomServers = (orgId: string, enabled = true) => {
+/** `others`: also everyone else's personal ones (who manages connectors gets them, as read-only rows). */
+export const useCustomServers = (orgId: string, enabled = true, { others = false } = {}) => {
   const api = useApi();
-  return useQuery({ queryKey: keys.customServers(orgId), queryFn: () => api.customConnectors.list(orgId), enabled });
+  return useQuery({
+    queryKey: others ? [...keys.customServers(orgId), "others"] : keys.customServers(orgId),
+    queryFn: () => api.customConnectors.list(orgId, { others }),
+    enabled,
+  });
 };
 
 export function useCustomServerAction(orgId: string) {
@@ -4430,6 +4585,44 @@ export function useArtifacts(orgId: string, filters: ArtifactFilters) {
   return { ...query, artifacts: query.data ? artifacts : undefined, counts: pages?.[0]?.counts ?? null };
 }
 
+/** Every Drive folder of the workspace (the apps build the tree from `parentId`). */
+export const useDriveFolders = (orgId: string) => {
+  const api = useApi();
+  return useQuery({ queryKey: keys.driveFolders(orgId), queryFn: () => api.artifacts.folders(orgId) });
+};
+
+/**
+ * Arranging the Drive: folders made, renamed, moved and deleted, files moved and renamed. Each refreshes the Drive's
+ * lists and folders.
+ */
+export function useDriveArrange(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  const refresh = () => qc.invalidateQueries({ queryKey: keys.artifacts(orgId) });
+  const options = { onSettled: refresh };
+  return {
+    createFolder: useMutation({
+      mutationFn: (input: { name: string; parentId?: string | null }) => api.artifacts.createFolder(orgId, input),
+      ...options,
+    }),
+    updateFolder: useMutation({
+      mutationFn: (input: { id: string; name?: string; parentId?: string | null }) =>
+        api.artifacts.updateFolder(orgId, input.id, { name: input.name, parentId: input.parentId }),
+      ...options,
+    }),
+    deleteFolder: useMutation({ mutationFn: (id: string) => api.artifacts.deleteFolder(orgId, id), ...options }),
+    move: useMutation({
+      mutationFn: (input: { ids: string[]; folderId: string | null }) =>
+        api.artifacts.move(orgId, input.ids, input.folderId),
+      ...options,
+    }),
+    rename: useMutation({
+      mutationFn: (input: { id: string; title: string }) => api.artifacts.rename(orgId, input.id, input.title),
+      ...options,
+    }),
+  };
+}
+
 /** One artifact at a version (latest when omitted). */
 /** `GET …/artifacts-trash`: deleted files (30 days). */
 export const useArtifactTrash = (orgId: string) => {
@@ -4439,6 +4632,26 @@ export const useArtifactTrash = (orgId: string) => {
     queryFn: () => api.artifacts.trash(orgId),
   });
 };
+
+/**
+ * Where a live file's conversation lives (ADR 0199): the one the file already carries, or, once `open`, the one the
+ * server makes on first use. Null until then. `useTaskConversation` for a file.
+ */
+export function useFileConversation(
+  orgId: string,
+  artifact: Pick<Artifact, "id" | "conversation">,
+  open: boolean,
+): FileConversationRef | null {
+  const api = useApi();
+  const made = useQuery({
+    queryKey: [...keys.artifact(orgId, artifact.id), "conversation"],
+    queryFn: () => api.artifacts.conversation(orgId, artifact.id),
+    enabled: open && !artifact.conversation,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+  const known: FileConversation | null | undefined = artifact.conversation;
+  return known ?? made.data ?? null;
+}
 
 export const useArtifact = (orgId: string, id: string | null, version?: number) => {
   const api = useApi();
@@ -4663,12 +4876,17 @@ export function useUploadFile(orgId: string) {
       file: File;
       title?: string;
       channelId?: string | null;
+      folderId?: string | null;
       artifactId?: string;
       note?: string;
     }): Promise<ArtifactDetail> =>
       input.artifactId
         ? api.artifacts.uploadVersion(orgId, input.artifactId, input.file, { note: input.note })
-        : api.artifacts.upload(orgId, input.file, { title: input.title, channelId: input.channelId }),
+        : api.artifacts.upload(orgId, input.file, {
+            title: input.title,
+            channelId: input.channelId,
+            folderId: input.folderId,
+          }),
     meta: { silent: true },
     onSettled: () => qc.invalidateQueries({ queryKey: keys.artifacts(orgId) }),
   });
@@ -5191,11 +5409,12 @@ export function useFeedbackOffer(
 // ── Agent access (tool tree) ─────────────────────────────────────────────────
 
 /** The agent's tool tree. `retry: false`: a 404 means the backend doesn't have it yet. */
-export const useAgentAccess = (orgId: string, agentId: string, enabled = true) => {
+/** `others`: someone else's personal connection the agent holds comes too, with no scopes (it can only go off). */
+export const useAgentAccess = (orgId: string, agentId: string, enabled = true, { others = false } = {}) => {
   const api = useApi();
   return useQuery({
-    queryKey: keys.agentAccess(orgId, agentId),
-    queryFn: () => api.access.get(orgId, agentId),
+    queryKey: others ? [...keys.agentAccess(orgId, agentId), "others"] : keys.agentAccess(orgId, agentId),
+    queryFn: () => api.access.get(orgId, agentId, { others }),
     enabled,
     retry: false,
   });
@@ -6917,6 +7136,7 @@ function refreshThreadUnread(qc: QueryClient, orgId: string) {
   void qc.invalidateQueries({ queryKey: keys.channels(orgId) });
   void qc.invalidateQueries({ queryKey: keys.dms(orgId) });
   void qc.invalidateQueries({ queryKey: keys.unreadTasks(orgId) });
+  void qc.invalidateQueries({ queryKey: keys.unreadFiles(orgId) });
 }
 
 /** How many threads I follow have a reply I haven't read (the Threads entry's mark); live via `applyUnreadEvent`. */
@@ -6951,6 +7171,26 @@ export function useTaskUnread(orgId: string, issueId: string) {
 }
 
 /**
+ * The live files whose conversation has a reply I haven't read (ADR 0199), with the ones that mention me. Under the
+ * Drive's key, so whatever reads the Drive again reads it too; a notice about a file and my reads refresh it as well.
+ */
+export function useUnreadFiles(orgId: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.unreadFiles(orgId),
+    queryFn: () => api.reads?.unreadFiles?.(orgId) ?? Promise.resolve([]),
+    enabled: Boolean(api.reads?.unreadFiles),
+    staleTime: 30_000,
+  });
+}
+
+/** One live file's unread replies and mentions of me in its conversation (its "Conversation" toggle); none: zeros. */
+export function useFileUnread(orgId: string, artifactId: string) {
+  const found = useUnreadFiles(orgId).data?.find((u) => u.artifactId === artifactId);
+  return { unread: found?.unread ?? 0, mentions: found?.mentions ?? 0 };
+}
+
+/**
  * The Tarefas entry's marks, as a channel's: how many tasks have a reply I haven't read in their conversation (it goes
  * bold) and every mention of me there not read yet (its red number).
  */
@@ -6967,17 +7207,22 @@ export function useTasksUnread(orgId: string) {
  * read per client, however many members hear it.
  */
 export const UNREAD_REFRESH_MS = 2000;
+/** And up to this much more, at random: every member hears the same message, and their reads must not land at once. */
+export const UNREAD_SPREAD_MS = 3000;
 const activityTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
-/** Runs `read` once `UNREAD_REFRESH_MS` after the first call for `key`; calls meanwhile join it. */
+/** Runs `read` once, `UNREAD_REFRESH_MS` plus some of `UNREAD_SPREAD_MS` after the first call for `key`; calls meanwhile join it. */
 function readOncePerBurst(key: string, read: () => void) {
   if (activityTimers.has(key)) return;
   activityTimers.set(
     key,
-    setTimeout(() => {
-      activityTimers.delete(key);
-      read();
-    }, UNREAD_REFRESH_MS),
+    setTimeout(
+      () => {
+        activityTimers.delete(key);
+        read();
+      },
+      UNREAD_REFRESH_MS + Math.random() * UNREAD_SPREAD_MS,
+    ),
   );
 }
 
@@ -6991,7 +7236,29 @@ export function readConversationListsOncePerBurst(qc: QueryClient, orgId: string
   readOncePerBurst(`${orgId}:channels`, () => void qc.invalidateQueries({ queryKey: keys.channels(orgId) }));
 }
 
-/** A task changed, a reply in its conversation too (ADR 0145): the boards on screen read again, once per burst. */
+/**
+ * The conversation lists read now (news of a DM or a mention shows at once; a read under way serves it). A read that
+ * starts here comes after every `channel.activity` heard so far, so the burst read those asked for is dropped; with a
+ * read already under way (it may predate them) the burst read stays.
+ */
+export function readConversationListsNow(qc: QueryClient, orgId: string) {
+  for (const [list, queryKey] of [
+    ["dms", keys.dms(orgId)],
+    ["channels", keys.channels(orgId)],
+  ] as const) {
+    const underWay = qc.isFetching({ queryKey }) > 0;
+    void qc.invalidateQueries({ queryKey }, { cancelRefetch: false });
+    const timer = activityTimers.get(`${orgId}:${list}`);
+    if (underWay || timer === undefined) continue;
+    clearTimeout(timer);
+    activityTimers.delete(`${orgId}:${list}`);
+  }
+}
+
+/**
+ * A task changed, a reply in its conversation too (ADR 0145): the boards on screen read again, once per burst. A
+ * notice about a live file's conversation (ADR 0199) refreshes the file's unread marks and its page's conversation.
+ */
 export function applyIssueEvent(qc: QueryClient, orgId: string, event: { type: string }) {
   if (
     event.type === "issue.created" ||
@@ -7003,10 +7270,25 @@ export function applyIssueEvent(qc: QueryClient, orgId: string, event: { type: s
   // A task's conversation has no members to hear `channel.activity`: a notice about the task is my news of it.
   else if (event.type === "notification.upserted" && taskNoticeOf(event))
     readOncePerBurst(`${orgId}:unread-tasks`, () => void qc.invalidateQueries({ queryKey: keys.unreadTasks(orgId) }));
+  // So has a live file's (ADR 0199): a notice about the file refreshes its unread marks and its conversation's line.
+  else if (event.type === "notification.upserted") {
+    const fileId = fileNoticeOf(event);
+    if (!fileId) return;
+    readOncePerBurst(`${orgId}:unread-files`, () => void qc.invalidateQueries({ queryKey: keys.unreadFiles(orgId) }));
+    readOncePerBurst(
+      `${orgId}:file:${fileId}`,
+      () => void qc.invalidateQueries({ queryKey: keys.artifact(orgId, fileId), exact: true }),
+    );
+  }
 }
 
 const taskNoticeOf = (event: { type: string }) =>
   Boolean((event as { notification?: { source?: { issueId?: unknown } } }).notification?.source?.issueId);
+
+const fileNoticeOf = (event: { type: string }) => {
+  const id = (event as { notification?: { source?: { artifactId?: unknown } } }).notification?.source?.artifactId;
+  return typeof id === "string" ? id : null;
+};
 
 /**
  * My own topic's unread marks, on the web and the phone: a message in a conversation I'm in has its list read again
@@ -7034,8 +7316,15 @@ export function applyUnreadEvent(qc: QueryClient, orgId: string, event: { type: 
     }
   } else if (e.type === "channel.read") {
     clearUnread(qc, orgId, e.channelId);
-    void qc.invalidateQueries({ queryKey: keys.channels(orgId) });
-    void qc.invalidateQueries({ queryKey: keys.dms(orgId) });
+    // The counts already show it: a list whose burst read is on its way reads with it (each message of a conversation
+    // open here marks it read, and that read comes back here too). One with no burst, or a read under way that may
+    // predate this one, reads at once.
+    for (const [list, queryKey] of [
+      ["channels", keys.channels(orgId)],
+      ["dms", keys.dms(orgId)],
+    ] as const)
+      if (!activityTimers.has(`${orgId}:${list}`) || qc.isFetching({ queryKey }) > 0)
+        void qc.invalidateQueries({ queryKey });
     void qc.invalidateQueries({ queryKey: keys.unreadThreads(orgId) });
   } else if (e.type === "channel.muted") setMuted(qc, orgId, e.channelId, e.muted);
   else if (e.type === "chat.prefs") putChatPrefs(qc, orgId, e.chatPrefs);
@@ -7550,6 +7839,17 @@ export function useIphoneDevMode(orgId: string, machineId: string | null) {
     meta: { silent: true },
   });
   return { look, openXcode };
+}
+
+/** The iPhone guide's Repair: its Mac stops the iPhone's test helper, builds it again and checks it (devices refetch). */
+export function useIphoneRepair(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (phoneId: string) => api.devices.repairIphone(orgId, phoneId),
+    meta: { silent: true },
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.devices(orgId) }),
+  });
 }
 
 /**

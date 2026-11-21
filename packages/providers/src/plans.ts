@@ -545,7 +545,7 @@ export const ANTIGRAVITY_MODELS: readonly { id: string; label: string }[] = rout
   ([id, m, r]) =>
     (r.levels ?? []).map((level) => ({
       id: `${r.id ?? id}-${level}`,
-      label: `${r.label ?? m.label} (${level.charAt(0).toUpperCase()}${level.slice(1)})`,
+      label: `${r.label ?? m.label} (${level === "xhigh" ? "XHigh" : `${level.charAt(0).toUpperCase()}${level.slice(1)}`})`,
     })),
 );
 
@@ -566,5 +566,11 @@ export const signInProviderOf = (provider: string | null | undefined): string | 
 export const providerFitsChoice = (provider: string | null | undefined, choice: string, coding: boolean) =>
   coding ? provider === choice : !provider || provider === GEMINI_ENTERPRISE_PROVIDER;
 
-/** An Antigravity model slug's model in the catalog: `gemini-4-argon-high` → `gemini-4-argon`. */
-export const antigravityBaseModel = (slug: string) => slug.replace(/-(?:low|medium|high)$/, "");
+/**
+ * An Antigravity model slug's thinking level, the slug's last word (`gemini-4-neon-xhigh` → `xhigh`): a slug that
+ * names one takes no `--effort`.
+ */
+export const ANTIGRAVITY_LEVEL = /-(?:low|medium|high|xhigh)$/;
+
+/** An Antigravity model slug's model in the catalog: `gemini-4-argon-high` → `gemini-4-argon`, `…-neon-xhigh` too. */
+export const antigravityBaseModel = (slug: string) => slug.replace(ANTIGRAVITY_LEVEL, "");

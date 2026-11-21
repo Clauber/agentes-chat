@@ -52,6 +52,7 @@ import { errorNumber, isUnexpectedError, ToolOffError } from "../errors";
 import { cutMarked, cutText, inertJson, inertLinks, pgSafeJson, pgSafeText } from "../format";
 import { mergeReposOfCall, recordMergeDone, reposOfGithubCall } from "../git/repos";
 import { recordRead } from "../outbound";
+import { ownerOnlyPerson, personalLostNote } from "../personal-use";
 import { routineCreatorOf } from "../requester";
 import { isRightHand, RIGHT_HAND_NOT_OFFERED } from "../right-hand";
 import { type RoutineBrief, routineBriefOf } from "../routine-brief";
@@ -70,7 +71,7 @@ import {
   summarizeCall,
   type TeamCheck,
 } from "../team-actions";
-import { carriesCredential, promptAnswer, toolCommand, toolDetail } from "../tool-detail";
+import { carriesCredential, promptAnswer, promptRefused, toolCommand, toolDetail } from "../tool-detail";
 import { untrustedBlock } from "../untrusted";
 import { checkToolCall } from "./checks";
 import {
@@ -613,9 +614,14 @@ export function createToolGateway(deps: {
 
   async function allTools(ctx: ToolContext) {
     const byName = new Map<string, ToolDefinition>();
-    const rightHand = isRightHand(await getAgentCached(ctx.db, ctx.orgId, ctx.agentId));
-    for (const source of deps.sources) {
-      for (const tool of await source.tools(ctx)) {
+    // Sources are independent reads: all run at once, and the merge below keeps their order.
+    const [agent, lists] = await Promise.all([
+      getAgentCached(ctx.db, ctx.orgId, ctx.agentId),
+      Promise.all(deps.sources.map((source) => source.tools(ctx))),
+    ]);
+    const rightHand = isRightHand(agent);
+    for (const list of lists) {
+      for (const tool of list) {
         if (!TOOL_NAME.test(tool.name)) continue;
         if (rightHand && RIGHT_HAND_NOT_OFFERED.has(tool.name)) continue;
         const current = byName.get(tool.name);
@@ -1146,6 +1152,10 @@ export function createToolGateway(deps: {
     // Why the approved action can't run any more; null = it may.
     const refusal = async (): Promise<string | null> => {
       if (expected !== approval.actionHash) return "Approval does not match the action";
+      if (!tool) {
+        const lost = await personalLostNote(ctx, approval.tool);
+        if (lost) return lost;
+      }
       if (!tool || tool.scope !== approval.scope || (tool.connectionId ?? null) !== approval.connectionId)
         return `The tool ${approval.tool} is no longer available (its connector was removed or changed since the approval): say so, and that once it's connected again, asking again runs it`;
       const access = accessWithNeeds(await freshGrantedKeys(ctx.db, ctx.orgId, ctx.agentId), tool);
@@ -1200,8 +1210,9 @@ export function createToolGateway(deps: {
       }
       outside = readsOutsideText(tool, output);
       // Team actions (ADR 0064): what a person approved and went out is the team's too. Not a call of a confidential
-      // thread (ADR 0190): its arguments would be kept for good and searched by every agent.
-      if (isOutsideTool(tool) && !output.isError && !locked) {
+      // thread (ADR 0190): its arguments would be kept for good and searched by every agent. Nor of a person's own
+      // connection: the record is told to anyone's run on the agent.
+      if (isOutsideTool(tool) && !output.isError && !locked && !tool.ownerUserId) {
         await recordTeamAction(ctx.db, {
           orgId: ctx.orgId,
           agentId: ctx.agentId,
@@ -1252,6 +1263,7 @@ export function createToolGateway(deps: {
           outcome,
           reason: outcome === "done" ? null : shown(output.content),
           approvalId: approval.id,
+          personalOf: tool.ownerUserId ?? null,
           confidential: ctx.confidential === true,
         });
       }
@@ -1296,7 +1308,13 @@ export function createToolGateway(deps: {
           const [tools, connectors] = await Promise.all([
             notAllowed(ctx, authority, all).catch(() => []),
             deps.catalog
-              ? missingConnectors(ctx.db, ctx.orgId, deps.catalog, { usable, listed: all.values() }).catch(() => [])
+              ? missingConnectors(
+                  ctx.db,
+                  ctx.orgId,
+                  deps.catalog,
+                  { usable, listed: all.values() },
+                  await ownerOnlyPerson(ctx),
+                ).catch(() => [])
               : [],
           ]);
           const ask = usable.some((t) => t.name === REQUEST_PERMISSION_TOOL) ? REQUEST_PERMISSION_TOOL : null;
@@ -1333,6 +1351,7 @@ export function createToolGateway(deps: {
         ...(tool?.connectorLabel ? { connector: tool.connectorLabel } : {}),
         ...(tool?.service ? { service: tool.service } : {}),
         ...(tool?.serviceIcon ? { serviceIcon: tool.serviceIcon } : {}),
+        ...(tool?.ownerUserId ? { personal: true, personalOf: tool.ownerUserId } : {}),
       });
       /** The rules ("Aprovar sempre") this call ran under instead of asking. */
       let approvedBy: string[] | null = null;
@@ -1371,6 +1390,7 @@ export function createToolGateway(deps: {
           outcome,
           approvalRules: approvedBy,
           unasked: unasked && outcome !== "refused",
+          personalOf: tool.ownerUserId ?? null,
           confidential: ctx.confidential === true,
           ...extra,
         });
@@ -1412,8 +1432,13 @@ export function createToolGateway(deps: {
       };
 
       const unknown = { code: "tool.unknown" };
-      if (unknownInDirectory) return finish({ content: unknownInDirectory, isError: true, data: unknown });
-      if (!tool) return finish({ content: `Unknown tool ${call.name}`, isError: true, data: unknown });
+      // A person's own connection serves only them (ADR 0099 addendum): a call of its tool from any other run is a tool
+      // this run doesn't have, whatever listed it. A run someone else wrote into lost it: the model hears why.
+      if (unknownInDirectory || !tool || (tool.ownerUserId && tool.ownerUserId !== (await ownerOnlyPerson(ctx)))) {
+        const lost = await personalLostNote(ctx, call.name);
+        if (lost) return finish({ content: lost, isError: true, data: { code: "tool.personal_lost" } });
+        return finish({ content: unknownInDirectory ?? `Unknown tool ${call.name}`, isError: true, data: unknown });
+      }
       // A tool that runs other actions (Composio's executor): a call whose actions all only read is the
       // connection's read, when the agent may read the connection. Everything below then sees a read.
       if (tool.actions && tool.readScope) {
@@ -1631,7 +1656,10 @@ export function createToolGateway(deps: {
         return finish({ content: WHY_REFUSAL, isError: true, data: { code: "tool.why_missing" } });
       // Costly work nobody asked for directly (ADR 0131 §3): a person's go first, on every brain.
       const isPrompt = tool.name === PERMISSION_TOOL && builtIn;
-      const cost = ctx.runId && unrequested(authority) ? await costOf(ctx, tool.name, call.input) : null;
+      // A command the computer already refused never runs: nothing to hold or check with the team.
+      const refusedHere = isPrompt && promptRefused(tool.name, call.input);
+      const cost =
+        ctx.runId && unrequested(authority) && !refusedHere ? await costOf(ctx, tool.name, call.input) : null;
       if (cost) {
         const refusal = await costlyGate(
           { db: ctx.db, pubsub: deps.pubsub },
@@ -1658,7 +1686,7 @@ export function createToolGateway(deps: {
         check.data ? { ...output, data: { ...output.data, ...check.data } } : output;
 
       // Team actions (ADR 0064): before acting outside, has the team already done this to the same target?
-      const prompt = tool.name === PERMISSION_TOOL && builtIn ? promptQuestion(call.input) : null;
+      const prompt = !isPrompt ? null : refusedHere ? { poll: null, action: null } : promptQuestion(call.input);
       const targets = outside ? callTargets(call.input) : (prompt?.action?.targets ?? []);
       let teamReason: string | null = null;
       // Neither asked nor kept for a call of a confidential thread (ADR 0190): the check and the record hold the
@@ -1809,7 +1837,8 @@ export function createToolGateway(deps: {
       }
       const merged = mergeAlone ?? (tool.whyAsks ? (output.data?.merge as MergeDone | undefined) : null);
       if (merged && !output.isError) await recordMergeDone(ctx, merged, tool.name).catch(() => {});
-      if (teamKnows && outside && !output.isError) {
+      // A person's own connection's call is theirs alone: the record is told to anyone's run on the agent.
+      if (teamKnows && outside && !output.isError && !tool.ownerUserId) {
         await recordAction({
           source: "tool",
           tool: tool.name,

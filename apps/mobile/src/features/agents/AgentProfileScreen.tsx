@@ -8,6 +8,7 @@ import {
   useAiStatus,
   useApi,
   useApprovalRules,
+  useCatalog,
   useDms,
   useMemory,
   useMemoryAboutMe,
@@ -15,12 +16,14 @@ import {
   useModelLabel,
   useModels,
   useRemoveApprovalRule,
+  useTakeConnectionOffAgent,
   useUsage,
 } from "@agenteschat/client";
 import { approvalRuleServer, approvalRuleWords, approvalTitle } from "@agenteschat/client/lib/approval-words";
-import { listsAgent, seesDetails } from "@agenteschat/client/lib/audience";
+import { canTalk, editsAgent, managesAgent, seesDetails } from "@agenteschat/client/lib/audience";
 import { brainLine } from "@agenteschat/client/lib/brain";
 import { effortLevel } from "@agenteschat/client/lib/brain-advanced";
+import { personalOfText } from "@agenteschat/client/lib/connected";
 import { modelUnpriced } from "@agenteschat/client/lib/endpoints";
 import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
 import { formatPercent, lowerFirst, timeLeft } from "@agenteschat/client/lib/format";
@@ -110,6 +113,7 @@ import {
   didLines,
   knownAboutMe,
   modelRow,
+  othersPersonalOf,
   plainRole,
   spendOf,
   statusCardShown,
@@ -238,7 +242,8 @@ function Profile({ id }: { id: string }) {
   // Its presence (ADR 0084): the badge, and the card with what it does where nothing else here says it.
   const status = useAgentProfileStatus(id, name);
   const statusLine = usePresenceOf().agent(id)?.status?.status ?? null;
-  const decides = mine || can(org, "manage_agents");
+  // Its owner or who manages it (the server's `canManage`: "Editar qualquer agente" where it reaches).
+  const decides = mine || managesAgent(agent);
   // The request in the card above leaves the list, so it is said once.
   const did = didLines(forYou.data?.items).filter(
     (l) => !(waitingNow && l.href?.kind === "approval" && l.href.id === waitingNow.id),
@@ -247,6 +252,11 @@ function Profile({ id }: { id: string }) {
   const learned = byPlaybook(memories);
   const uses = usesOf(access.data);
   const connected = useConnectedById();
+  // Other people's personal connections it holds: who manages connectors or agents and its owner may only turn them off.
+  const takesOff = details && (decides || can(org, "manage_connectors"));
+  const theirs = othersPersonalOf(useAgentAccess(orgId, id, takesOff, { others: true }).data, meId);
+  const catalog = useCatalog();
+  const takeOff = useTakeConnectionOffAgent(orgId);
   // A computer brain: its maker's mark and the model by the plan that pays for it ("Sonnet pelo plano do Claude"; its
   // computer only where it tells two apart).
   const thinks =
@@ -637,10 +647,58 @@ function Profile({ id }: { id: string }) {
                     />
                   }
                   label={u.label.text}
+                  {...(u.personal
+                    ? {
+                        sub: t("vault.tab.personal"),
+                        hint: {
+                          name: t("common.about", { label: u.label.text }),
+                          text: t("connectors.personal.worksWhenAsked"),
+                        },
+                      }
+                    : {})}
                   value={t(`mobile.intentAgents.uses.level.${u.level}`)}
                 />
               ),
             )}
+            {/* Someone else's personal connection: whose it is and Desligar, never its tools or level. */}
+            {takesOff
+              ? theirs.map((c) => (
+                  <GroupedRow
+                    key={`theirs:${c.connectionId}`}
+                    leading={
+                      <ConnectorIcon
+                        def={catalog.data?.connectors.find((d) => d.id === c.connector) ?? null}
+                        label={c.label}
+                        size={30}
+                      />
+                    }
+                    label={c.label}
+                    labelLines={0}
+                    sub={personalOfText(t, dir.memberById.get(c.ownerUserId ?? "")?.name ?? t("channel.unknownPerson"))}
+                    subLines={0}
+                    // Its × takes it off this agent (gone while that save is on its way), as a mailbox's does.
+                    {...(takeOff.isPending
+                      ? {}
+                      : {
+                          remove: {
+                            label: t("connectors.personal.turnOff"),
+                            onPress: () =>
+                              takeOff.mutate(
+                                { connectionId: c.connectionId, agentId: id },
+                                {
+                                  onSuccess: () =>
+                                    toast({
+                                      title: t("connectors.personal.takenOff", { name: c.label, agent: name }),
+                                      agentId: id,
+                                    }),
+                                  onError: failed,
+                                },
+                              ),
+                          },
+                        })}
+                  />
+                ))
+              : null}
             {/* Its mailboxes beside its apps (ADR 0038): a tap on one's own picks the level. */}
             {mailboxes.map((m) => (
               <GroupedRow
@@ -689,7 +747,7 @@ function Profile({ id }: { id: string }) {
       ) : (
         <>
           <AlwaysApproved agentId={id} name={name} mayRemove={mine || can(org, "approve_actions")} />
-          <MergeReposSection agentId={id} mayEdit={mine || can(org, "manage_agents")} />
+          <MergeReposSection agentId={id} mayEdit={decides} />
           {ownerLine ? (
             <View style={styles.apart}>
               <GroupedList>
@@ -798,7 +856,15 @@ function Profile({ id }: { id: string }) {
                 variant="primary"
                 label={t("mobile.agent.talk")}
                 loading={opening}
-                disabled={!listsAgent(org, agent)}
+                // What the server's `openDm` takes: whom it answers or who manages it starts a conversation; one
+                // already there opens for anyone. Editing it alone talks to nobody (ADR 0085 addendum of 2026-11-17).
+                disabled={
+                  !(
+                    canTalk(agent) ||
+                    managesAgent(agent) ||
+                    dms.data?.some((d) => d.with.type === "agent" && d.with.id === id)
+                  )
+                }
                 onPress={() => openDm()}
               />
             ) : (
@@ -820,6 +886,8 @@ function Profile({ id }: { id: string }) {
 
         {rightHand && agent ? (
           <View style={styles.page}>
+            {/* Its computer as any agent's: the viewer's own seat there. */}
+            {details ? <AgentComputerCard agentId={id} style={styles.computer} /> : null}
             {nowBlock}
             <GroupedHeader>{t("rightHand.settings.mine")}</GroupedHeader>
             <RightHandMine agent={agent} />
@@ -873,14 +941,14 @@ function Profile({ id }: { id: string }) {
           <View style={styles.page}>{nowBlock}</View>
         )}
       </Animated.ScrollView>
-      {/* Its person changes its look; admins, everything ("Editar", as the web's Configurações). The right hand's
-          settings open for everyone: each person has their own there. */}
+      {/* Its person changes its look; who edits it, its role and instructions; who manages it, everything ("Editar",
+          as the web's Configurações). The right hand's settings open for everyone: each person has their own there. */}
       <PushedHeader
         plate
         solid={false}
         {...(rightHand
           ? { action: { label: t("rightHand.profile.configure"), onPress: openRightHandSettings } }
-          : decides && agent
+          : (decides || editsAgent(agent)) && agent
             ? { action: { label: t("agent.edit"), onPress: () => openAgentEdit(id) } }
             : {})}
       />
