@@ -138,6 +138,7 @@ export const BUILTIN_TOOLS: Record<string, string[]> = {
 const UNLISTED_TOOLS: Record<string, string[]> = {
   "context:read": ["read_conversation"],
   "schedule:write": ["delete_routine", "run_routine_now"],
+  "sandbox:run": ["review_media"],
 };
 
 /**

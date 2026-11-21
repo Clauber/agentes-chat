@@ -1,6 +1,7 @@
 import type { PubSub } from "@agenteschat/adapters";
 import { and, type Executor, eq, gte, schema, sql } from "@agenteschat/db";
 import { threadIsConfidential } from "./confidential";
+import { inAgentOnlyDm } from "./dms";
 import { publishMessageCreated } from "./events";
 import { plainWords } from "./format";
 import { insertMessage, messageView } from "./messages";
@@ -10,6 +11,7 @@ import { personAmong } from "./run-inbox";
 import { type AgentRun, isTerminal, replyThreadOf } from "./runs";
 import { runStretchOf } from "./stretch";
 import { maskCredentials, scrubSignIns } from "./tool-detail";
+import { listsEveryTool } from "./tools/directory";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
 import { withWikiLinks } from "./wiki-links";
 import { movableRun } from "./works";
@@ -192,8 +194,8 @@ export function createSayNowToolSource(deps: { pubsub?: PubSub }): ToolSource {
   return {
     name: "say-now",
     async tools(ctx) {
-      // The same list in every run but a background one: where it doesn't apply, it says why.
-      return ctx.runId && !ctx.background ? [tool] : [];
+      // The same list in every run but a background one or one between agents: where it doesn't apply, it says why.
+      return ctx.runId && !ctx.background && (listsEveryTool(ctx) || !(await inAgentOnlyDm(ctx))) ? [tool] : [];
     },
   };
 }

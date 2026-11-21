@@ -460,8 +460,9 @@ export const envVars = {
     section: "Agents",
   },
   AGENT_MAX_OUTPUT_TOKENS: {
-    schema: z.coerce.number().int().min(256).max(128_000).default(16_000),
-    description: "Upper bound on tokens an agent may generate in one reply.",
+    schema: z.coerce.number().int().min(256).max(128_000).optional(),
+    description:
+      "Upper bound on tokens an agent may generate in one model call, thinking included. Unset: 64,000 on models whose limit is known (up to 128,000 at maximum effort), 16,000 on the rest. The agent's monthly budget is still reserved before each call.",
     section: "Agents",
   },
   CLAUDE_PLAN_CONCURRENCY: {

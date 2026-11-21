@@ -1,6 +1,6 @@
 {
   "id": "667da54c-9f22-448d-aa1e-fa497e49514d",
-  "prevId": "bcd24b8e-2e0c-4ed3-bb67-993fcd6de7b3",
+  "prevId": "7f0b1f4b-42f2-4bcb-bf40-457b0c3ae94f",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -21895,6 +21895,54 @@
         },
         "share_role_ids": {
           "name": "share_role_ids",
+          "type": "uuid[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::uuid[]"
+        },
+        "editors_limited": {
+          "name": "editors_limited",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "editor_user_ids": {
+          "name": "editor_user_ids",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
+        "editor_role_ids": {
+          "name": "editor_role_ids",
+          "type": "uuid[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::uuid[]"
+        },
+        "conversation_edits": {
+          "name": "conversation_edits",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "agent_base": {
+          "name": "agent_base",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "agent_view_ids": {
+          "name": "agent_view_ids",
+          "type": "uuid[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::uuid[]"
+        },
+        "agent_edit_ids": {
+          "name": "agent_edit_ids",
           "type": "uuid[]",
           "primaryKey": false,
           "notNull": true,

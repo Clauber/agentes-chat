@@ -25,6 +25,7 @@ import {
   sql,
 } from "@agenteschat/db";
 import {
+  agentOutputTokens,
   type ContentBlock,
   ensureOpenRouterModels,
   isAutoModel,
@@ -61,6 +62,7 @@ import {
   chooseAutoModel,
   fallbackChoice,
   inMission,
+  keptAutoChoice,
   needsAutoChoice,
   orgAutoModels,
   withAuto,
@@ -70,7 +72,7 @@ import { ASK_CHOICES_TOOL, SHOW_BLOCK_TOOL, someoneAnswers } from "./blocks";
 import { brainOf } from "./brain-settings";
 import { brainSessionId, missingTurnFolder, recordPlanUsage } from "./brains/claude-code";
 import { codexModelRefused } from "./brains/codex";
-import { ModelBrain } from "./brains/model";
+import { ModelBrain, turnEffort } from "./brains/model";
 import type { ComputerTurn } from "./brains/prompt";
 import {
   type BrainPlan,
@@ -182,7 +184,14 @@ import { rulesForRun } from "./context/rules";
 import { memoryArmOf } from "./context/scorecard";
 import { type ContextDeps, ensureThreadSummary } from "./context/summaries";
 import { EXPAND_TOOL, itemLabel, retrieveForRun } from "./context/tools";
-import { compactToolResults, cutOldToolSteps, cutResultIds, dropOldImages, fitContextWindow } from "./context-budget";
+import {
+  compactToolResults,
+  cutOldToolSteps,
+  cutResultIds,
+  dropOldImages,
+  fitContextWindow,
+  sentToolSteps,
+} from "./context-budget";
 import {
   advance as advanceContinuation,
   type ContinuationState,
@@ -392,7 +401,14 @@ import { isStuck, noteStep, STUCK_END_NOTE, STUCK_END_REPLY_NOTE, STUCK_NOTE, ty
 import { archivedAgentsPrompt, FIND_AGENT_TOOL, renamedAgentsPrompt, teammateMeans } from "./team";
 import { linkRunChecks, runChecksForReply } from "./team-actions";
 import { carriesCredential, cliErrorWords, maskCredentials, maskCredentialsExcept, scrubSignIns } from "./tool-detail";
-import { chooseToolGroups, keptToolGroups, recentForJudge, type ToolGroupChoice } from "./tool-loading";
+import {
+  chooseToolGroups,
+  keptToolGroups,
+  type PreviousRun,
+  previousRunHere,
+  recentForJudge,
+  type ToolGroupChoice,
+} from "./tool-loading";
 import {
   EVERY_TOOL,
   isCore,
@@ -509,7 +525,8 @@ export interface EngineDeps {
   blockSpec?: BlockSpecReader;
   gateway: ModelGateway;
   pubsub: PubSub;
-  maxOutputTokens: number;
+  /** The output cap of an agent's model call (`AGENT_MAX_OUTPUT_TOKENS`); absent: the model's own (`agentOutputTokens`). */
+  maxOutputTokens?: number;
   /** Overrides the model's context window from the catalog (tests). */
   contextWindowTokens?: number;
   contextMessages: number;
@@ -1998,6 +2015,12 @@ async function executeRunInner(
     recentRead ??= recentForJudge(db, run).catch(() => [] as string[]);
     return recentRead;
   };
+  /** The agent's previous run in this conversation, read once for the start judgments that fall back to it. */
+  let previousRead: Promise<PreviousRun | null> | null = null;
+  const previousHere = () => {
+    previousRead ??= previousRunHere(db, run).catch(() => null);
+    return previousRead;
+  };
   const autoEarly = needsContext && autoWanted(agent);
   const groupsJudged = needsContext && deps.toolsOnDemand && judge && granted.length > 0 && !every;
   // The run's start judgments (Automático, its tool groups, its line) go to Jev as one request.
@@ -2039,20 +2062,22 @@ async function executeRunInner(
             : {}),
         }),
       )
-      .catch(() => fallbackChoice("error"));
+      .catch(() => fallbackChoice("error"))
+      .then(async (choice) => keptAutoChoice(choice, await previousHere()));
   };
   const autoAsked = autoEarly ? askAuto() : null;
   // The judge's answer is awaited where the tools are needed: the context is read meanwhile (`CONTEXT_TOOLS`).
   const judging: Promise<void> | null =
     groupsJudged && judge
       ? (async () => {
-          const [recent, kept, live] = await Promise.all([
+          const [recent, live, previous] = await Promise.all([
             recentMessages(),
-            keptToolGroups(db, run, granted).catch(() => ({ used: [] as string[], listed: [] as string[] })),
             // Asked from inside a live file, one attached, or in a file's own conversation: its own tools come with
             // it (ADR 0196 §6, ADR 0199).
             carriesLiveFile(db, run.orgId, trigger?.meta, run.channelId).catch(() => false),
+            previousHere(),
           ]);
+          const kept = keptToolGroups(previous, granted);
           // A picture's, a video's or a PDF's conversation sees the file with the Drive's tools too (ADR 0208).
           const media = live && (await isMediaConversation(db, run.orgId, run.channelId).catch(() => false));
           const keep = [
@@ -2070,7 +2095,9 @@ async function executeRunInner(
             tools: granted,
             // The message's words may not mention its file (it may have none), and the agent has to open it.
             keep: Array.isArray(trigger?.meta.artifacts) ? [...keep, toolGroupKey({ scope: "drive:read" })] : keep,
+            previous: previous?.toolGroups,
             group: startGroup,
+            lean: Boolean(channelRow && isAgentOnlyDm(channelRow)),
           });
           toolChoice = choice;
           ctx.loadedGroups = choice.groups;
@@ -2597,7 +2624,7 @@ async function executeRunInner(
     prof.part("build");
     if (judging) {
       await judging;
-      prof.part("judging");
+      prof.part(toolChoice?.source === "timeout" ? "judging_timeout" : "judging");
     }
     // Its thread turned confidential after the claim read the message that asked: it is a run of that thread now.
     if (context.confidential && !ctx.confidential) {
@@ -5224,7 +5251,7 @@ async function executeRunInner(
           transcript.messages = pictured;
           await saveTranscript(db, transcript);
         }
-        const view = cutOldToolSteps(transcript.messages, turnTools);
+        const view = sentToolSteps(transcript.messages, turnTools, thinker.model);
         const fitted = await fitContextWindow(judge, {
           orgId: run.orgId,
           agentId: agent.id,
@@ -5232,7 +5259,8 @@ async function executeRunInner(
           model: thinker.model,
           windowTokens: deps.contextWindowTokens,
           limitTokens: agent.contextTokens,
-          maxOutputTokens: deps.maxOutputTokens,
+          maxOutputTokens:
+            deps.maxOutputTokens ?? agentOutputTokens(thinker.model, turnEffort(thinker.model, turnPlan.effort)),
           system: transcript.system,
           // Measured as the model reads it: results the view already cuts stay reachable by `expand`.
           messages: view,

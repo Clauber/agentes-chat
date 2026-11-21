@@ -147,6 +147,7 @@ export function toolDetail(name: string, input: Record<string, unknown> | undefi
       return short(i.language);
     case "write_file":
     case "read_file":
+    case "review_media":
     case "list_files":
     case "export_file":
     case "upload_file":
