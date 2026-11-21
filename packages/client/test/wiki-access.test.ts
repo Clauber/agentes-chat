@@ -97,7 +97,7 @@ describe("an import's pages", () => {
   });
 });
 
-describe("an edit made here that GitHub's version replaced (ADR 0187)", () => {
+describe("an edit made here that GitHub's version replaced (ADR 0214)", () => {
   const notice = (source: AppNotification["source"]) =>
     ({ kind: "wiki_conflict", source, latest: { version: 4 } }) as AppNotification;
 

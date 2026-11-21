@@ -606,7 +606,7 @@ export function registerGitHubAppWebhook(api: OpenAPIHono, deps: AppDeps) {
       const result = await handleGitHubAppWebhook(deps.db, event, payload, { github });
       return c.json({ ok: true, result }, 202);
     }
-    // A push to the branch a workspace keeps its wiki in: that wiki's sync is queued (ADR 0187).
+    // A push to the branch a workspace keeps its wiki in: that wiki's sync is queued (ADR 0214).
     if (event === "push") {
       const synced = await queueWikiRepositoryPush(deps.db, payload);
       if (synced) deps.wakeWorkers?.();

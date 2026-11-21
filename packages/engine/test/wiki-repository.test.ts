@@ -33,9 +33,9 @@ import {
   type WikiActor,
   type WikiRepositoryDeps,
 } from "../src";
-import { zip } from "../src/docx";
 import { mergeTags, mergeText } from "../src/wiki-repository/merge";
 import { publicBranch } from "../src/wiki-repository/public";
+import { zip } from "../src/zip";
 import { addMember, type Fixture, setup } from "./fixtures";
 
 let f: Fixture;

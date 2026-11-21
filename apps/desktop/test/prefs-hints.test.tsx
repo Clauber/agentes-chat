@@ -531,7 +531,7 @@ describe("Preferences: a setting's explanation behind its ⓘ", () => {
       },
     ));
 
-  test("Advanced on Linux: back to defaults keeps two conversations open for 20 minutes, as the runner does", () =>
+  test("Advanced on Linux: back to defaults keeps eight conversations open for 60 minutes, as the runner does", () =>
     pane(
       "selfhost",
       <Advanced />,
@@ -545,8 +545,8 @@ describe("Preferences: a setting's explanation behind its ⓘ", () => {
           [...el.querySelectorAll('[role="radiogroup"]')]
             .find((g) => g.textContent?.includes("min"))
             ?.querySelector('[aria-checked="true"]')?.textContent;
-        await until(() => idle() === "20 min");
-        expect(el.querySelector('[aria-label="Open conversations"] output')?.textContent).toBe("2");
+        await until(() => idle() === "60 min");
+        expect(el.querySelector('[aria-label="Open conversations"] output')?.textContent).toBe("8");
       },
       {
         host: (h) => {
@@ -606,8 +606,8 @@ describe("Preferences: a setting's explanation behind its ⓘ", () => {
       async (el, host) => {
         expect(el.querySelector(".dk-phead .dk-lead")).toBeNull();
         // The license's attribution and legal notices, always at the end.
-        expect(el.textContent).toContain("Based on agentes.chat by Codari Global, LLC");
-        expect(el.textContent).toContain("Copyright © 2026 Codari Global, LLC and contributors");
+        expect(el.textContent).toContain("Based on agentes.chat by AGENTESCHAT, LLC");
+        expect(el.textContent).toContain("Copyright © 2026 AGENTESCHAT, LLC and contributors");
         const acts = el.querySelector(".dk-ver__acts") as HTMLElement;
         expect(acts.textContent).toBe("Update and reopen");
         host.installUpdate = async () => false;

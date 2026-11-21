@@ -404,6 +404,7 @@ export type OpenTarget =
   | { to: "/org/$orgId/agents/$agentId"; params: { agentId: string }; search?: { sec: "brain"; brain?: "model" } }
   | { to: "/org/$orgId/dm/person/$userId"; params: { userId: string }; search?: { m: string } }
   | { to: "/org/$orgId/issues/$number"; params: { number: string }; search?: { m: string } }
+  | { to: "/org/$orgId/drive/$fileId"; params: { fileId: string }; search?: { m: string } }
   | { to: "/org/$orgId/approvals"; search?: { open: string } }
   | { to: "/org/$orgId/proposals" }
   | { to: "/org/$orgId/routines"; search?: { open: string } }
@@ -529,7 +530,7 @@ export function openTarget(n: AppNotification): OpenTarget | null {
       params: { section: "skills" },
       ...(s.skillId ? { search: { skill: s.skillId } } : {}),
     };
-  // GitHub's version of a wiki page replaced an edit made here (ADR 0187): the page, whose history keeps that edit.
+  // GitHub's version of a wiki page replaced an edit made here (ADR 0214): the page, whose history keeps that edit.
   if (n.kind === "wiki_conflict")
     return s.slug ? { to: "/org/$orgId/wiki/$slug", params: { slug: s.slug } } : { to: "/org/$orgId/wiki" };
   if (
@@ -554,6 +555,8 @@ export function openTarget(n: AppNotification): OpenTarget | null {
   // A reply in a task's conversation (ADR 0145) opens the task at that message.
   if (s.issueNumber != null)
     return { to: "/org/$orgId/issues/$number", params: { number: String(s.issueNumber) }, ...at };
+  // One in a live file's conversation (ADR 0199) opens the file with its conversation at that message.
+  if (s.artifactId) return { to: "/org/$orgId/drive/$fileId", params: { fileId: s.artifactId }, ...at };
   // A routine that failed, paused or waits for its computer: the routine in Rotinas (its state and fix).
   // What a routine found opens the agent's message in its conversation (below); without one, the routine.
   if (ROUTINE_TROUBLE.has(n.kind) || (n.kind === "routine_finished" && !s.messageId && !s.threadId))

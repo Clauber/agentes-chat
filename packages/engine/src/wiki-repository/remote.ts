@@ -1,5 +1,5 @@
 /**
- * Where a wiki's repository lives, as its sync sees it (ADR 0187): a branch's head, the notes under a folder with the
+ * Where a wiki's repository lives, as its sync sees it (ADR 0214): a branch's head, the notes under a folder with the
  * git blob each holds, a note's text, one commit that writes and removes notes, and the wiki's pull request. GitHub is
  * the host today (`github.ts` through the server's GitHub App, `public.ts` read-only without it); another host is one
  * more `NoteRemote`, the sync unchanged.

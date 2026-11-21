@@ -84,7 +84,7 @@ export function WikiPage({ slug, newTitle }: { slug?: string; newTitle?: string 
   const [importing, setImporting] = useState<{ files?: Promise<VaultFile[]> } | null>(null);
   const [navOpen, setNavOpen] = useState(false);
   const [tag, setTag] = useState<string | null>(null);
-  // The repository the wiki is kept in (ADR 0187): opened from the line at the column's foot or a page's mark.
+  // The repository the wiki is kept in (ADR 0214): opened from the line at the column's foot or a page's mark.
   const [repositoryOpen, setRepositoryOpen] = useState(false);
   const current = pages.find((p) => p.slug === slug);
   // The open page's outline goes in the tree, under its row (the page itself reads in one column).
@@ -256,7 +256,7 @@ function WikiNav({
   onTrash: () => void;
   onNew: () => void;
   onImport: () => void;
-  /** Opens the wiki's repository dialog (ADR 0187), from the line at the column's foot. */
+  /** Opens the wiki's repository dialog (ADR 0214), from the line at the column's foot. */
   onRepository: () => void;
   onClose: () => void;
 }) {
@@ -549,7 +549,11 @@ function WikiNav({
         </nav>
       )}
       {selecting && (
-        <div className="wiki-pickbar" role="toolbar" aria-label={t("wiki.bulk.selected", { count: selected.size })}>
+        <div
+          className="wiki-pickbar ac-tailrow"
+          role="toolbar"
+          aria-label={t("wiki.bulk.selected", { count: selected.size })}
+        >
           <label className="wiki-pickbar__all" htmlFor={`${uid}-all`}>
             <Checkbox
               id={`${uid}-all`}
@@ -564,7 +568,7 @@ function WikiNav({
             />
             <span>{selected.size ? t("wiki.bulk.selected", { count: selected.size }) : t("wiki.bulk.selectAll")}</span>
           </label>
-          <span className="wiki-pickbar__acts">
+          <span className="wiki-pickbar__acts ac-tail">
             {choosesAudience && (
               <Button size="sm" icon="agent" disabled={selected.size === 0} onClick={() => setBulk("agents")}>
                 {t("wiki.bulk.agents")}

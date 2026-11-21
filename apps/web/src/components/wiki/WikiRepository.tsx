@@ -33,7 +33,7 @@ import { useOrg } from "@/components/org-context";
 import { useToast } from "@/lib/toast";
 
 /**
- * The wiki kept in a GitHub repository (ADR 0187): "Keep in sync" in Import › GitHub (`WikiRepositoryPanel`), the
+ * The wiki kept in a GitHub repository (ADR 0214): "Keep in sync" in Import › GitHub (`WikiRepositoryPanel`), the
  * line at the column's foot when the two stopped following each other (opening the same panel as a dialog), and the
  * mark on each page saying where its note stands.
  */
@@ -462,7 +462,7 @@ function Connect({
   const shownMode: WikiCommitMode = readOnly ? "none" : draft.mode;
   // What the wiki may do there sets the choice until someone makes one: a public repository gets a pull request, so a
   // person reads what the wiki publishes before anyone can. One the wiki may only read gets the same, for once the app
-  // may write there: it then writes at the next sync (ADR 0187).
+  // may write there: it then writes at the next sync (ADR 0214).
   useEffect(() => {
     if (found && !draft.modeTouched) setDraft((d) => ({ ...d, mode: found.public ? "pull_request" : "direct" }));
   }, [found, draft.modeTouched, setDraft]);

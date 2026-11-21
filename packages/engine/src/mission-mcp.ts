@@ -12,6 +12,7 @@ import { eq, schema } from "@agenteschat/db";
 import type { ToolImage } from "@agenteschat/providers";
 import { getAgentCached } from "./agents";
 import { recordAudit } from "./audit";
+import { kickRoomQueue } from "./computer-queue";
 import { getContextItems, personMayRead } from "./context/items";
 import { ValidationError } from "./errors";
 import { cutText } from "./format";
@@ -567,7 +568,7 @@ async function run(
       if (hits.length === 0) return "Nothing found.";
       // As `search_context` hands them (ADR 0167): the team's trusted memory, its messages that relay nothing from
       // outside and the wiki read as the team's come as they are; the rest in the outside-text envelope (ADR 0053),
-      // among it the pages that follow a public repository the workspace doesn't write to (ADR 0187).
+      // among it the pages that follow a public repository the workspace doesn't write to (ADR 0214).
       const said = new Map(
         (
           await describeMessages(
@@ -700,5 +701,6 @@ export function createMissionHooks(deps: HookDeps): MachineMissionHooks {
       // Runs that waited for this computer's brain (ADR 0032 §5) try again.
       await resumeRunsWaitingForMachine(deps.db, machineId, { pubsub: deps.pubsub }).catch(() => undefined);
     },
+    roomFreed: (machineId) => kickRoomQueue(deps.db, machineId),
   };
 }

@@ -412,7 +412,7 @@ function linkedRepository(link: string) {
  * read on the server, a private repository through the workspace's GitHub; when none reaches it, the dialog offers
  * to connect GitHub, as Instalar skill does. `files` starts it already reading (dropped on the page).
  *
- * GitHub's step also keeps the wiki in a repository (ADR 0187), one choice away from importing once: "Keep in sync"
+ * GitHub's step also keeps the wiki in a repository (ADR 0214), one choice away from importing once: "Keep in sync"
  * connects one (administrators) or shows the one connected, whose state the GitHub card says on the first step. The
  * choice sits once above the body it swaps, and what was typed in either way stays when the other is picked.
  */

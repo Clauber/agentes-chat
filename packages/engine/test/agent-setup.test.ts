@@ -126,7 +126,6 @@ const ANA_CLAUDE = (mac: string) => ({
   account: ANAS,
   model: "opus",
   effort: "high",
-  fallback: true,
 });
 
 describe("Usar em outros agentes", () => {
@@ -174,7 +173,6 @@ describe("Usar em outros agentes", () => {
       account: ANAS,
       effort: "high",
       contextTokens: null,
-      fallback: true,
       autonomy: null,
     });
     // Again: they already think so.
@@ -332,16 +330,25 @@ describe("new agents start with the last setup", () => {
       model: "opus",
       effort: "high",
     });
+    // Where it thinks carries over; the model and effort start on Automático, never the other agent's pin.
     expect(await getNewAgentSetup(deps, fx.owner.id, fx.org.id)).toEqual({
       brain: "claude_code",
-      model: "opus",
+      model: "auto",
       key: null,
       contextTokens: null,
       computer: { machineId: w.mac, name: "MacBook" },
-      account: { id: ANAS, label: "Claude", provider: null, mine: true, free: true },
+      account: {
+        id: ANAS,
+        label: "Claude",
+        named: false,
+        email: null,
+        plan: null,
+        provider: null,
+        mine: true,
+        free: true,
+      },
       ownSignIn: true,
-      effort: "high",
-      fallback: true,
+      effort: "auto",
       autonomy: null,
     });
     // Anyone else sees whose it is: a plan thinks only for its owner's agents.
@@ -352,7 +359,7 @@ describe("new agents start with the last setup", () => {
     await updateAgent(fx.db, fx.owner.id, fx.org.id, w.theo, { model: "claude-haiku-5-5" });
     expect(await getNewAgentSetup(deps, fx.owner.id, fx.org.id)).toEqual({
       brain: "model",
-      model: "claude-haiku-5-5",
+      model: "auto",
       key: null,
       contextTokens: null,
       autonomy: null,

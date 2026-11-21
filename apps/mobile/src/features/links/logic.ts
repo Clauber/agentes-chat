@@ -25,6 +25,8 @@ export type AppHref =
   | `/handoff/${string}`
   | `/issues/${number}`
   | `/issues/${number}?m=${string}`
+  | `/file/${string}`
+  | `/file/${string}?m=${string}`
   | `/routines/${string}`
   | `/settings/computers/${string}`
   | `/settings/devices/${string}`
@@ -54,6 +56,13 @@ export type AppHref =
   | `/widget/${string}`
   | "/wiki"
   | `/wiki/${string}`;
+
+/**
+ * A live file, opened on its own screen (the file screen sends it on to its kind's); with `messageId`, its
+ * conversation pushed over it at that message (ADR 0199).
+ */
+export const fileHref = (fileId: string, messageId?: string | null): AppHref =>
+  isSafeId(messageId) ? `/file/${fileId}?m=${messageId}` : `/file/${fileId}`;
 
 /** `messageId`: open at that message (`m=`: paged in, scrolled to and lit for a moment). */
 export const chatHref = (channelId: string, threadId?: string | null, messageId?: string | null): AppHref => {
@@ -118,6 +127,7 @@ export interface PushPayload {
   issueNumber?: unknown;
   dashboardId?: unknown;
   widgetId?: unknown;
+  artifactId?: unknown;
 }
 
 const PUSH_IDS = [
@@ -134,6 +144,8 @@ const PUSH_IDS = [
   "topicId",
   "dashboardId",
   "widgetId",
+  // A message in a live file's conversation (ADR 0199): the file.
+  "artifactId",
   // A device's notifications (`device.*`): the phone, and the join or access request.
   "phoneId",
   "requestId",
@@ -215,6 +227,11 @@ export function hrefFromUrl(url: string): AppHref | null {
       return "/dashboards";
     case "board":
       return isSafeId(id) ? `/board/${id}` : null;
+    case "drive": {
+      // A live file, at a message of its conversation when named (ADR 0199).
+      if (!isSafeId(id)) return null;
+      return fileHref(id, queryParam(query, "m"));
+    }
     case "widget":
       return isSafeId(id) ? `/widget/${id}` : null;
     default:
@@ -286,7 +303,7 @@ export function notificationHref(
   if (n.kind === "right_hand_paused") return "/settings/right-hand";
   // An update of a skill from its link: the skill's page, where what waits is applied.
   if (n.kind === "skill_update") return isSafeId(s.skillId) ? `/settings/skills/${s.skillId}` : "/settings/skills";
-  // GitHub's version of a wiki page replaced an edit made here (ADR 0187): the page, whose history keeps that edit.
+  // GitHub's version of a wiki page replaced an edit made here (ADR 0214): the page, whose history keeps that edit.
   if (n.kind === "wiki_conflict") return isWikiSlug(s.slug) ? `/wiki/${encodeURIComponent(s.slug)}` : "/wiki";
   if (n.kind === "machine_connected")
     return isSafeId(s.machineId) ? `/settings/devices/${s.machineId}` : "/settings/devices";
@@ -313,6 +330,8 @@ export function notificationHref(
   }
   if ((n.kind === "mission_finished" || n.kind === "mission_stopped") && isSafeId(s.missionId))
     return `/mission/${s.missionId}`;
+  // A message in a live file's conversation (ADR 0199): the file, which opens its conversation at that message.
+  if (isSafeId(s.artifactId)) return fileHref(s.artifactId, isSafeId(s.messageId) ? s.messageId : null);
   // A reply in a task's conversation (ADR 0145): the task, which opens its conversation at that message.
   if (s.issueNumber != null && Number.isSafeInteger(s.issueNumber))
     return isSafeId(s.messageId) ? `/issues/${s.issueNumber}?m=${s.messageId}` : `/issues/${s.issueNumber}`;

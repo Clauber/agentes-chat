@@ -258,6 +258,9 @@ const DAEMON_HOLD_MS = 30_000;
 const PAGE_OPEN_MS = 1000;
 /** A tab whose socket didn't open is tried again after this; the relay carries the input meanwhile. */
 const PAGE_RETRY_MS = 10_000;
+/** How often a person's input waits for `agent-browser` to see a tab that opened or closed (`followTab`), and how long between. */
+const FOLLOW_TAB_TRIES = 3;
+const FOLLOW_TAB_RETRY_MS = 200;
 /** After a failed download or install, wait this long before trying again. */
 const RETRY_FAILURE_MS = 10 * 60_000;
 const STREAM_OPEN_MS = 5000;
@@ -1086,6 +1089,19 @@ const POINTER_ACTS: Record<string, AgentPointerAct> = {
   dblclick: "double",
   fill: "type",
   type: "type",
+};
+/**
+ * Where a page change starts in Chrome's toolbar on the agent's desktop, from the page's top left corner there: the
+ * toolbar's row 24 px above the page, the back, forward and reload buttons from its left, the address bar after them.
+ * Chrome at scale 1, as it draws on the agent's desktop.
+ */
+const TOOLBAR = { y: -24, back: 23, forward: 58, reload: 95, address: 200 } as const;
+/** What the pointer does on the toolbar for each page change: an address is typed, a button clicked. */
+const TOOLBAR_GOES: Record<string, { at: Exclude<keyof typeof TOOLBAR, "y">; act: AgentPointerAct }> = {
+  ...Object.fromEntries([...NAVIGATIONS].map((c) => [c, { at: "address", act: "type" } as const])),
+  back: { at: "back", act: "click" },
+  forward: { at: "forward", act: "click" },
+  reload: { at: "reload", act: "click" },
 };
 /** Agent commands that may leave a mouse button down when a person's taking control cuts them off. */
 const POINTER_COMMANDS = new Set([...HUMAN_COMMANDS, "mouse", "drag"]);
@@ -2786,6 +2802,7 @@ export class BrowserManager {
       if (POINTER_COMMANDS.has(command)) await this.run(session, ["mouse", "up"], { timeoutMs: QUICK_TIMEOUT_MS });
       return TOOK_OVER;
     }
+    if (!human) await this.toolbarGoes(session, command, stops);
     const plain =
       human ??
       // `--human`: its drag goes along an eased curve from where the pointer is, slower than a script's.
@@ -2831,6 +2848,27 @@ export class BrowserManager {
     this.opts.send({ type: "browser.pointer", agentId, x: to.x, y: to.y, ...session.pointerView, act });
     if (!corner) return;
     this.opts.send({ type: "desktop.pointer", agentId, x: corner.x + to.x, y: corner.y + to.y, ...DESKTOP_SIZE, act });
+  }
+
+  /**
+   * A page change by its address or by Chrome's own buttons (`TOOLBAR_GOES`), in its window on the agent's desktop:
+   * the pointer goes to the address bar or to that button as it starts, so whoever watches the desktop sees the agent
+   * go somewhere, as they see its clicks; a search that only opens pages would show no pointer at all. Not for a
+   * browser card, whose picture is the page without the bar.
+   */
+  private async toolbarGoes(session: Session, command: string, signal?: AbortSignal) {
+    const goes = TOOLBAR_GOES[command];
+    if (!goes || !session.headed) return;
+    const seen = await this.run(session, ["eval", VIEWPORT_ON_SCREEN], {
+      timeoutMs: QUICK_TIMEOUT_MS,
+      ...(signal ? { signal } : {}),
+    });
+    const corner = screenCorner(((isRecord(seen.data) && seen.data.result) || []) as unknown[]);
+    if (!corner) return;
+    const x = corner.x + TOOLBAR[goes.at];
+    const y = corner.y + TOOLBAR.y;
+    if (x < 0 || y < 0 || x > DESKTOP_SIZE.width || y > DESKTOP_SIZE.height) return;
+    this.opts.send({ type: "desktop.pointer", agentId: session.agentId, x, y, ...DESKTOP_SIZE, act: goes.act });
   }
 
   /**
@@ -3345,10 +3383,12 @@ export class BrowserManager {
       this.opts.connectDevtools,
       (page) => this.pageCrashed(session, chrome, page),
       (targetId, popup) => {
+        this.followTab(session, targetId, true);
         if (!popup && !this.personsTurn(session.agentId)) return;
         session.keptTabs ??= new Set();
         session.keptTabs.add(targetId);
       },
+      (targetId) => this.followTab(session, targetId, false),
     );
     this.counters.set(chrome, counter);
     if (session.viewport) counter.emulate(emulationCommands(session.viewport, session.version ?? null));
@@ -5082,6 +5122,37 @@ export class BrowserManager {
     });
     stream.inputQueue = run.catch(() => undefined);
     return run;
+  }
+
+  /**
+   * While a person drives, a tab opened or closed (a sign-in popup, a link's new tab, a popup that closed once signed
+   * in). `agent-browser` makes it its active tab when it next reads Chrome's events, but moves its stream there and
+   * says so (`tabs`) only after a command, and the person's input goes on the tab's own socket, never as a command.
+   * Their clicks and keys would go on to a tab in the background or one that is gone: Chrome holds a pointer move for
+   * a hidden tab until it draws again (it doesn't), so each one fails after `INPUT_TIMEOUT_MS`, and the view stays on
+   * the old picture. A tab list on the relay moves both, and the input after it waits for it. Asked again while the
+   * list doesn't show the change yet (`agent-browser` hears of it on its own socket, maybe later than this one).
+   */
+  private followTab(session: Session, targetId: string, opened: boolean) {
+    const stream = session.stream;
+    if (stream?.mode !== "control" || stream.closing) return;
+    stream.inputQueue = stream.inputQueue
+      .then(async () => {
+        for (let i = 0; i < FOLLOW_TAB_TRIES && session.stream === stream && !stream.closing; i++) {
+          if (i > 0) await new Promise((r) => setTimeout(r, FOLLOW_TAB_RETRY_MS));
+          // Not behind the agent's command the daemon may still finish: the stream's `tabs` says it when it gets there.
+          const answer = await this.relayAnswer(stream.port, { action: "tab_list" });
+          const tabs = isRecord(answer?.data) && Array.isArray(answer.data.tabs) ? answer.data.tabs : null;
+          if (!tabs) return;
+          if (tabs.some((t) => isRecord(t) && t.targetId === targetId) !== opened) continue;
+          const active = tabs.find((t) => isRecord(t) && t.active === true);
+          if (isRecord(active) && typeof active.targetId === "string" && TARGET_ID.test(active.targetId)) {
+            stream.targetId = active.targetId;
+          }
+          return;
+        }
+      })
+      .catch(() => undefined);
   }
 
   /**

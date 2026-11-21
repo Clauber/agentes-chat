@@ -278,7 +278,7 @@ test("wiki API: a bad note doesn't sink its batch; delete an import, the trash, 
   expect(((await on.json()) as { agentContext: boolean }).agentContext).toBe(true);
 });
 
-test("wiki API: the repository the wiki is kept in (ADR 0187): none yet, administrators only, private ones refused", async () => {
+test("wiki API: the repository the wiki is kept in (ADR 0214): none yet, administrators only, private ones refused", async () => {
   // No GitHub App on this server, and github.com hides every repository (private, or missing).
   await t.close();
   const hidden = (async () => new Response("", { status: 401 })) as unknown as typeof fetch;
