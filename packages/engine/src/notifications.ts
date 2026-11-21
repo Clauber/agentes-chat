@@ -299,7 +299,7 @@ export const NOTIFICATION_KINDS = [
    */
   "team_watch",
   /**
-   * A wiki page and its note on GitHub changed the same lines before the sync (ADR 0214): GitHub's version stays, and
+   * A wiki page and its note on GitHub changed the same lines before the sync (ADR 0215): GitHub's version stays, and
    * the edit made here is a version in the page's history. Who wrote that edit (or whom an agent wrote it for) hears
    * it, one row per page gathering while unread (`wiki_conflict:<pageId>`), with no actor: nobody here did it.
    * `source.wikiPageId` and `source.slug` the page, its title in `source.label`, the replaced edit's version in

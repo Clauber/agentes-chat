@@ -46,7 +46,7 @@ export const wikiPages = pgTable(
     /** Limited to some agents: only `audienceAgentIds` read it. Independent of `restricted`. */
     agentsLimited: boolean().notNull().default(false),
     /**
-     * Its text came from a repository the workspace doesn't write to (a public one it only follows, ADR 0214): agents
+     * Its text came from a repository the workspace doesn't write to (a public one it only follows, ADR 0215): agents
      * read it as outside text, even after the repository is disconnected. Cleared when the workspace writes there.
      */
     outside: boolean().notNull().default(false),
@@ -196,7 +196,7 @@ export const wikiPageReads = pgTable(
 );
 
 /**
- * The git repository a workspace keeps its wiki in (ADR 0214): the Markdown notes under `path` of one branch are the
+ * The git repository a workspace keeps its wiki in (ADR 0215): the Markdown notes under `path` of one branch are the
  * wiki's pages, and the repository is the source. A save here is committed there and a push there is saved here; when
  * both changed a note, the repository's text stays and ours is a version in the page's history. One per workspace.
  */
@@ -225,7 +225,7 @@ export const wikiRepositories = pgTable(
     writable: boolean().notNull().default(true),
     /**
      * Anyone may read it on GitHub: what the wiki writes there is public, so commits name nobody; followed read-only,
-     * its text is outside text for the agents (ADR 0214).
+     * its text is outside text for the agents (ADR 0215).
      */
     public: boolean().notNull().default(false),
     /**

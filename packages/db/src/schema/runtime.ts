@@ -348,6 +348,13 @@ export const agentRunSteps = pgTable(
     unique().on(t.runId, t.seq),
     // The operator's work analytics look up a run's waits for room among all its steps.
     index().on(t.runId).where(sql`${t.kind} = 'error' and ${t.data}->>'reason' = 'brain_unavailable'`),
+    // The same lookup for a run's waits on its provider. An index of its own: the planner reads rows through a partial
+    // index only for a condition it can prove from the index's, and one reason by equality is all it proves here.
+    // Built concurrently, as the next one is.
+    index("agent_run_steps_provider_outage_idx")
+      .on(t.runId)
+      .where(sql`${t.kind} = 'error' and ${t.data}->>'reason' = 'provider_outage'`)
+      .concurrently(),
     // A workspace's tool calls in a range of dates, for the operator API (only those steps are indexed). Built
     // concurrently: every step of every run is a row here, and a plain build keeps them all waiting until it ends.
     index("agent_run_steps_tool_calls_idx").on(t.orgId, t.createdAt).where(sql`${t.kind} = 'tool_call'`).concurrently(),

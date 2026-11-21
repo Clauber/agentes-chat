@@ -159,7 +159,7 @@ function cleanPath(path: string | undefined) {
   return parts.join("/");
 }
 
-/** How the wiki writes in its repository (ADR 0214). */
+/** How the wiki writes in its repository (ADR 0215). */
 export const WIKI_COMMIT_MODES = ["direct", "pull_request", "none"] as const;
 export type WikiCommitMode = (typeof WIKI_COMMIT_MODES)[number];
 const commitModeOf = (mode: string): WikiCommitMode =>
@@ -348,7 +348,7 @@ export async function checkWikiRepository(
  * Keeps the workspace's wiki in a GitHub repository (an administrator): the notes under that folder become pages and,
  * where the wiki may write there, its pages become notes, each side then following the other with the repository as
  * the source. The repository is reached through the GitHub App's installation on it for this workspace; a public one
- * the app doesn't reach is followed read-only (ADR 0214). Connecting another repository replaces the one before; the
+ * the app doesn't reach is followed read-only (ADR 0215). Connecting another repository replaces the one before; the
  * pages stay.
  */
 export async function connectWikiRepository(

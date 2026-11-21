@@ -1,7 +1,7 @@
 import { diffLines } from "../wiki";
 
 /**
- * Two edits of one text joined, as git merges a file (ADR 0214): what the wiki and the repository each changed since
+ * Two edits of one text joined, as git merges a file (ADR 0215): what the wiki and the repository each changed since
  * the text both last held comes in, as long as the two changed different lines. Lines next to each other count as the
  * same place, as they do for git: a merge never guesses which of two touching changes reads right.
  */

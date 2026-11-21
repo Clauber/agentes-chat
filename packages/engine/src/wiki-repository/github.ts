@@ -10,7 +10,7 @@ import {
 } from "./remote";
 
 /**
- * A wiki's repository on GitHub (ADR 0214): GitHub's git data API (refs, commits, trees, blobs) with an installation
+ * A wiki's repository on GitHub (ADR 0215): GitHub's git data API (refs, commits, trees, blobs) with an installation
  * token of the server's app, which may write the repository's contents.
  */
 export interface GitHubRepoAccess {

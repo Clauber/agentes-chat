@@ -1,4 +1,4 @@
-# 0214. The wiki kept in a git repository, the repository being the source
+# 0215. The wiki kept in a git repository, the repository being the source
 
 - Status: Accepted (built: GitHub, through the server's GitHub App, and public repositories without it). An option
   per workspace, off until an administrator connects a repository
@@ -14,7 +14,7 @@
   `notifyWikiConflict` in `notification-producers.ts`; routes `apps/server/src/routes/app/wiki.ts`
   (`/organizations/{orgId}/wiki/repository`), the webhook in `apps/server/src/routes/github-app.ts`, the periodic look
   in `apps/server/src/workers.ts`; web `apps/web/src/components/wiki/WikiRepository.tsx`; tables
-  `wiki_repositories`, `wiki_repository_files`, `wiki_pages.outside` (migration 0312); tests
+  `wiki_repositories`, `wiki_repository_files`, `wiki_pages.outside` (migration 0313); tests
   `packages/engine/test/wiki-repository.test.ts`
 
 ## Context

@@ -3,7 +3,7 @@ import { noteUrl } from "./remote";
 
 const { wikiPages, wikiPageVersions, wikiRepositories, wikiRepositoryFiles } = schema;
 
-/** A page's note in the wiki's repository (ADR 0214), as its page shows it. */
+/** A page's note in the wiki's repository (ADR 0215), as its page shows it. */
 export interface WikiPageRepository {
   /**
    * `synced`: the note holds this version. `pending`: this version is still to be written there (in a moment, or once
@@ -107,7 +107,7 @@ export async function outsideWikiSlugs(db: Executor, orgId: string, slugs: reado
 }
 
 /**
- * Whether what the wiki saves is published for anyone to read (ADR 0214): it is kept in a public repository it writes
+ * Whether what the wiki saves is published for anyone to read (ADR 0215): it is kept in a public repository it writes
  * to, directly or through a pull request. Whatever the sync's state: a stopped one sends what waits once it runs again.
  * Then an agent writes to the wiki only when a person asked, never for a routine or a run nobody is behind.
  */

@@ -84,7 +84,7 @@ export function WikiPage({ slug, newTitle }: { slug?: string; newTitle?: string 
   const [importing, setImporting] = useState<{ files?: Promise<VaultFile[]> } | null>(null);
   const [navOpen, setNavOpen] = useState(false);
   const [tag, setTag] = useState<string | null>(null);
-  // The repository the wiki is kept in (ADR 0214): opened from the line at the column's foot or a page's mark.
+  // The repository the wiki is kept in (ADR 0215): opened from the line at the column's foot or a page's mark.
   const [repositoryOpen, setRepositoryOpen] = useState(false);
   const current = pages.find((p) => p.slug === slug);
   // The open page's outline goes in the tree, under its row (the page itself reads in one column).
@@ -256,7 +256,7 @@ function WikiNav({
   onTrash: () => void;
   onNew: () => void;
   onImport: () => void;
-  /** Opens the wiki's repository dialog (ADR 0214), from the line at the column's foot. */
+  /** Opens the wiki's repository dialog (ADR 0215), from the line at the column's foot. */
   onRepository: () => void;
   onClose: () => void;
 }) {

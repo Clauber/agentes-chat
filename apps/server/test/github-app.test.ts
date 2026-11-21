@@ -244,7 +244,7 @@ test("what happens on the items is queued once per delivery; the owner is told w
   const jobs = await t.db.select().from(schema.outbox).where(eq(schema.outbox.kind, "github_app.event"));
   expect(jobs).toHaveLength(1);
 
-  // A push to the branch a workspace keeps its wiki in queues that wiki's sync (ADR 0214); any other push is let go.
+  // A push to the branch a workspace keeps its wiki in queues that wiki's sync (ADR 0215); any other push is let go.
   await t.db.insert(schema.wikiRepositories).values({ orgId, owner: "acme", repo: "app", branch: "main" });
   const push = (ref: string) => {
     const payload = JSON.stringify({

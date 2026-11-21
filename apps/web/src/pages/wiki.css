@@ -1734,7 +1734,7 @@ html:not([data-pointer]) .wiki-graph__node:focus-visible {
   }
 }
 
-/* The wiki's repository (ADR 0214): while the two stopped following each other, a line held at the column's foot,
+/* The wiki's repository (ADR 0215): while the two stopped following each other, a line held at the column's foot,
    over the tree as it scrolls. It reaches over the column's padding to its edges, as the selection bar does. */
 .wiki-repo-stopped {
   position: sticky;

@@ -110,7 +110,7 @@ interface Hold {
   until: Date;
 }
 
-/** Limited here, to some people or to some agents: such a page never goes to the repository (ADR 0214 §6). */
+/** Limited here, to some people or to some agents: such a page never goes to the repository (ADR 0215 §6). */
 const limited = (page: Pick<Page, "restricted" | "agentsLimited">) => page.restricted || page.agentsLimited;
 
 /**
@@ -126,7 +126,7 @@ const asFile = (body: string) => (body && !body.endsWith("\n") ? `${body}\n` : b
 export const WIKI_REPOSITORY_PERMISSION = "administrator" as const;
 
 /**
- * One sync of a workspace's wiki with its repository (job `wiki.repository.sync`, ADR 0214). First what the repository
+ * One sync of a workspace's wiki with its repository (job `wiki.repository.sync`, ADR 0215). First what the repository
  * changed comes in: a new note is a new page, a changed one a new version, a removed one goes to the trash, a moved or
  * renamed one moves or renames its page. Then what the wiki changed goes out as one commit. Where both changed a note,
  * the two edits are merged when they changed different lines; when they changed the same ones, the repository's text

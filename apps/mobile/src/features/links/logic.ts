@@ -303,7 +303,7 @@ export function notificationHref(
   if (n.kind === "right_hand_paused") return "/settings/right-hand";
   // An update of a skill from its link: the skill's page, where what waits is applied.
   if (n.kind === "skill_update") return isSafeId(s.skillId) ? `/settings/skills/${s.skillId}` : "/settings/skills";
-  // GitHub's version of a wiki page replaced an edit made here (ADR 0214): the page, whose history keeps that edit.
+  // GitHub's version of a wiki page replaced an edit made here (ADR 0215): the page, whose history keeps that edit.
   if (n.kind === "wiki_conflict") return isWikiSlug(s.slug) ? `/wiki/${encodeURIComponent(s.slug)}` : "/wiki";
   if (n.kind === "machine_connected")
     return isSafeId(s.machineId) ? `/settings/devices/${s.machineId}` : "/settings/devices";
