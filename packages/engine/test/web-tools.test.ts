@@ -303,6 +303,13 @@ describe("the controller's untried verdict", () => {
     // What needs the person is still no wall, and a question for what its means could find is still untried.
     expect(criteria.untried).toContain("a step that needs the person is never a blocker");
     expect(criteria.untried).toContain("asked a person for information its means could find");
+    // Every other condition stays when the wording is shortened.
+    expect(criteria.done).toContain("only when asked as one direct question");
+    expect(criteria.done).toContain("none, after looking, when the request allows none");
+    expect(criteria.done).toContain("a blocker `previous_record` already reported, unchanged now");
+    expect(criteria.untried).toContain("a call [refused for safety], final for that data");
+    expect(criteria.ask).toContain("Not when it says it needs nothing from them");
+    expect(criteria.unbacked).toContain("Its own Agent, Task or Workflow call in `tried` backs it");
   });
 
   test("a call as the judge reads it", () => {
