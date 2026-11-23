@@ -56,3 +56,8 @@ test("a dialog's foot never holds a button wider than the dialog: its words end 
   expect(rule(endGhost)).toContain("max-width: calc(100% + var(--ghost-plate))");
   expect(rule(".ac-dialog__foot-acts")).toContain("flex: none");
 });
+
+test("a note's one way out centres on its line of words: its rule outranks the action line's later one", () => {
+  expect(rule(".ac-actline.ac-setnote-line")).toContain("align-items: center");
+  expect(css.indexOf("\n.ac-actline.ac-setnote-line {")).toBeLessThan(css.indexOf("\n.ac-actline {"));
+});

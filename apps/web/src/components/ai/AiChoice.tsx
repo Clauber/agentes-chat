@@ -153,6 +153,7 @@ export function AiChoiceFields({
   onChange,
   onAccount,
   onSaved,
+  accountNote,
   modelHint,
   disabled = false,
   className,
@@ -164,6 +165,8 @@ export function AiChoiceFields({
   onAccount?: (row: AiChoiceRow) => void;
   /** A change saved (not with `onChange`). */
   onSaved?: (choice: AiChoice) => void;
+  /** A line right under Conta (an `onAccount` caller's own "asks first" line). */
+  accountNote?: ReactNode;
   /** What the Modelo field's ⓘ says (a mission's: when it can change). */
   modelHint?: string;
   disabled?: boolean;
@@ -337,6 +340,7 @@ export function AiChoiceFields({
           {askText(t, asking)}
         </SettingNote>
       )}
+      {accountNote}
       {(showModel || showEffort) && (
         <div className={cx("aa-pair", !(showModel && showEffort) && "aa-pair--one")}>
           {showModel && (

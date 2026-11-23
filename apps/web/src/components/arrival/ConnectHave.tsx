@@ -153,7 +153,7 @@ function itemOf(
 /**
  * One row. In a list (`RadioGroup`) it is a radio, its border alone marking the one picked (no dot); `still`: the one
  * in use, shown alone, nothing to pick. `whose`: it says whose it is instead of the line about it (a list of mixed
- * owners). `onPick`: picking it acts at once, so it is a button (a radio would act on every arrow key).
+ * owners). `onPick`: picking it acts at once, so its keyboard stop is a button (a radio would act on every arrow key).
  */
 export function HaveRow({
   item,
@@ -244,18 +244,24 @@ export function HaveRow({
     );
   }
   if (onPick) {
+    // The label, as a radio's row: its hidden button is the keyboard stop, and the row can hold its rename button.
     return (
-      <button
-        type="button"
+      <label
+        htmlFor={`${dom}-row`}
         className="arrival-have__row"
         data-state={checked ? "checked" : "unchecked"}
         data-disabled={off ? "" : undefined}
-        aria-pressed={checked}
-        disabled={off}
-        onClick={onPick}
       >
+        <button
+          type="button"
+          id={`${dom}-row`}
+          className="ac-radio"
+          aria-pressed={checked}
+          disabled={off}
+          onClick={onPick}
+        />
         {body}
-      </button>
+      </label>
     );
   }
   return (

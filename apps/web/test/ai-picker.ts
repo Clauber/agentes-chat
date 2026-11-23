@@ -132,7 +132,7 @@ export async function pickRow(d: HTMLElement, which: string | RegExp | ((row: Br
   const row = d.querySelectorAll(".arrival-have__row")[at];
   if (at < 0 || !row) throw new Error(`No row ${which} in: ${rows.map((r) => r.title).join(", ")}`);
   // A list whose pick waits for its confirm has radios; one whose pick acts at once has buttons.
-  await clicked(row.querySelector('[role="radio"]') ?? row);
+  await clicked(row.querySelector('[role="radio"], button.ac-radio') ?? row);
 }
 
 /**

@@ -1333,7 +1333,8 @@ describe("Conectar uma IA for an agent with no AI: what the person already has, 
       canUseOthersPlans: true,
     });
     const theirs = within(picker).getByRole("button", { name: /^Claude Max/ }) as HTMLButtonElement;
-    expect(shownText(theirs)).toBe("Claude MaxDe Bia");
+    // The row is its label: the button is its keyboard stop, named by it.
+    expect(shownText(theirs.closest(".arrival-have__row") as HTMLElement)).toBe("Claude MaxDe Bia");
     expect(theirs.disabled).toBe(false);
     expect(within(picker).queryByRole("button", { name: /^Claude Pro/ })).toBeNull();
     expect(picker.textContent).toContain("Mais 1 conta de Caio que só Caio pode dar.");

@@ -121,3 +121,8 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* A line under Conta (a pick that asks first) is one of the picker's rows: its gap is the room above it. */
+.aa-picker > .ac-actline.ac-setnote-line {
+  margin: 0;
+}

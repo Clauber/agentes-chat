@@ -11624,7 +11624,8 @@ html:not([data-pointer]) .ac-effort:focus-visible .ac-effort__ramp {
  * A note with its way out (`SettingNote`'s `action`): the line, not the note, takes the note's room above. Beside its
  * one line of words the button centres on them, under them it starts at their edge.
  */
-.ac-setnote-line {
+/* Two classes: `.ac-actline`'s own rule comes later in this file and would start the button at the words' top. */
+.ac-actline.ac-setnote-line {
   margin-top: 12px;
   align-items: center;
 }

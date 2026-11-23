@@ -685,8 +685,12 @@ function BrainFlow({
           {s.hold && s.savedCard === "key" && can("brain") && (
             <SettingNote icon="clock">{t("connectAi.key.closed")}</SettingNote>
           )}
-          <AiChoiceFields state={choice} onAccount={pickAccount} disabled={busy || !can("brain")} />
-          {askLine}
+          <AiChoiceFields
+            state={choice}
+            onAccount={pickAccount}
+            accountNote={askLine}
+            disabled={busy || !can("brain")}
+          />
           {arrived && (
             <SettingNote icon="check" live>
               {t("agentPage.work.brain.add.done", { account: accountInLine(t, arrived), computer: s.computerName })}
