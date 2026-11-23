@@ -16,13 +16,16 @@ import { isAuto } from "./providers";
 export type EffortLevel = "low" | "medium" | "high" | "xhigh" | "max";
 export const EFFORT_LEVELS: readonly EffortLevel[] = ["low", "medium", "high", "xhigh", "max"];
 const UP_TO_HIGH: readonly EffortLevel[] = ["low", "medium", "high"];
+const FIXED_PLAN_LEVELS: readonly EffortLevel[] = ["low", "medium", "high", "max"];
 
 /**
  * The effort levels a model takes on `kind`, lowest first: its catalog row's (`efforts`), else up to high, as the
  * gateway sends them (`effortWithin`). `model` is a catalog id (an alias resolved, `[1m]` and dates allowed). Codex,
  * Grok and Antigravity's CLIs stop at high; Cursor and OpenCode take none, nor an Antigravity slug that names its level.
+ * No `model` at all: the fixed list the pickers before the one AI choice show (a key's three, a plan's four).
  */
 export function effortLevelsOf(kind: BrainKind | undefined, model?: string | null): readonly EffortLevel[] {
+  if (model === undefined) return kind === "model" ? UP_TO_HIGH : FIXED_PLAN_LEVELS;
   if (kind === "cursor" || kind === "opencode") return [];
   if (kind === "antigravity" && model && ANTIGRAVITY_LEVEL.test(model)) return [];
   const listed = model ? MODEL_CATALOG[catalogModelOf(model) ?? ""]?.efforts : undefined;
@@ -43,7 +46,7 @@ export function effortLevelsFor(
 ): readonly EffortLevel[] {
   const option = options.find((o) => o.kind === kind);
   const value = model ?? option?.defaultModel;
-  return effortLevelsOf(kind, option?.models.find((m) => m.value === value)?.modelId ?? value);
+  return effortLevelsOf(kind, option?.models.find((m) => m.value === value)?.modelId ?? value ?? null);
 }
 
 /** A stored effort as one of `levels`: one the model doesn't take runs as its highest level under it. */

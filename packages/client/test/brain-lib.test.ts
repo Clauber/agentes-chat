@@ -194,6 +194,9 @@ describe("Velocidade (ADR 0149)", () => {
     expect(effortLevelsOf("codex", "gpt-6.2-sol")).toEqual(["low", "medium", "high"]);
     expect(effortLevelsOf("antigravity", "gemini-4-argon-high")).toEqual([]);
     expect(effortLevelsOf("cursor", "claude-opus-5-5")).toEqual([]);
+    // The pickers before the one AI choice name no model: their fixed lists.
+    expect(effortLevelsOf("claude_code")).toEqual(["low", "medium", "high", "max"]);
+    expect(effortLevelsOf("model")).toEqual(["low", "medium", "high"]);
     // A brain's default and its aliases go by their catalog id.
     const claude = [
       {
