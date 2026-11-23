@@ -163,8 +163,8 @@ export function AiChoiceFields({
   value?: AiChoice | null;
   onChange?: (choice: AiChoice, row: AiChoiceRow) => void;
   onAccount?: (row: AiChoiceRow) => void;
-  /** A change saved (not with `onChange`). */
-  onSaved?: (choice: AiChoice) => void;
+  /** A change saved (not with `onChange`): the caller says so, with `undo` for its Desfazer; else "Salvo" says it. */
+  onSaved?: (choice: AiChoice, undo: () => void) => void;
   /** A line right under Conta (an `onAccount` caller's own "asks first" line). */
   accountNote?: ReactNode;
   /** What the Modelo field's ⓘ says (a mission's: when it can change). */
@@ -196,12 +196,11 @@ export function AiChoiceFields({
     setAsk(null);
     state.save(next).then(
       () => {
-        onSaved?.(next);
-        if (!before) return;
-        toast.show(t("common.saved"), "success", {
-          label: t("agentPage.work.brain.v2.undo"),
-          run: () => void state.save(before).then(() => toast.show(t("agentPage.work.brain.v2.undone")), failed),
-        });
+        const undo = () => {
+          if (before) void state.save(before).then(() => toast.show(t("agentPage.work.brain.v2.undone")), failed);
+        };
+        if (onSaved) return onSaved(next, undo);
+        if (before) toast.show(t("common.saved"), "success", { label: t("agentPage.work.brain.v2.undo"), run: undo });
       },
       (e: unknown) => {
         setPending(null);

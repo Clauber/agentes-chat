@@ -326,7 +326,9 @@ function SettingsBody({
               target={{ kind: "mission", missionId: m.id }}
               parts={["model"]}
               modelHint={t("brain.mission.modelHint")}
-              onSaved={(c) => saved(t("brain.mission.saved", { model: brainModelLabel(brainOption, c.model ?? null) }))}
+              onSaved={(c, undo) =>
+                saved(t("brain.mission.saved", { model: brainModelLabel(brainOption, c.model ?? null) }), undo)
+              }
             />
           )}
           <ul className="ac-setlist mi-cfg__computer">
