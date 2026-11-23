@@ -45579,6 +45579,9 @@
   "chat.work.step.creatingImage": {
     "value": "Made an image"
   },
+  "chat.work.step.creatingVideo": {
+    "value": "Made a video"
+  },
   "chat.work.step.exportingFile": {
     "value": "Saved a file to the Drive"
   },
@@ -45932,6 +45935,9 @@
   },
   "chat.activity.creatingImage": {
     "value": "making an image"
+  },
+  "chat.activity.creatingVideo": {
+    "value": "making a video"
   },
   "chat.activity.exportingFile": {
     "value": "saving a file to Drive"
