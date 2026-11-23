@@ -83,9 +83,9 @@ import { WorkspaceApprovalsRow } from "@/components/ApprovalsLevelDialog";
 import { AppsDownloadSection } from "@/components/AppsDownload";
 import { AuditSection } from "@/components/Audit";
 import { AutoModelsRow } from "@/components/AutoModels";
-import { usePlanHold } from "@/components/ai/ConnectAiSteps";
 import { EndpointForm } from "@/components/ai/EndpointForm";
 import { WhoPicksSection } from "@/components/ai/Jev";
+import { usePlanHold } from "@/components/ai/plan-hold";
 import { BillingLinkButton } from "@/components/BillingLinkButton";
 import { ConnectorsSection } from "@/components/Connectors";
 import { DeleteWorkspaceDialog } from "@/components/DeleteWorkspace";
@@ -154,6 +154,7 @@ function Settings({
   role,
   tab,
   create,
+  service,
 }: {
   /** The section a link names; none (`/settings`): Geral for who opens it, else their first one. */
   section?: SettingsSection;
@@ -181,6 +182,8 @@ function Settings({
   tab?: RoleTab;
   /** Cargos, with Criar cargo open (⌘K's "Criar cargo"). */
   create?: boolean;
+  /** Conectores: the service whose page is open. */
+  service?: string;
 }) {
   const { t } = useTranslation();
   const { org } = useOrg();
@@ -282,7 +285,14 @@ function Settings({
       {current === "voice" && <VoiceSettingsSection />}
       {current === "access" && <AccessMatrixSection />}
       {current === "connectors" && (
-        <ConnectorsSection connected={connected} outcome={outcome} review={review} mail={mail} account={account} />
+        <ConnectorsSection
+          connected={connected}
+          outcome={outcome}
+          review={review}
+          mail={mail}
+          account={account}
+          service={service}
+        />
       )}
       {current === "skills" && <SkillsSection install={install} connected={connected} skill={skill} agent={agent} />}
       {current === "storage" && <StorageSection />}

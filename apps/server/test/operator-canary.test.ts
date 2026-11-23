@@ -943,6 +943,8 @@ beforeAll(async () => {
     `/analytics/work?${days}`,
     ...["brain", "model"].map((by) => `/analytics/run-timings?${hours}&by=${by}`),
     `/analytics/run-timings?${hours}&orgId=${orgId}&agentId=${agentId}`,
+    ...["hour", "day"].map((bucket) => `/analytics/reply-times?${hours}&bucket=${bucket}`),
+    `/cli-runs?${hours}`,
     `/analytics/ai-accounts?${days}`,
     "/ai-accounts?limit=200",
     "/claude-auth",
@@ -1053,6 +1055,8 @@ beforeAll(async () => {
     ["/events?after=nope", 400],
     ["/analytics", 400],
     [`/analytics/run-timings?${days}`, 400],
+    [`/analytics/reply-times?${days}`, 400],
+    [`/cli-runs?${days}`, 400],
     ["/nope", 404],
   ];
 });

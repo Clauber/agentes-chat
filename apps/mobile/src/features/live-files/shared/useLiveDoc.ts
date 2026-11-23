@@ -131,6 +131,7 @@ export function useLiveDoc(fileId: string, options: { kind?: LiveKind | null; aw
   });
   const room = view.room;
 
+  // On screen: on top (its conversation pushed over it lets the room go after `awayMs`, as any screen over it).
   const focused = useIsFocused();
   const active = useAppActive();
   const who = useRef(Symbol("live-screen")).current;

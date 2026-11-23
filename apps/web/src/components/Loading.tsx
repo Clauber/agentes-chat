@@ -107,8 +107,9 @@ export function useStepText(active: boolean, steps: string[]) {
     const timer = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(timer);
   }, [active]);
-  if (!active || since === null || steps.length === 0) return undefined;
-  return steps[stepAt(since, now, steps.length)];
+  if (!active || steps.length === 0) return undefined;
+  // The first step from the render that starts it (the timer starts after): a footer note never blinks out between.
+  return since === null ? steps[0] : steps[stepAt(since, now, steps.length)];
 }
 
 /**
@@ -147,6 +148,9 @@ export function ErrorState({ error, onRetry }: { error?: unknown; onRetry?: () =
  * that already have data; polling and background queries opt out with
  * `meta: { quiet: true }`).
  */
+/** How long a background refresh runs before the bar shows. */
+const REFETCH_BAR_DELAY_MS = 1200;
+
 export function RefetchBar() {
   const { t } = useTranslation();
   const cache = useQueryClient().getQueryCache();
@@ -167,5 +171,7 @@ export function RefetchBar() {
       .getAll()
       .some((q) => q.state.fetchStatus === "fetching" && q.state.data !== undefined && q.meta?.quiet !== true),
   );
-  return <TopProgress active={refreshing} label={t("common.refreshing")} />;
+  // Only a slow refresh shows: a quick background read of what is already on screen needs no bar, and one flashing
+  // on every navigation and live update reads as the app loading all the time.
+  return <TopProgress active={refreshing} label={t("common.refreshing")} delayMs={REFETCH_BAR_DELAY_MS} />;
 }

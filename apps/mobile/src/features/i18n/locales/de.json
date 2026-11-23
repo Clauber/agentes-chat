@@ -96,7 +96,7 @@
     "chats": "Chats",
     "threads": "Threads",
     "agents": "Agenten",
-    "activity": "Aktivität",
+    "activity": "Posteingang",
     "search": "Suche",
     "withCount": "{{label}}, {{count}}"
   },
@@ -159,6 +159,7 @@
     "forwards": "Leitet „{{subject}}“ weiter",
     "forwardsFrom": "Leitet „{{subject}}“ weiter, von {{from}}",
     "onlyOwner": "Nur {{name}} oder ein Admin kann entscheiden.",
+    "onlyOwnerRole": "Nur Personen mit der Rolle {{role}} oder ein Admin können entscheiden.",
     "onlyAdmins": "Nur ein Admin kann entscheiden.",
     "notFound": "Diese Anfrage gibt es nicht mehr oder du kannst sie nicht sehen.",
     "trait": {
@@ -188,7 +189,14 @@
     },
     "pinned": "Angepinnt",
     "recent": "Zuletzt",
+    "view": {
+      "title": "Unterhaltungen anzeigen",
+      "sectors": "Bereiche",
+      "dms": "Direktnachrichten",
+      "channels": "Kanäle"
+    },
     "seeAll": "Alle Chats ansehen",
+    "splitEmpty": "Deine Chats öffnen sich hier.",
     "wait": {
       "verb": {
         "approval": "braucht dein Okay",
@@ -276,8 +284,8 @@
     "to": "An:",
     "people": "Personen",
     "search": "Person oder Agent",
-    "create": "Erstellen",
     "agentHint": "Ein Name und was er tut",
+    "create": "Erstellen",
     "chatShort": "Unterhaltung",
     "chatHint": "Eine Person oder ein Agent",
     "taskHint": "Mit verantwortlicher Person und Frist",
@@ -323,6 +331,9 @@
   },
   "chat": {
     "someone": "Jemand",
+    "handedTo": "Übergeben an {{name}}",
+    "handedTo_female": "Übergeben an {{name}}",
+    "pairAsked": "{{from}} hat gefragt",
     "messageTo": "Nachricht an {{name}}",
     "messageIn": "Nachricht in {{channel}}",
     "reply": "Antworten",
@@ -396,10 +407,6 @@
       "working": "{{names}} schreiben",
       "mentionsYou": "du wurdest erwähnt",
       "divider": "Neu"
-    },
-    "connection": {
-      "down": "Keine Verbindung. Was du sendest, geht von selbst raus, sobald sie zurück ist.",
-      "back": "Wieder verbunden"
     },
     "longPressHint": "Gedrückt halten, um zu reagieren und mehr Aktionen zu sehen",
     "file": "Datei",
@@ -560,6 +567,8 @@
     "camera": "Kamera",
     "photos": "Fotos",
     "file": "Datei",
+    "paste": "Einfügen",
+    "pasteGone": "Das kopierte Bild ließ sich nicht lesen. Kopiere es noch einmal und tippe dann auf Einfügen.",
     "media": "GIFs",
     "noCamera": "Kein Kamerazugriff. Erlaube ihn in den Einstellungen des Handys.",
     "summary": "Chat zusammenfassen",
@@ -759,10 +768,12 @@
     "section": {
       "missions": "Missionen",
       "threads": "Threads"
-    }
+    },
+    "splitEmpty": "Deine Threads öffnen sich hier."
   },
   "agents": {
     "title": "Agenten",
+    "splitEmpty": "Die Seiten deiner Agenten öffnen sich hier.",
     "subtitle_one": "{{count}} im Team · {{working}} arbeiten",
     "subtitle_other": "{{count}} im Team · {{working}} arbeiten",
     "free": "Frei",
@@ -859,7 +870,7 @@
     }
   },
   "activity": {
-    "title": "Aktivität",
+    "title": "Posteingang",
     "chooseModel": "Anderes Modell wählen",
     "filter": {
       "all": "Alle",
@@ -1034,6 +1045,46 @@
     "addA11y": "{{name}} zum Kanal hinzufügen",
     "added": "{{name}} ist dem Kanal beigetreten"
   },
+  "settingsSearch": {
+    "open": "Einstellungen durchsuchen",
+    "title": "Suchen",
+    "placeholder": "Du und Einstellungen durchsuchen",
+    "workspace": "Workspace-Einstellungen",
+    "words": {
+      "status": "abwesend, beschäftigt, Präsenz, online",
+      "account": "Name, Foto, E-Mail, Zeitzone, Passwort, Handle",
+      "deleteAccount": "löschen, entfernen, Konto schließen",
+      "workspaces": "wechseln, Server, Konten",
+      "notifications": "Mitteilungen, Push, Kennzeichen",
+      "approvals": "genehmigen, delegieren",
+      "start": "öffnen, Start, erster Bildschirm",
+      "activity": "Werkzeuge, was Agenten getan haben",
+      "chatLook": "Blasen, Nachrichten, Unterhaltung",
+      "wallpaper": "Hintergrund, Hintergrundbild, Foto",
+      "agentStyle": "technisch, einfach, Ton",
+      "sounds": "Ton, leise, stumm",
+      "appearance": "Design, dunkel, hell, Modus",
+      "appIcon": "Symbol",
+      "language": "Sprache, Deutsch, Englisch",
+      "about": "Version, Lizenzen",
+      "aiAccounts": "Schlüssel, API, Anbieter, Plan, Modell",
+      "general": "Name, Logo, Zeitzone, Kontext",
+      "media": "GIFs, Sticker",
+      "members": "Personen, Team",
+      "invites": "einladen, Einladung, Link",
+      "roles": "Berechtigungen, Rollen",
+      "usage": "Kosten, Ausgaben, Plan, Tokens, Budget",
+      "connectors": "Integrationen, MCP, Dienste",
+      "skills": "Fähigkeiten",
+      "vault": "Passwörter, Schlüssel, Logins, Geheimnisse",
+      "access": "Berechtigungen, Zugriff der Agenten",
+      "apps": "KI-Apps, MCP",
+      "computers": "Geräte, Rechner, Computer, Handy",
+      "storage": "Dateien, S3, Speicher",
+      "import": "exportieren, importieren, migrieren",
+      "audit": "Protokoll, Verlauf"
+    }
+  },
   "me": {
     "title": "Du",
     "role": {
@@ -1096,6 +1147,8 @@
     "notificationsOnHint": "Sie kommen auch im Browser und in der Desktop-App an, wenn sie dort eingeschaltet sind.",
     "notificationsOffHint": "Schalte sie ein, um hier Benachrichtigungen zu bekommen. Die Arten unten gelten für alle deine Geräte.",
     "notificationsKindsHint": "In der Aktivität bleibt alles. Das gilt für diesen Workspace, auf all deinen Geräten.",
+    "liveActivity": "Agenten in der Dynamic Island",
+    "liveActivityHint": "Wenn ein Agent an etwas arbeitet, worum du gebeten hast, erscheint er oben auf dem Bildschirm, in jeder App, und auf dem Sperrbildschirm. Bei geschlossener App braucht es iOS 17.2 oder neuer.",
     "version": "agentes.chat · Version {{version}}",
     "edit": "Bearbeiten",
     "status": "Status",
@@ -1230,6 +1283,13 @@
       "fullscreen": "Vollbild",
       "open": "Öffnen",
       "cantPlay": "Dieses Video kann auf diesem Handy nicht abgespielt werden."
+    },
+    "talk": {
+      "hint": {
+        "pdf": "Halte die Seite gedrückt, um einen Punkt zu markieren"
+      },
+      "pdfPage": "Seite {{page}} von {{count}}",
+      "pdfFailed": "Dieses PDF lässt sich nicht anzeigen."
     }
   },
   "issues": {
@@ -1281,6 +1341,7 @@
     "criteriaOf": "{{done}} von {{total}}",
     "linkMessage": "Nachricht in #{{channel}}",
     "linkMessagePlain": "Die ursprüngliche Nachricht",
+    "removeFileText": "Die Datei bleibt im Drive.",
     "subIssues": "Unteraufgaben",
     "talk": "Chat",
     "finish": "Als erledigt markieren",
@@ -1421,6 +1482,19 @@
       "lastDay": "Letzter Tag"
     }
   },
+  "coding": {
+    "pill": "{{who}}. Code ansehen",
+    "seeChanges": "Änderungen ansehen",
+    "project": "Projekt",
+    "whereSearch": "Suche oder gib einen Namen ein",
+    "listed": "Vom Agenten",
+    "commit": "Commit {{short}}",
+    "waiting": "Wartet auf dich",
+    "next": {
+      "pr": "Branch gepusht, noch kein Pull Request",
+      "mergeLocal": "Bereit zum Mergen in {{base}}"
+    }
+  },
   "taskManager": {
     "loadFailed": "Die Aufgaben konnten nicht geladen werden.",
     "gone": "Diese Aufgabe ist nicht mehr da.",
@@ -1534,6 +1608,7 @@
       "ruleBody": "{{name}} folgt dieser Regel nicht mehr. Wer sie festgelegt hat, kann sie noch einmal festlegen.",
       "ruleRemove": "Entfernen",
       "footOwner": "Nur {{name}} oder ein Admin kann das korrigieren.",
+      "footOwnerRole": "Nur Personen mit der Rolle {{role}} oder ein Admin können das korrigieren.",
       "footAdmins": "Nur ein Admin kann das korrigieren.",
       "emptyF": "{{name}} hat noch nichts über dich gespeichert.",
       "emptyM": "{{name}} hat noch nichts über dich gespeichert.",
@@ -1583,6 +1658,7 @@
       },
       "asksYou": "Mergen und Veröffentlichen fragen nach deiner Freigabe, außer der Agent fragt nie.",
       "asksOwner": "Mergen und Veröffentlichen fragen nach der Freigabe von {{name}}, außer der Agent fragt nie.",
+      "asksOwnerRole": "Mergen und Veröffentlichen brauchen die Freigabe einer Person mit der Rolle {{role}}, außer der Agent fragt nie.",
       "asksAdmins": "Mergen und Veröffentlichen fragen nach der Freigabe eines Admins, außer der Agent fragt nie.",
       "empty": "Vorerst nur Unterhaltung."
     }
@@ -2022,20 +2098,16 @@
     "mcps": "MCP",
     "mcpsNone": "Hier erscheinen die MCP-Server, die du über ihre Adresse verbindest.",
     "addMcp": "MCP hinzufügen",
-    "add": "Hinzufügen",
-    "allServices": "Alle Dienste",
     "waitLine_one": "{{count}} Tool braucht dich",
     "waitLine_other": "{{count}} Tools brauchen dich",
     "toolsWait_one": "{{count}} braucht dich",
     "toolsWait_other": "{{count}} brauchen dich",
     "connectedState": "Verbunden",
     "connected": "Verbunden",
-    "suggested": "Vorgeschlagen für {{org}}",
-    "all": "Alle",
+    "seeAll": "Alle anzeigen",
     "noResults": "Kein Dienst mit diesem Namen. Versuch es mit seiner Adresse.",
     "soon": "Bald",
     "loadFailed": "Die Konnektoren ließen sich nicht laden.",
-    "connectedCheck": "{{name}}, verbunden",
     "adminsOnly": "Nur ein Admin von {{org}} verbindet Dienste. Frag einen von ihnen.",
     "adminsOnlyPersonal": "Nur wer diesen Workspace betreut, verbindet Apps. Frag diese Person.",
     "canTitle": "Agenten können dann",
@@ -2080,6 +2152,32 @@
     "disconnected": "{{name}} getrennt.",
     "usedBy_one": "{{names}} nutzt es",
     "usedBy_other": "{{names}} nutzen es",
+    "page": {
+      "missing": "Dieser Dienst ist nicht mehr im Katalog.",
+      "connected": "Verbunden",
+      "open": "Verbindung öffnen",
+      "category": "Kategorie",
+      "tools": "Werkzeuge",
+      "toolsAsk_one": "{{count}} braucht eine Freigabe",
+      "toolsAsk_other": "{{count}} brauchen eine Freigabe",
+      "toolsAskNone": "keines braucht eine Freigabe",
+      "toolsLater": "nach dem Verbinden",
+      "who": "Wer verbindet",
+      "whoAdmins": "Admins von {{org}}",
+      "whoRuns": "Wer den Workspace verwaltet",
+      "whoYou": "Du, für dich",
+      "signIn": "Anmeldung mit",
+      "how": {
+        "signIn": "Deinem Konto",
+        "key": "Einem Schlüssel",
+        "either": "Konto oder Schlüssel"
+      },
+      "canTitle": "Was Agenten damit machen",
+      "address": "Adresse",
+      "addressNote": "Agenten nutzen diese Adresse mit dem verbundenen Konto. Jeder bekommt nur, was du freigibst.",
+      "host": "Verbindet mit",
+      "more": "Mehr in {{category}}"
+    },
     "fromAgent": "Dienst verbinden",
     "githubApp": {
       "useApp": "agentes.chat-App nutzen",
@@ -2747,6 +2845,10 @@
       "titlePersonal": "Gib deine Aufgaben an deine Agenten ab",
       "textPersonal": "Erstelle eine Aufgabe für einen Agenten und verfolge sie bis zum Ende.",
       "viewerTitlePersonal": "Verfolge die Arbeit deiner Agenten"
+    },
+    "coding": {
+      "title": "Programmiere mit deinen Agenten",
+      "text": "Jede Sitzung ist eine Unterhaltung mit einem Agenten, der auf seinem eigenen Branch arbeitet, auf seinem Computer."
     },
     "routines": {
       "title": "Überlass wiederkehrende Arbeit deinen Agenten",

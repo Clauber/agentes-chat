@@ -1,7 +1,11 @@
 import type { PubSub } from "@agenteschat/adapters";
-import { and, type Executor, eq, gte, schema, sql } from "@agenteschat/db";
+import { and, type Database, type Executor, eq, gte, schema, sql } from "@agenteschat/db";
+import { runAuthority } from "./authority";
 import { threadIsConfidential } from "./confidential";
+import { getChannelCached } from "./context";
+import { inAgentOnlyDm } from "./dms";
 import { publishMessageCreated } from "./events";
+import { plainWords } from "./format";
 import { insertMessage, messageView } from "./messages";
 import { runReadOutside } from "./outside";
 import { endsWithSentinel, isSentinelOnly } from "./reply-policy";
@@ -9,6 +13,7 @@ import { personAmong } from "./run-inbox";
 import { type AgentRun, isTerminal, replyThreadOf } from "./runs";
 import { runStretchOf } from "./stretch";
 import { maskCredentials, scrubSignIns } from "./tool-detail";
+import { listsEveryTool } from "./tools/directory";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "./tools/types";
 import { withWikiLinks } from "./wiki-links";
 import { movableRun } from "./works";
@@ -36,14 +41,17 @@ export interface SaidNow {
 }
 
 /**
- * Where the line may go: a person's run, in a conversation people read as it goes (a channel or a DM; not an agents'
- * DM, a mission's thread, background work, a routine's run or a confidential thread). Elsewhere the tool refuses with
- * the reason, and the prompt doesn't speak of it.
+ * Where the line may go: a person's run, in a conversation people read as it goes (a channel, a DM or a code session;
+ * not an agents' DM, a mission's thread, background work, a routine's run or a confidential thread). Elsewhere the
+ * tool refuses with the reason, and the prompt doesn't speak of it.
  */
 export async function sayNowApplies(db: Executor, run: AgentRun, confidential?: boolean) {
   if (run.background || run.workId) return false;
   // Known to the run already (`sealedAtClaim`): no read of the thread's row on its way to the model.
   if (confidential ?? (await threadIsConfidential(db, run.orgId, run.threadRootId))) return false;
+  // A code session (ADR 0215) is read as it goes, though its runs never move to the background.
+  const channel = await getChannelCached(db as Database, run.orgId, run.channelId);
+  if (channel?.kind === "code") return (await runAuthority(db, run)).kind === "person";
   return movableRun(db, run);
 }
 
@@ -58,7 +66,7 @@ export function sayNowText(raw: unknown): string {
 }
 
 /** What a line for a person never holds: code-ish names (a tool, a function), a file path on a computer, backticks. */
-const NOT_FOR_PEOPLE =
+export const NOT_FOR_PEOPLE =
   /`|\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b|(?:^|\s)(?:~\/|\/(?:Users|home|tmp|var|etc|opt)\/|[A-Za-z]:\\)/;
 
 const REFUSED = {
@@ -191,20 +199,11 @@ export function createSayNowToolSource(deps: { pubsub?: PubSub }): ToolSource {
   return {
     name: "say-now",
     async tools(ctx) {
-      // The same list in every run but a background one: where it doesn't apply, it says why.
-      return ctx.runId && !ctx.background ? [tool] : [];
+      // The same list in every run but a background one or one between agents: where it doesn't apply, it says why.
+      return ctx.runId && !ctx.background && (listsEveryTool(ctx) || !(await inAgentOnlyDm(ctx))) ? [tool] : [];
     },
   };
 }
-
-/** A sentence's words as they compare: lower case, no accents, no punctuation or emoji. */
-const wordsOf = (s: string) =>
-  s
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/\p{M}/gu, "")
-    .replace(/[^\p{L}\p{N}]+/gu, " ")
-    .trim();
 
 /**
  * A reply without what it already told them on the way (`say_now`): models often write the line again as the first
@@ -215,7 +214,7 @@ const wordsOf = (s: string) =>
  */
 export function withoutSaidNow(text: string, said: readonly Pick<SaidNow, "text">[] | undefined): string {
   if (!said?.length || !text.trim()) return text;
-  const lines = said.map((s) => wordsOf(s.text)).filter(Boolean);
+  const lines = said.map((s) => plainWords(s.text)).filter(Boolean);
   if (lines.length === 0) return text;
   const start = text.trimStart();
   let rest = start;
@@ -226,7 +225,7 @@ export function withoutSaidNow(text: string, said: readonly Pick<SaidNow, "text"
     if (!match) break;
     // A heading that runs into a list ("Os voos mais baratos:") leads the answer: it never repeats the line.
     if (match[2] === "\n" && /:\s*$/.test(match[1] ?? "")) break;
-    const sentence = wordsOf(match[1] ?? "");
+    const sentence = plainWords(match[1] ?? "");
     rest = rest.slice(match[0].length);
     // Punctuation or emoji alone joins the sentences around it.
     if (!sentence) continue;

@@ -1,4 +1,11 @@
-import { hostLook, isAgentesCloud, MisconfiguredError, normalizeHost, requestLocale } from "@agenteschat/engine";
+import {
+  hostLook,
+  isAgentesCloud,
+  MisconfiguredError,
+  normalizeHost,
+  requestLocale,
+  ValidationError,
+} from "@agenteschat/engine";
 import { helpDocsUrl } from "@agenteschat/i18n/help";
 import { appLocale } from "@agenteschat/i18n/locale";
 import type { AgentesModule, Edition, ModuleContext } from "@agenteschat/modules";
@@ -31,6 +38,7 @@ import { browserProfileRoutes } from "./routes/app/browser-profiles";
 import { calendarRoutes } from "./routes/app/calendar";
 import { channelRoutes } from "./routes/app/channels";
 import { chatRoutes } from "./routes/app/chat";
+import { codeSessionRoutes } from "./routes/app/code-sessions";
 import { connectorRoutes } from "./routes/app/connectors";
 import { customConnectorRoutes } from "./routes/app/connectors-custom";
 import { type AppDeps, agentDetailsGate, readOnlyWhileDeleting } from "./routes/app/context";
@@ -223,6 +231,8 @@ export function createApp(options: AppOptions) {
     api.route("/app", issueRoutes(deps));
     api.route("/app", threadRoutes(deps));
     api.route("/app", missionRoutes(deps));
+    // Code sessions (ADR 0215): a request in its own worktree on the agent's computer, with its conversation.
+    api.route("/app", codeSessionRoutes(deps));
     api.route("/app", wikiRoutes(deps));
     api.route("/app", routineRoutes(deps));
     api.route("/app", calendarRoutes(deps));
@@ -315,6 +325,16 @@ export function createApp(options: AppOptions) {
 
   const app = new OpenAPIHono();
   app.onError((error, c) => {
+    // A typed-in address refused for being on a private network says so in the log too: a self-hoster who meant
+    // to reach it sees which host and which settings allow it (ADR 0210).
+    if (error instanceof ValidationError && error.code === "url.internal") {
+      log.warn("outbound address refused: private network", {
+        host: error.params?.host,
+        route: routeOf(c),
+        orgId: c.req.param("orgId"),
+        allowWith: "OUTBOUND_ALLOW_HOSTS or OUTBOUND_ALLOW_CIDRS",
+      });
+    }
     const mapped = domainErrorResponse(error, c);
     if (mapped) return mapped;
     log.error("unhandled error", {

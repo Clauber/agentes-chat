@@ -107,7 +107,7 @@ export const featureKeysPtBR = {
     chats: "Conversas",
     threads: "Threads",
     agents: "Agentes",
-    activity: "Atividade",
+    activity: "Caixa",
     search: "Buscar",
     withCount: "{{label}}, {{count}}",
   },
@@ -171,6 +171,7 @@ export const featureKeysPtBR = {
     forwards: "Encaminha “{{subject}}”",
     forwardsFrom: "Encaminha “{{subject}}”, de {{from}}",
     onlyOwner: "Só {{name}} ou quem administra pode decidir.",
+    onlyOwnerRole: "Só quem tem {{role}} ou quem administra pode decidir.",
     onlyAdmins: "Só quem administra pode decidir.",
     notFound: "Este pedido não existe mais ou você não tem acesso.",
     trait: {
@@ -202,8 +203,16 @@ export const featureKeysPtBR = {
     pinned: "Fixados",
     /** Conversas' one list: every chat by its latest activity, with no grouping. */
     recent: "Recentes",
+    view: {
+      title: "Ver as conversas",
+      sectors: "Setores",
+      dms: "Mensagens diretas",
+      channels: "Canais",
+    },
     /** Under Recentes' first rows: the whole list. */
     seeAll: "Ver todas as conversas",
+    /** On a large screen (the iPhone Duo open), where the open chat stands beside the list while there is none yet. */
+    splitEmpty: "Suas conversas abrem aqui.",
     wait: {
       verb: {
         approval: "precisa do seu ok",
@@ -342,6 +351,9 @@ export const featureKeysPtBR = {
   },
   chat: {
     someone: "Alguém",
+    handedTo: "Passado para o {{name}}",
+    handedTo_female: "Passado para a {{name}}",
+    pairAsked: "{{from}} perguntou",
     messageTo: "Mensagem para {{name}}",
     messageIn: "Mensagem em {{channel}}",
     reply: "Responder",
@@ -416,10 +428,6 @@ export const featureKeysPtBR = {
       working: "{{names}} escrevendo",
       mentionsYou: "mencionaram você",
       divider: "Novas",
-    },
-    connection: {
-      down: "Sem conexão. O que você mandar sai sozinho quando voltar.",
-      back: "Conectado de novo",
     },
     longPressHint: "Segure para reagir e ver mais ações",
     file: "Arquivo",
@@ -584,6 +592,8 @@ export const featureKeysPtBR = {
     camera: "Câmera",
     photos: "Fotos",
     file: "Arquivo",
+    paste: "Colar",
+    pasteGone: "Não deu para ler a imagem copiada. Copie de novo e toque em Colar.",
     /** The fourth tile: the GIFs and stickers (also beside the mic in the empty field). */
     media: "GIFs",
     noCamera: "Sem acesso à câmera. Libere nos Ajustes do celular.",
@@ -785,9 +795,13 @@ export const featureKeysPtBR = {
       missions: "Missões",
       threads: "Threads",
     },
+    /** On a large screen (the iPhone Duo open), where the open thread stands beside the list while there is none yet. */
+    splitEmpty: "Suas threads abrem aqui.",
   },
   agents: {
     title: "Agentes",
+    /** On a large screen (the iPhone Duo open), where an agent's page stands beside the list while the team has none. */
+    splitEmpty: "As páginas dos seus agentes abrem aqui.",
     subtitle_one: "{{count}} na equipe · {{working}} trabalhando",
     subtitle_other: "{{count}} na equipe · {{working}} trabalhando",
     free: "Livre",
@@ -898,7 +912,7 @@ export const featureKeysPtBR = {
     },
   },
   activity: {
-    title: "Atividade",
+    title: "Caixa de entrada",
     /** Under `plan_model_dropped`: opens the agent's model. */
     chooseModel: "Escolher outro modelo",
     /** The pills over Atividade: short, no counts (the section and the tab's badge count). */
@@ -1079,6 +1093,46 @@ export const featureKeysPtBR = {
     addA11y: "Adicionar {{name}} ao canal",
     added: "{{name}} entrou no canal",
   },
+  settingsSearch: {
+    open: "Buscar nas configurações",
+    title: "Buscar",
+    placeholder: "Buscar em Você e nas configurações",
+    workspace: "Configurações do workspace",
+    words: {
+      status: "ausente, ocupado, presença, online",
+      account: "nome, foto, e-mail, fuso, senha, @",
+      deleteAccount: "excluir, remover, encerrar conta",
+      workspaces: "trocar, servidores, contas",
+      notifications: "avisos, alertas, push",
+      approvals: "aprovar, delegar",
+      start: "abrir, início, primeira tela",
+      activity: "ferramentas, o que os agentes fizeram",
+      chatLook: "balões, mensagens, conversa",
+      wallpaper: "fundo, papel de parede, foto",
+      agentStyle: "técnico, simples, tom",
+      sounds: "som, silencioso, barulho",
+      appearance: "tema, escuro, claro, modo",
+      appIcon: "ícone",
+      language: "língua, inglês, português, espanhol",
+      about: "versão, licenças",
+      aiAccounts: "chave, API, provedor, plano, modelo",
+      general: "nome, logo, fuso, contexto",
+      media: "GIFs, figurinhas",
+      members: "pessoas, equipe, time",
+      invites: "convidar, convite, link",
+      roles: "permissões, cargos",
+      usage: "custos, gastos, plano, tokens, orçamento",
+      connectors: "integrações, MCP, serviços",
+      skills: "habilidades",
+      vault: "senhas, chaves, logins, segredos",
+      access: "permissões, acesso dos agentes",
+      apps: "apps de IA, MCP",
+      computers: "dispositivos, máquinas, computador, celular",
+      storage: "arquivos, S3, armazenamento",
+      import: "exportar, importar, migrar",
+      audit: "registro, histórico, log",
+    },
+  },
   me: {
     title: "Você",
     role: {
@@ -1143,6 +1197,10 @@ export const featureKeysPtBR = {
     notificationsOnHint: "Também chegam no navegador e no app do computador, se estiverem ligadas lá.",
     notificationsOffHint: "Ligue para receber avisos aqui. Os tipos abaixo valem para todos os seus aparelhos.",
     notificationsKindsHint: "A Atividade guarda tudo. Vale para este workspace, em todos os seus aparelhos.",
+    /** The switch for the agents' Live Activity (the iPhone's Dynamic Island and Lock Screen, ADR 0210). */
+    liveActivity: "Agentes na ilha",
+    liveActivityHint:
+      "Quando um agente trabalha no que você pediu, ele aparece em cima da tela, em qualquer app, e na tela bloqueada. Com o app fechado, precisa do iOS 17.2 ou mais novo.",
     version: "agentes.chat · versão {{version}}",
     edit: "Editar",
     status: "Status",
@@ -1284,6 +1342,13 @@ export const featureKeysPtBR = {
       open: "Abrir",
       cantPlay: "Este vídeo não toca neste celular.",
     },
+    talk: {
+      hint: {
+        pdf: "Toque e segure na página para marcar um ponto",
+      },
+      pdfPage: "Página {{page}} de {{count}}",
+      pdfFailed: "Não deu para mostrar este PDF.",
+    },
   },
   issues: {
     title: "Tarefas",
@@ -1334,6 +1399,7 @@ export const featureKeysPtBR = {
     criteriaOf: "{{done}} de {{total}}",
     linkMessage: "Mensagem no #{{channel}}",
     linkMessagePlain: "A mensagem de origem",
+    removeFileText: "O arquivo continua no Drive.",
     subIssues: "Subtarefas",
     talk: "Conversar",
     finish: "Concluir",
@@ -1468,6 +1534,20 @@ export const featureKeysPtBR = {
       lastDay: "Último dia",
     },
   },
+  // Código (ADR 0215; the rest of its words are the web's, `codeSessions.*`).
+  coding: {
+    pill: "{{who}}. Ver o código",
+    seeChanges: "Ver as mudanças",
+    project: "Projeto",
+    whereSearch: "Busque ou digite um nome",
+    listed: "Do agente",
+    commit: "Commit {{short}}",
+    waiting: "Esperando você",
+    next: {
+      pr: "Branch enviada, ainda sem PR",
+      mergeLocal: "Pronta para juntar na {{base}}",
+    },
+  },
   // The task manager (ADR 0128; the rest of its words are shared, `taskManager.*`).
   taskManager: {
     loadFailed: "Não deu para carregar as tarefas.",
@@ -1593,6 +1673,7 @@ export const featureKeysPtBR = {
       ruleBody_female: "A {{name}} deixa de seguir essa regra. Quem a deu pode dar de novo.",
       ruleRemove: "Tirar",
       footOwner: "Só {{name}} ou quem administra pode corrigir.",
+      footOwnerRole: "Só quem tem {{role}} ou quem administra pode corrigir.",
       footAdmins: "Só quem administra pode corrigir.",
       emptyF: "A {{name}} ainda não guardou nada sobre você.",
       emptyM: "O {{name}} ainda não guardou nada sobre você.",
@@ -1635,6 +1716,7 @@ export const featureKeysPtBR = {
       },
       asksYou: "Merge e publicar pedem sua aprovação, a não ser que o agente nunca pergunte.",
       asksOwner: "Merge e publicar pedem a aprovação de {{name}}, a não ser que o agente nunca pergunte.",
+      asksOwnerRole: "Merge e publicar pedem a aprovação de quem tem {{role}}, a não ser que o agente nunca pergunte.",
       asksAdmins: "Merge e publicar pedem a aprovação de quem administra, a não ser que o agente nunca pergunte.",
       empty: "Por enquanto, só conversa.",
     },
@@ -2075,20 +2157,16 @@ export const featureKeysPtBR = {
     mcps: "MCPs",
     mcpsNone: "Os servidores MCP que você conectar pelo endereço aparecem aqui.",
     addMcp: "Adicionar MCP",
-    add: "Adicionar",
-    allServices: "Todos os serviços",
     waitLine_one: "{{count}} ferramenta precisa de você",
     waitLine_other: "{{count}} ferramentas precisam de você",
     toolsWait_one: "{{count}} precisa de você",
     toolsWait_other: "{{count}} precisam de você",
     connectedState: "Conectada",
     connected: "Conectados",
-    suggested: "Sugeridos para a {{org}}",
-    all: "Todos",
+    seeAll: "Ver todos",
     noResults: "Nenhum serviço com esse nome. Tente pelo endereço.",
     soon: "Em breve",
     loadFailed: "Não deu para carregar os conectores.",
-    connectedCheck: "{{name}}, conectado",
     adminsOnly: "Só um admin da {{org}} conecta serviços. Peça para um deles.",
     adminsOnlyPersonal: "Só quem cuida deste workspace conecta apps. Peça para essa pessoa.",
     canTitle: "Os agentes vão poder",
@@ -2134,6 +2212,32 @@ export const featureKeysPtBR = {
     usedBy_zero: "Nenhum agente usa",
     usedBy_one: "{{names}} usa",
     usedBy_other: "{{names}} usam",
+    page: {
+      missing: "Este serviço não está mais no catálogo.",
+      connected: "Conectado",
+      open: "Abrir a conexão",
+      category: "Categoria",
+      tools: "Ferramentas",
+      toolsAsk_one: "{{count}} pede aprovação",
+      toolsAsk_other: "{{count}} pedem aprovação",
+      toolsAskNone: "nenhuma pede aprovação",
+      toolsLater: "depois de conectar",
+      who: "Quem conecta",
+      whoAdmins: "Admins da {{org}}",
+      whoRuns: "Quem cuida do workspace",
+      whoYou: "Você, para você",
+      signIn: "Entra com",
+      how: {
+        signIn: "Sua conta",
+        key: "Uma chave",
+        either: "Conta ou chave",
+      },
+      canTitle: "O que os agentes fazem com ele",
+      address: "Endereço",
+      addressNote: "Os agentes usam este endereço com a conta conectada. Cada um recebe só o que você liberar.",
+      host: "Conecta em",
+      more: "Mais em {{category}}",
+    },
     fromAgent: "Conectar um serviço",
     /** O GitHub com o app agentes.chat (ADR 0156): o app primeiro, uma conta como o outro jeito. */
     githubApp: {
@@ -2821,6 +2925,10 @@ export const featureKeysPtBR = {
       titlePersonal: "Passe seus afazeres para os agentes",
       textPersonal: "Crie uma tarefa para um agente e acompanhe até o fim.",
       viewerTitlePersonal: "Acompanhe o trabalho dos seus agentes",
+    },
+    coding: {
+      title: "Programe junto com os agentes",
+      text: "Cada sessão é uma conversa com um agente que trabalha numa branch própria, no computador dele.",
     },
     routines: {
       title: "Deixe o trabalho repetido com os agentes",
