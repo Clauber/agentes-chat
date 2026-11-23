@@ -762,7 +762,7 @@ async function openRouterImages(http: typeof fetch, request: ImageRequest, apiKe
 const VIDEO_POLL_MS = 10_000;
 
 /**
- * A video over OpenRouter's Video API (ADR 0219): `POST /api/v1/videos` with the length, the shape, 720p, sound and
+ * A video over OpenRouter's Video API (ADR 0219): `POST /api/v1/videos` with the length, the shape, 720p and
  * the picture to start from as its first frame; the job is polled until `completed`, then its first output is
  * downloaded with the key, priced at what it charged (`usage.cost`). A job that fails for its content policy is
  * `videoBlockedError`.
@@ -799,7 +799,8 @@ async function openRouterVideo(
         duration: request.seconds,
         aspect_ratio: request.aspect,
         resolution: "720p",
-        generate_audio: true,
+        // No `generate_audio`: OpenRouter turns sound on for models that make it, and Grok Imagine Video lists no
+        // such setting (`GET /api/v1/videos/models`, 2026-11-23), so asking for it there risks a refusal.
         ...(request.startImage
           ? {
               frame_images: [

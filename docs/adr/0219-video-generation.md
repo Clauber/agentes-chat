@@ -22,13 +22,15 @@ were shut down this autumn.
 the lengths it makes, whether it takes a picture to start from, and its price per second of 720p video with sound,
 dated. Gemini Omni Flash through the Gemini key (the Interactions API the adapter already speaks, the video inline,
 or as a Files API file it waits for and downloads), and Gemini Omni Flash and Grok Imagine Video through OpenRouter's
-Video API (a job polled until done, then downloaded, priced at what OpenRouter reports). A workspace can make videos
+Video API (a job polled until done, then downloaded, priced at what OpenRouter reports; sound is left to
+OpenRouter's default, on for the models that make it). A workspace can make videos
 when it has a key, its own or the platform's, for one of them; the default is the first in the catalog's order.
 
 **Every video goes through the gateway**, as pictures do: the workspace's standing, the agent's budget reserved at the
 request's worst case (its seconds at the dearest rate), the key for the video model's provider (an agent's own
 credential only when it is of that provider), the person's limit, the call, and one `usage_records` row of the new
-kind `video` with its cost. An agent's budget pays for `agent`, `image` and `video`. A failed call costs nothing.
+kind `video` with its cost. An agent's budget pays for `agent`, `image` and `video`. A failed call is recorded at
+nothing (a call stopped by the wait may still be billed by its provider: see Consequences).
 
 **In a conversation.** An agent calls `generate_video` (`drive:write`, offered only where a video model is available)
 with a prompt, a length (3 to 15 seconds by model, 8 by default), landscape or portrait, and optionally a picture file

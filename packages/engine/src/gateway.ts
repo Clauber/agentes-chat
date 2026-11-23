@@ -1111,7 +1111,7 @@ export function createModelGateway(deps: ModelGatewayDeps) {
      * video catalog, the key for its provider (`imageKey`: an agent's own credential only when it is of that
      * provider), the person's limit, the agent's budget reserved at the request's worst case, the call, and one
      * `usage_records` row of kind `video` at what the provider reported or the catalog's price. A failed call is
-     * settled at nothing: no provider here bills for a video it didn't deliver.
+     * settled at nothing, though a provider may still bill a job stopped by the wait or a cancel (ADR 0219).
      */
     async generateVideo(call: VideoCall): Promise<VideoGatewayResult> {
       await assertCanWork(db, call.orgId, call.agentId);

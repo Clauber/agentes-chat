@@ -185,7 +185,6 @@ describe("OpenRouter (Video API)", () => {
       duration: 8,
       aspect_ratio: "16:9",
       resolution: "720p",
-      generate_audio: true,
       frame_images: [
         { type: "image_url", image_url: { url: "data:image/jpeg;base64,BBBB" }, frame_type: "first_frame" },
       ],
