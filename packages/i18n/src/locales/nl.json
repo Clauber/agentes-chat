@@ -17911,7 +17911,8 @@
       "router": "Router",
       "embedding": "Zoeken",
       "summary": "Samenvattingen",
-      "image": "Afbeeldingen"
+      "image": "Afbeeldingen",
+      "video": "Video's"
     },
     "usageCalls_one": "{{count}} aanroep",
     "usageCalls_other": "{{count}} aanroepen",
@@ -19113,6 +19114,10 @@
     "generate_image": {
       "label": "Afbeeldingen maken",
       "description": "Maakt afbeeldingen met de afbeeldings-AI van de werkruimte, in het gesprek of op een whiteboard. Gaat van het budget van de agent af."
+    },
+    "generate_video": {
+      "label": "Video's maken",
+      "description": "Maakt korte video's met geluid met de video-AI van de werkruimte, in het gesprek. Gaat van het budget van de agent af."
     },
     "list_issues": {
       "label": "Taken bekijken",

@@ -17843,7 +17843,8 @@
       "router": "Router",
       "embedding": "Suche",
       "summary": "Zusammenfassungen",
-      "image": "Bilder"
+      "image": "Bilder",
+      "video": "Videos"
     },
     "usageCalls_one": "{{count}} Aufruf",
     "usageCalls_other": "{{count}} Aufrufe",
@@ -19039,6 +19040,10 @@
     "generate_image": {
       "label": "Bilder erstellen",
       "description": "Erstellt Bilder mit der Bild-KI des Workspace, in der Unterhaltung oder auf einem Whiteboard. Wird aus seinem Budget bezahlt."
+    },
+    "generate_video": {
+      "label": "Videos erstellen",
+      "description": "Erstellt kurze Videos mit Ton mit der Video-KI des Workspace, in der Unterhaltung. Wird aus seinem Budget bezahlt."
     },
     "list_issues": {
       "label": "Aufgaben ansehen",

@@ -17218,7 +17218,8 @@
       "router": "라우터",
       "embedding": "검색",
       "summary": "요약",
-      "image": "이미지"
+      "image": "이미지",
+      "video": "동영상"
     },
     "usageCalls_other": "호출 {{count}}회",
     "usageHidden": "관리자만 워크스페이스 사용량을 볼 수 있어요.",
@@ -18395,6 +18396,10 @@
     "generate_image": {
       "label": "이미지 생성",
       "description": "워크스페이스의 이미지 AI로 대화나 캔버스에 이미지를 만들어요. 비용은 그 예산에서 나가요."
+    },
+    "generate_video": {
+      "label": "동영상 생성",
+      "description": "워크스페이스의 동영상 AI로 대화에 소리가 있는 짧은 동영상을 만들어요. 비용은 그 예산에서 나가요."
     },
     "list_issues": {
       "label": "작업 보기",

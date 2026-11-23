@@ -19003,7 +19003,8 @@
       "router": "Router",
       "embedding": "Wyszukiwanie",
       "summary": "Podsumowania",
-      "image": "Obrazy"
+      "image": "Obrazy",
+      "video": "Wideo"
     },
     "usageCalls_one": "{{count}} wywołanie",
     "usageCalls_few": "{{count}} wywołania",
@@ -20243,6 +20244,10 @@
     "generate_image": {
       "label": "Generuj obrazy",
       "description": "Tworzy obrazy za pomocą AI do obrazów z przestrzeni roboczej, w rozmowie lub na tablicy. Koszt idzie z budżetu agenta."
+    },
+    "generate_video": {
+      "label": "Generuj wideo",
+      "description": "Tworzy krótkie filmy z dźwiękiem za pomocą AI do wideo z przestrzeni roboczej, w rozmowie. Koszt idzie z budżetu agenta."
     },
     "list_issues": {
       "label": "Zobacz zadania",

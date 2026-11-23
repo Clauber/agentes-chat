@@ -18416,7 +18416,8 @@
       "router": "Routeur",
       "embedding": "Recherche",
       "summary": "Résumés",
-      "image": "Images"
+      "image": "Images",
+      "video": "Vidéos"
     },
     "usageCalls_one": "{{count}} appel",
     "usageCalls_many": "{{count}} appels",
@@ -19643,6 +19644,10 @@
     "generate_image": {
       "label": "Créer des images",
       "description": "Crée des images avec l'IA d'images de l'espace de travail, dans la conversation ou sur un tableau blanc. Payé sur le budget de l'agent."
+    },
+    "generate_video": {
+      "label": "Créer des vidéos",
+      "description": "Crée de courtes vidéos avec son avec l'IA vidéo de l'espace de travail, dans la conversation. Payé sur le budget de l'agent."
     },
     "list_issues": {
       "label": "Voir les tâches",

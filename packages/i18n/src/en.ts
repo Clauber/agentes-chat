@@ -18377,7 +18377,14 @@ export const en = {
     defaultBudgetHelp:
       "Agents without a budget of their own use this one. Change an agent's own budget on its page. Admins see amounts, members see percentages.",
     usageTotal: "{{amount}} in total since {{since}}",
-    kinds: { agent: "Agents", router: "Router", embedding: "Search", summary: "Summaries", image: "Images" },
+    kinds: {
+      agent: "Agents",
+      router: "Router",
+      embedding: "Search",
+      summary: "Summaries",
+      image: "Images",
+      video: "Videos",
+    },
     usageCalls_one: "{{count}} call",
     usageCalls_other: "{{count}} calls",
     usageHidden: "Only admins see the workspace's usage.",
@@ -19677,6 +19684,11 @@ export const en = {
       label: "Generate images",
       description:
         "Makes images with the workspace's image AI, in the conversation or on a canvas. Paid from its budget.",
+    },
+    generate_video: {
+      label: "Generate videos",
+      description:
+        "Makes short videos with sound with the workspace's video AI, in the conversation. Paid from its budget.",
     },
     list_issues: {
       label: "View tasks",

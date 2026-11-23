@@ -17285,7 +17285,8 @@
       "router": "Router",
       "embedding": "Pencarian",
       "summary": "Ringkasan",
-      "image": "Gambar"
+      "image": "Gambar",
+      "video": "Video"
     },
     "usageCalls_other": "{{count}} panggilan",
     "usageHidden": "Hanya admin yang melihat pemakaian ruang kerja.",
@@ -18462,6 +18463,10 @@
     "generate_image": {
       "label": "Buat gambar",
       "description": "Membuat gambar dengan AI gambar ruang kerja, di percakapan atau di kanvas. Dibayar dari anggaran agen."
+    },
+    "generate_video": {
+      "label": "Buat video",
+      "description": "Membuat video pendek bersuara dengan AI video ruang kerja, di percakapan. Dibayar dari anggaran agen."
     },
     "list_issues": {
       "label": "Lihat tugas",

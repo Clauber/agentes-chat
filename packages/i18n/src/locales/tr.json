@@ -17772,7 +17772,8 @@
       "router": "Yönlendirici",
       "embedding": "Arama",
       "summary": "Özetler",
-      "image": "Görseller"
+      "image": "Görseller",
+      "video": "Videolar"
     },
     "usageCalls_one": "{{count}} çağrı",
     "usageCalls_other": "{{count}} çağrı",
@@ -18962,6 +18963,10 @@
     "generate_image": {
       "label": "Görsel oluştur",
       "description": "Çalışma alanının görsel yapay zekasıyla sohbette veya bir tuvalde görseller oluşturur. Ajanın bütçesinden ödenir."
+    },
+    "generate_video": {
+      "label": "Video oluştur",
+      "description": "Çalışma alanının video yapay zekasıyla sohbette sesli kısa videolar oluşturur. Ajanın bütçesinden ödenir."
     },
     "list_issues": {
       "label": "Görevleri gör",

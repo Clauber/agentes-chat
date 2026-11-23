@@ -43948,6 +43948,9 @@
   "settings.kinds.image": {
     "value": "Images"
   },
+  "settings.kinds.video": {
+    "value": "Videos"
+  },
   "settings.usageCalls": {
     "value": {
       "one": "{{count}} call",
@@ -46892,6 +46895,12 @@
   },
   "builtinTools.generate_image.description": {
     "value": "Makes images with the workspace's image AI, in the conversation or on a canvas. Paid from its budget."
+  },
+  "builtinTools.generate_video.label": {
+    "value": "Generate videos"
+  },
+  "builtinTools.generate_video.description": {
+    "value": "Makes short videos with sound with the workspace's video AI, in the conversation. Paid from its budget."
   },
   "builtinTools.list_issues.label": {
     "value": "View tasks"

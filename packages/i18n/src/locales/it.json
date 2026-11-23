@@ -18438,7 +18438,8 @@
       "router": "Smistamento",
       "embedding": "Ricerca",
       "summary": "Riepiloghi",
-      "image": "Immagini"
+      "image": "Immagini",
+      "video": "Video"
     },
     "usageCalls_one": "{{count}} chiamata",
     "usageCalls_many": "{{count}} chiamate",
@@ -19659,6 +19660,10 @@
     "generate_image": {
       "label": "Genera immagini",
       "description": "Crea immagini con l'IA per immagini dello spazio di lavoro, nella conversazione o su una lavagna. Si paga dal suo budget."
+    },
+    "generate_video": {
+      "label": "Genera video",
+      "description": "Crea brevi video con audio con l'IA per video dello spazio di lavoro, nella conversazione. Si paga dal suo budget."
     },
     "list_issues": {
       "label": "Vedi attività",
