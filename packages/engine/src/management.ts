@@ -653,7 +653,6 @@ export async function updateChannel(
   }
 }
 
-/** Members of a channel with names, for the channel details panel. */
 /** The channel's members with names, as `viewerId` may see them (`namesAgentSql`). */
 export async function channelMembersDetail(db: Database, viewerId: string, orgId: string, channelId: string) {
   return db
