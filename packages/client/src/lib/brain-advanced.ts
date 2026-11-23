@@ -1,7 +1,7 @@
 import { catalogModelOf, MODEL_CATALOG } from "@agenteschat/providers/catalog";
 import { ANTIGRAVITY_LEVEL, speedFits } from "@agenteschat/providers/plans";
 import type { TFunction } from "i18next";
-import type { AgentBrain, BrainKind, BrainSpeed } from "../api/types";
+import type { AgentBrain, BrainKind, BrainOption, BrainSpeed } from "../api/types";
 import { type ContextLimit, contextSize } from "./context-limits";
 import { isAuto } from "./providers";
 
@@ -30,6 +30,20 @@ export function effortLevelsOf(kind: BrainKind | undefined, model?: string | nul
   return kind === "codex" || kind === "grok" || kind === "antigravity"
     ? levels.filter((l) => UP_TO_HIGH.includes(l))
     : levels;
+}
+
+/**
+ * `effortLevelsOf` for a model as a brain stores it: null is the brain's default, an alias (`sonnet`) its catalog id
+ * through the brain's `options`.
+ */
+export function effortLevelsFor(
+  kind: BrainKind,
+  model: string | null | undefined,
+  options: readonly Pick<BrainOption, "kind" | "models" | "defaultModel">[],
+): readonly EffortLevel[] {
+  const option = options.find((o) => o.kind === kind);
+  const value = model ?? option?.defaultModel;
+  return effortLevelsOf(kind, option?.models.find((m) => m.value === value)?.modelId ?? value);
 }
 
 /** A stored effort as one of `levels`: one the model doesn't take runs as its highest level under it. */

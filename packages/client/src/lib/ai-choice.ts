@@ -15,7 +15,7 @@ import type {
   ModelTier,
 } from "../api/types";
 import { ACCOUNT_KINDS, accountTitle, orderAccounts } from "./ai-accounts";
-import { type EffortLevel, effortLevelsOf } from "./brain-advanced";
+import { type EffortLevel, effortLevelsFor } from "./brain-advanced";
 import { type ModelRow, modelRows } from "./brain-picker";
 import { firstName } from "./format";
 import { isPlanId, planOf } from "./plans";
@@ -234,16 +234,11 @@ export function aiChoiceModels(
  * The "Esforço" select for a row: the levels its model takes (`effortLevelsOf`), `model` as the choice stores it (null:
  * the brain's default, an alias resolved through `options`); none for Lodi's "A do workspace".
  */
-export function aiChoiceEfforts(
+export const aiChoiceEfforts = (
   row: AiChoiceRow,
   model: string | null | undefined,
   options: readonly BrainOption[],
-): readonly EffortLevel[] {
-  if (row.type === "workspace") return [];
-  const option = options.find((o) => o.kind === row.brain);
-  const value = model ?? option?.defaultModel;
-  return effortLevelsOf(row.brain, option?.models.find((m) => m.value === value)?.modelId ?? value);
-}
+): readonly EffortLevel[] => (row.type === "workspace" ? [] : effortLevelsFor(row.brain, model, options));
 
 /** The choice a row makes, keeping the model and effort when the brain stays. */
 export function aiChoiceOf(row: AiChoiceRow, current: AiChoice | null): AiChoice {

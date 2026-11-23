@@ -7,6 +7,7 @@ import {
   advancedContents,
   advancedDefaults,
   advancedParts,
+  effortLevelsFor,
   effortLevelsOf,
   effortOf,
   effortTextOf,
@@ -193,6 +194,15 @@ describe("Velocidade (ADR 0149)", () => {
     expect(effortLevelsOf("codex", "gpt-6.2-sol")).toEqual(["low", "medium", "high"]);
     expect(effortLevelsOf("antigravity", "gemini-4-argon-high")).toEqual([]);
     expect(effortLevelsOf("cursor", "claude-opus-5-5")).toEqual([]);
+    // A brain's default and its aliases go by their catalog id.
+    const claude = [
+      {
+        kind: "claude_code" as const,
+        models: [{ value: "sonnet", label: "Sonnet", modelId: "claude-sonnet-5-5" }],
+        defaultModel: "sonnet",
+      },
+    ];
+    expect(effortLevelsFor("claude_code", null, claude)).toEqual(["low", "medium", "high", "xhigh", "max"]);
     expect(shownEffort("max", ["low", "medium", "high"])).toBe("high");
     expect(shownEffort("xhigh", ["low", "medium", "high", "xhigh", "max"])).toBe("xhigh");
     expect([null, "auto", "low", "medium", "high", "xhigh", "max"].map((e) => effortOf("model", e))).toEqual([
