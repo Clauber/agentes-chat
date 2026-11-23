@@ -119,7 +119,8 @@ type AiCheck = Omit<AiStatusDeps, "db">;
  */
 async function reachableAgent(ctx: ToolContext, input: unknown, ai?: AiCheck, pubsub?: PubSub) {
   const { db } = ctx;
-  const [handle = ""] = await currentHandles(db, ctx.orgId, [String(input).trim().replace(/^@/, "").toLowerCase()]);
+  const typed = String(input).trim().replace(/^@/, "").toLowerCase();
+  const [handle = ""] = await currentHandles(db, ctx.orgId, [typed]);
   const [target] = await db
     .select()
     .from(agents)
@@ -131,9 +132,10 @@ async function reachableAgent(ctx: ToolContext, input: unknown, ai?: AiCheck, pu
   const person = behind ?? routine?.creatorUserId ?? null;
   const speaker = viaAgent(await speakerFor(db, ctx.orgId, person));
   const reaches = canTalkTo(target, person, speaker);
-  // A private agent out of reach stays unlisted (`findsAgent`): refused as a handle that doesn't exist.
+  // A private agent out of reach stays unlisted (`findsAgent`): refused as the handle that was written, which
+  // doesn't exist (a renamed one's current handle would give it away).
   if (!reaches && isPrivateAgent(target) && !knowsPrivateAgent(target, person, speaker))
-    return { refused: refuse(await noAgentText(ctx, [handle], { viaAgent: true })) };
+    return { refused: refuse(await noAgentText(ctx, [typed], { viaAgent: true })) };
   // Who this agent may call at all (ADR 0131 §8): its own settings, before anyone's audience.
   if (!(await callableAgents(db, ctx.orgId, ctx.agentId, [target.id])).has(target.id))
     return { refused: refuse(notCallableText([`@${handle}`])) };

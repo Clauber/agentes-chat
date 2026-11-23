@@ -223,6 +223,16 @@ describe("other agents can consult it", () => {
       { isError: true, content: unknown },
     ]);
     expect(await f.db.select().from(schema.agentConsultations)).toEqual([]);
+    // Renamed, its old handle reads as unknown too, without naming the new one.
+    await f.db
+      .update(schema.agents)
+      .set({ handle: "nina", previousHandles: ["nino"] })
+      .where(eq(schema.agents.id, nino.id));
+    expect(await told(ctx)).toEqual([
+      { isError: true, content: unknown },
+      { isError: true, content: unknown },
+    ]);
+    await f.db.update(schema.agents).set({ handle: "nino", previousHandles: [] }).where(eq(schema.agents.id, nino.id));
     // Named under "Quem pode editar", Lia lists it: she hears why, as before.
     await f.db
       .update(schema.agents)
