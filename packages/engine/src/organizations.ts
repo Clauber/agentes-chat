@@ -168,9 +168,7 @@ export function outranks(actor: Pick<Membership, "role" | "rank">, rank: number 
  */
 export function givesAtRank(actor: Pick<Membership, "role" | "rank" | "permissions">, rank: number | null) {
   if (outranks(actor, rank)) return true;
-  return (
-    can(actor, "administrator") && (actor.rank ?? Number.POSITIVE_INFINITY) === (rank ?? Number.POSITIVE_INFINITY)
-  );
+  return can(actor, "administrator") && (actor.rank ?? Number.POSITIVE_INFINITY) === (rank ?? Number.POSITIVE_INFINITY);
 }
 
 type MembershipRow = Omit<Membership, "permissions"> & { keys: string[] };

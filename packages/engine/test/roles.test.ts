@@ -189,9 +189,7 @@ describe("hierarchy", () => {
     });
     expect(invitation.roleIds).toEqual([admin]);
     // The role itself stays with who stands above it, and an owner's roles with owners.
-    await expect(updateRole(f.db, boss.id, f.org.id, admin, { name: "Chefes" })).rejects.toBeInstanceOf(
-      ForbiddenError,
-    );
+    await expect(updateRole(f.db, boss.id, f.org.id, admin, { name: "Chefes" })).rejects.toBeInstanceOf(ForbiddenError);
     await expect(setMemberRoles(f.db, boss.id, f.org.id, f.owner.id, [admin])).rejects.toBeInstanceOf(ForbiddenError);
     // Without `administrator`, level is not enough: a lead neither gives Leads nor changes another lead.
     const leads = await createRole(f.db, f.owner.id, f.org.id, { name: "Leads", permissions: ["manage_members"] });
