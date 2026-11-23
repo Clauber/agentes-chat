@@ -261,6 +261,9 @@ export function AiChoiceFields({
   const autoModel = isAuto(model);
   const stored = row ? effortOf(row.brain, shown?.effort) : null;
   const effort = stored && shownEffort(stored, levels);
+  // A stored level the model doesn't take: its trigger names the level under it with no value picked, so picking that
+  // level saves it (a select says nothing when its own value is picked again).
+  const above = stored !== null && effort !== stored;
   const effortOptions: SelectOption<string>[] = autoModel
     ? [{ value: AUTO, label: t("brain.auto.label") }]
     : [
@@ -269,7 +272,9 @@ export function AiChoiceFields({
         ...levels.map((e) => ({ value: e, label: t(`agentPage.work.brain.efforts.${e}`) })),
       ];
   const pickEffort = (v: string) => {
-    if (!row || !shown || autoModel || v === (effort ?? "")) return;
+    // Against what is stored, not shown: a stored level the model doesn't take shows as the one under it, which then
+    // saves when picked.
+    if (!row || !shown || autoModel || v === (stored ?? "")) return;
     commit({ ...shown, effort: v ? (v as EffortLevel) : AUTO }, row);
   };
 
@@ -367,10 +372,10 @@ export function AiChoiceFields({
           {showEffort && (
             <Field label={t("agentPage.work.brain.effort")} id={`${id}-effort`}>
               <Select
-                value={autoModel ? AUTO : (effort ?? (row?.brain === "model" ? "" : undefined))}
+                value={autoModel ? AUTO : above ? undefined : (effort ?? (row?.brain === "model" ? "" : undefined))}
                 onValueChange={pickEffort}
                 options={effortOptions}
-                placeholder={t("agentPage.work.brain.efforts.none")}
+                placeholder={t(`agentPage.work.brain.efforts.${(above && effort) || "none"}`)}
                 disabled={locked || autoModel}
               />
             </Field>

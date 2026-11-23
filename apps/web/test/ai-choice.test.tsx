@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { AiAccounts, AiComputer } from "@agenteschat/client";
+import type { AgentBrain, AiAccounts, AiComputer } from "@agenteschat/client";
 import { setupDom } from "@agenteschat/ui/testing/dom";
 
 setupDom();
@@ -70,7 +70,7 @@ const MARINA = account("acct_marina", "Pessoal da Marina", {
   serves: "owner",
 });
 
-async function agentPage(accounts: Row[], others = false) {
+async function agentPage(accounts: Row[], others = false, patch: Partial<AgentBrain> = {}) {
   const state = seedState();
   const api = createFakeApi(state);
   fakeMachinesOf.get(api)?.setAiAccounts({ accounts, computers: [MAC] });
@@ -85,6 +85,7 @@ async function agentPage(accounts: Row[], others = false) {
       canUsePlans: true,
       canEdit: true,
       ...(others ? { canUseOthersPlans: true } : {}),
+      ...patch,
     });
   await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}`, { api });
   await settle(8);
@@ -172,6 +173,20 @@ describe("Quem pensa: the one picker", () => {
     await click(screen().getByRole("button", { name: "Desfazer" }));
     await settle(6);
     expect(sent().at(-1)).toMatchObject({ brain: "claude_code", account: "acct_work", effort: "medium" });
+  });
+
+  test("a stored level the model doesn't take shows as the one it runs at, and picking that one saves it", async () => {
+    const codex = account("acct_work", "Trabalho", { kind: "codex", plan: "pro" });
+    const { state } = await agentPage([codex], false, { brain: "codex", effort: "max" });
+    const d = await brainDialog();
+    const effort = within(d.querySelector(".aa-pair") as HTMLElement).getByRole("combobox", { name: "Esforço" });
+    expect(effort.textContent).toContain("Alto");
+    const levels = await options(effort);
+    expect(levels.map((o) => o.textContent)).toEqual(["Baixo", "Médio", "Alto"]);
+    await click(levels.find((o) => o.textContent === "Alto") as Element);
+    await settle(6);
+    const sent = state.calls.filter((c) => c.method === "agents.setBrain").map((c) => c.args[2]);
+    expect(sent.at(-1)).toMatchObject({ brain: "codex", effort: "high" });
   });
 
   test("someone else's plan asks first, in one line under Conta with one button; nothing saves until it is pressed", async () => {
