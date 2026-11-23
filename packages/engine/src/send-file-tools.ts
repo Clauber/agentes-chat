@@ -13,7 +13,8 @@ const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 
 /** The address as JSON and HTML write it (`\/`, `&`, `&amp;`), so an app's answer is read as the text it says. */
 const plain = (text: string) =>
-  text.replaceAll("\\/", "/").replaceAll("\\u0026", "&").replaceAll("&amp;", "&").replaceAll("\\u003d", "=");
+  // `&amp;` first: an escape the JSON step makes is never unescaped a second time.
+  text.replaceAll("&amp;", "&").replaceAll("\\/", "/").replaceAll("\\u0026", "&").replaceAll("\\u003d", "=");
 
 /**
  * `url` is in `text` whole, not the start of a longer address: `https://storage.example.co` is in
