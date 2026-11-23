@@ -283,7 +283,7 @@ test("an agent's reply mode in a channel: the channel's creator or the agent's o
   await expect(setChannelAgentAutoReply(f.db, caio.id, f.org.id, room.id, f.agent.id, true)).rejects.toBeInstanceOf(
     ForbiddenError,
   );
-  const rows = await channelMembersDetail(f.db, f.org.id, room.id);
+  const rows = await channelMembersDetail(f.db, f.owner.id, f.org.id, room.id);
   expect(Object.fromEntries(rows.filter((r) => r.agentHandle).map((r) => [r.agentHandle, r.autoReply]))).toEqual({
     dev: false,
     bot: false,

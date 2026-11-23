@@ -495,8 +495,9 @@ export function channelRoutes(deps: AppDeps) {
     }),
     async (c) => {
       const { orgId, channelId } = c.req.valid("param");
-      await requireChannelAccess(db, c.get("user").id, orgId, channelId);
-      const rows = await channelMembersDetail(db, orgId, channelId);
+      const userId = c.get("user").id;
+      await requireChannelAccess(db, userId, orgId, channelId);
+      const rows = await channelMembersDetail(db, userId, orgId, channelId);
       return c.json(
         {
           members: rows.map((m) =>

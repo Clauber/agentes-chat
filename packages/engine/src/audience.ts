@@ -519,11 +519,17 @@ export function privateAgentSql(alias: string): SQL<boolean> {
     and (cardinality(${a}.audience_role_ids) > 0 or not (${a}.audience_user_ids <@ array[${a}.owner_user_id]))))`;
 }
 
+/**
+ * Whether a channel's members (its column, roster and counts) name the agent for `userId`: every agent but a private
+ * one (`isPrivateAgent`) whose workings they don't see (`seesAgentDetails`: its owner, administrators, its "Quem pode
+ * editar"). Its messages there still show.
+ */
+export const namesAgentSql = (alias: string, userId: SQL) =>
+  sql<boolean>`(not ${privateAgentSql(alias)} or ${seesAgentDetailsSql(alias, userId)})`;
+
 /** `listsAgentTo` in SQL, for the person `userId` whose membership is `membership`. */
 export const listsAgentSql = (alias: string, userId: SQL, membership: Pick<Membership, "permissions"> | null) =>
-  listsAllAgents(membership)
-    ? sql<boolean>`(not ${privateAgentSql(alias)} or ${seesAgentDetailsSql(alias, userId)})`
-    : seesAgentDetailsSql(alias, userId);
+  listsAllAgents(membership) ? namesAgentSql(alias, userId) : seesAgentDetailsSql(alias, userId);
 
 /** `managesRoutinesOf` in SQL: who edits it, or `manage_routines` where it reaches. */
 export const managesRoutinesSql = (alias: string, userId: SQL): SQL<boolean> =>

@@ -421,7 +421,7 @@ describe("every path that changes the agents or the channels tells the workspace
     f = await setup();
     const { db, pubsub, org, owner, agent, general } = f;
     const ids = async () => (await listChannelMembers(db, owner.id, org.id, general.id)).map((m) => m.id);
-    const named = async () => (await channelMembersDetail(db, org.id, general.id)).map((m) => m.agentId);
+    const named = async () => (await channelMembersDetail(db, owner.id, org.id, general.id)).map((m) => m.agentId);
     expect(await ids()).toContain(agent.id);
     expect(await named()).toContain(agent.id);
     await archiveAgent(db, owner.id, org.id, agent.id, pubsub);

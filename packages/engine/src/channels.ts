@@ -15,7 +15,7 @@ import {
   sql,
 } from "@agenteschat/db";
 import { resolveChannelAgentAsks } from "./admin-asks";
-import { managesAgent, OWNER_COLUMNS, ownsAgent, REACH_COLUMNS } from "./audience";
+import { managesAgent, namesAgentSql, OWNER_COLUMNS, ownsAgent, REACH_COLUMNS } from "./audience";
 import { caches } from "./cache";
 import { endOfCategory, requireCategoryInOrg } from "./channel-categories";
 import { wordsOf } from "./confidential";
@@ -475,7 +475,7 @@ export async function channelCard(
         exists (select 1 from ${channelMembers} m where m.channel_id = c.id and m.user_id = ${userId}) as is_member,
         (select count(*) from ${channelMembers} m where m.channel_id = c.id and m.user_id is not null) as people,
         (select count(*) from ${channelMembers} m join ${agents} a on a.id = m.agent_id
-          where m.channel_id = c.id and a.archived_at is null) as agents
+          where m.channel_id = c.id and a.archived_at is null and ${namesAgentSql("a", sql`${userId}::text`)}) as agents
       from ${channels} c
       where c.id = ${channelId}::uuid and c.org_id = ${orgId}::uuid and c.kind = 'channel'`),
   );
@@ -925,7 +925,14 @@ export async function listChannelMembers(db: Database, actorId: string, orgId: s
     .select({ userId: channelMembers.userId, agentId: channelMembers.agentId })
     .from(channelMembers)
     .leftJoin(agents, eq(agents.id, channelMembers.agentId))
-    .where(and(eq(channelMembers.orgId, orgId), eq(channelMembers.channelId, channelId), isNull(agents.archivedAt)));
+    .where(
+      and(
+        eq(channelMembers.orgId, orgId),
+        eq(channelMembers.channelId, channelId),
+        isNull(agents.archivedAt),
+        or(isNull(channelMembers.agentId), namesAgentSql("agents", sql`${actorId}::text`)),
+      ),
+    );
   return rows.map((r) =>
     r.userId ? { type: "person" as const, id: r.userId } : { type: "agent" as const, id: r.agentId ?? "" },
   );

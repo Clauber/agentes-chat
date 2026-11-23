@@ -1,10 +1,10 @@
 import type { PubSub } from "@agenteschat/adapters";
-import { and, asc, type Database, desc, eq, gte, inArray, isNull, lt, schema, sql } from "@agenteschat/db";
+import { and, asc, type Database, desc, eq, gte, inArray, isNull, lt, or, schema, sql } from "@agenteschat/db";
 import { MODEL_TIERS, type ModelTier } from "@agenteschat/providers";
 import { othersPersonalTools } from "./agent-audit";
 import { getAgent } from "./agents";
 import { decidableBySql } from "./approvals";
-import { listsAgentSql, managesAgent, ownsAgent } from "./audience";
+import { listsAgentSql, managesAgent, namesAgentSql, ownsAgent } from "./audience";
 import { recordAudit } from "./audit";
 import type { AutoModels } from "./auto-model";
 import { resolveDefaultBudgetPaused } from "./budget-paused-rows";
@@ -654,7 +654,8 @@ export async function updateChannel(
 }
 
 /** Members of a channel with names, for the channel details panel. */
-export async function channelMembersDetail(db: Database, orgId: string, channelId: string) {
+/** The channel's members with names, as `viewerId` may see them (`namesAgentSql`). */
+export async function channelMembersDetail(db: Database, viewerId: string, orgId: string, channelId: string) {
   return db
     .select({
       userId: channelMembers.userId,
@@ -668,7 +669,14 @@ export async function channelMembersDetail(db: Database, orgId: string, channelI
     .from(channelMembers)
     .leftJoin(users, eq(users.id, channelMembers.userId))
     .leftJoin(agents, eq(agents.id, channelMembers.agentId))
-    .where(and(eq(channelMembers.orgId, orgId), eq(channelMembers.channelId, channelId), isNull(agents.archivedAt)))
+    .where(
+      and(
+        eq(channelMembers.orgId, orgId),
+        eq(channelMembers.channelId, channelId),
+        isNull(agents.archivedAt),
+        or(isNull(channelMembers.agentId), namesAgentSql("agents", sql`${viewerId}::text`)),
+      ),
+    )
     .orderBy(asc(channelMembers.createdAt));
 }
 

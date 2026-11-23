@@ -7,6 +7,8 @@ import {
   audienceOf,
   audienceSql,
   canTalkTo,
+  channelCard,
+  channelMembersDetail,
   createAgent,
   createAgentGroup,
   createJobHandlers,
@@ -25,6 +27,7 @@ import {
   inviteMany,
   listAgentGroups,
   listAgents,
+  listChannelMembers,
   listRoutines,
   listsAgentSql,
   listsAgentTo,
@@ -782,6 +785,43 @@ describe("who sees every agent in Equipe's lists (view_all_agents)", () => {
     expect(await lists(walt.id)).toBe(false);
     await setAgentAudience(f.db, duda.id, f.org.id, bento.id, { mode: "people", userIds: [edna.id], roleIds: [] });
     expect(await lists(walt.id)).toBe(true);
+  });
+
+  test("a private agent in a channel leaves its members for who can't reach it, admins and its owner aside", async () => {
+    f = await setup();
+    const { db, org, owner, general } = f;
+    const [duda, walt, caio] = await Promise.all([
+      addMember(db, org.id, "member", "duda"),
+      addMember(db, org.id, "member", "walt"),
+      addMember(db, org.id, "admin", "caio"),
+    ]);
+    const bento = await createAgent(
+      db,
+      owner.id,
+      org.id,
+      { name: "Bento", handle: "bento", credentialId: f.credential.id },
+      { model: "claude-sonnet-5-5" },
+    );
+    for (const who of [duda, walt]) await addChannelMember(db, owner.id, org.id, general.id, { userId: who.id });
+    await addChannelMember(db, owner.id, org.id, general.id, { agentId: bento.id });
+    await db.update(schema.agents).set({ ownerUserId: duda.id }).where(eq(schema.agents.id, bento.id));
+    await setAgentAudience(db, duda.id, org.id, bento.id, { mode: "owner", userIds: [], roleIds: [] });
+
+    const sees = async (userId: string) => {
+      const column = (await listChannelMembers(db, userId, org.id, general.id)).some((m) => m.id === bento.id);
+      const roster = (await channelMembersDetail(db, userId, org.id, general.id)).some((m) => m.agentId === bento.id);
+      expect(roster).toBe(column);
+      return { column, agents: (await channelCard(db, userId, org.id, general.id)).agents };
+    };
+    for (const who of [duda, owner, caio]) expect(await sees(who.id)).toEqual({ column: true, agents: 2 });
+    expect(await sees(walt.id)).toEqual({ column: false, agents: 1 });
+    // The other agent there, and every person, stay listed.
+    expect((await listChannelMembers(db, walt.id, org.id, general.id)).map((m) => m.id)).toContain(f.agent.id);
+    expect((await channelMembersDetail(db, walt.id, org.id, general.id)).some((m) => m.userId === walt.id)).toBe(true);
+
+    // Answering someone else, it is a member like any other.
+    await setAgentAudience(db, duda.id, org.id, bento.id, { mode: "people", userIds: [walt.id], roleIds: [] });
+    expect(await sees(walt.id)).toEqual({ column: true, agents: 2 });
   });
 
   test("the migration gives the key back to every workspace's base role, once", async () => {
