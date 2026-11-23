@@ -16,6 +16,17 @@ const plain = (text: string) =>
   text.replaceAll("\\/", "/").replaceAll("\\u0026", "&").replaceAll("&amp;", "&").replaceAll("\\u003d", "=");
 
 /**
+ * `url` is in `text` whole, not the start of a longer address: `https://storage.example.co` is in
+ * `https://storage.example.com/…` but is another host. Sentence punctuation after it may end it.
+ */
+const givenWhole = (text: string, url: string) => {
+  for (let at = text.indexOf(url); at >= 0; at = text.indexOf(url, at + 1)) {
+    if (!/^[.,;:!?)]*[\w~/#@$&*+=%-]/.test(text.slice(at + url.length))) return true;
+  }
+  return false;
+};
+
+/**
  * Where this address came from, or null when from nowhere it may: an app connected here answered it in this run (an
  * upload address a connector handed back), or a person wrote it in this conversation. Never one the agent made up or
  * read on a page or in an email.
@@ -35,13 +46,15 @@ async function addressFrom(ctx: ToolContext, url: string): Promise<{ app: string
   const apps = new Map<string, string>();
   for (const { kind, data } of steps) {
     const id = typeof data.toolUseId === "string" ? data.toolUseId : "";
-    if (kind === "tool_call" && typeof data.connector === "string") apps.set(id, data.connector);
-    else if (kind === "tool_result" && apps.has(id) && plain(String(data.content ?? "")).includes(url)) {
+    // A mailbox's answer is what a stranger wrote, never an app's address.
+    const mailbox = typeof data.name === "string" && data.name.startsWith("mail_");
+    if (kind === "tool_call" && typeof data.connector === "string" && !mailbox) apps.set(id, data.connector);
+    else if (kind === "tool_result" && apps.has(id) && givenWhole(plain(String(data.content ?? "")), url)) {
       return { app: apps.get(id) ?? null };
     }
   }
-  const [wrote] = await ctx.db
-    .select({ id: schema.messages.id })
+  const wrote = await ctx.db
+    .select({ body: schema.messages.body })
     .from(schema.messages)
     .where(
       and(
@@ -52,8 +65,8 @@ async function addressFrom(ctx: ToolContext, url: string): Promise<{ app: string
         sql`strpos(${schema.messages.body}, ${url}) > 0`,
       ),
     )
-    .limit(1);
-  return wrote ? { app: null } : null;
+    .limit(50);
+  return wrote.some((m) => givenWhole(m.body, url)) ? { app: null } : null;
 }
 
 const refused = (content: string): ToolOutput => ({ content, isError: true });

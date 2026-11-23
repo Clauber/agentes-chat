@@ -39,14 +39,14 @@ async function runCtx(body: string): Promise<ToolContext> {
 }
 
 /** A connected app's call in the run that answered with `content`. */
-async function appAnswered(ctx: ToolContext, content: string, seq = 100) {
+async function appAnswered(ctx: ToolContext, content: string, seq = 100, name = "higgsfield_upload") {
   await f.db.insert(schema.agentRunSteps).values([
     {
       orgId: f.org.id,
       runId: ctx.runId,
       seq,
       kind: "tool_call",
-      data: { toolUseId: `t${seq}`, name: "higgsfield_upload", input: {}, connector: "Higgsfield" },
+      data: { toolUseId: `t${seq}`, name, input: {}, connector: name.startsWith("mail_") ? "Email" : "Higgsfield" },
     },
     { orgId: f.org.id, runId: ctx.runId, seq: seq + 1, kind: "tool_result", data: { toolUseId: `t${seq}`, content } },
   ]);
@@ -145,5 +145,28 @@ describe("send_file_to_url", () => {
       .where(eq(schema.artifactVersions.artifactId, file.id));
     const big = await send(fakeFetch().fetcher, ctx, { file_id: file.id, url: UPLOAD });
     expect(big.content).toContain("over 100 MB");
+  });
+
+  test("only the whole address: the start of a longer one is another host; a mailbox's answer is no app's", async () => {
+    f = await setup();
+    const ctx = await runCtx("@dev upload the photo");
+    const file = await photo();
+    await appAnswered(ctx, `{"upload_url":"https://storage.example.com/b/ref.jpg?sig=1"}`);
+    await appAnswered(ctx, "Reply to: https://drop.example.net/in", 200, "mail_team_read");
+    const { calls, fetcher } = fakeFetch();
+    for (const url of [
+      "https://storage.example.co",
+      "https://storage.example.com/b/ref.jpg?sig",
+      "https://drop.example.net/in",
+    ]) {
+      expect(await send(fetcher, ctx, { file_id: file.id, url })).toMatchObject({ isError: true });
+    }
+    expect(calls).toHaveLength(0);
+    expect(
+      (await send(fetcher, ctx, { file_id: file.id, url: "https://storage.example.com/b/ref.jpg?sig=1" })).isError,
+    ).toBeFalsy();
+
+    const people = await runCtx(`@dev send it to ${UPLOAD}.`);
+    expect((await send(fetcher, people, { file_id: file.id, url: UPLOAD })).isError).toBeFalsy();
   });
 });
