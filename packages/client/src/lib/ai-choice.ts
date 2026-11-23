@@ -51,6 +51,8 @@ export interface AiChoice {
   /** null: the brain's default. */
   model?: string | null;
   effort?: BrainEffortSetting | null;
+  /** Takes the account from the agent that thinks with it (a login made for one agent, `aiChoiceTakesFrom`). */
+  moveAccount?: true;
 }
 
 /** The picker's sections, in order: Lodi's "A do workspace", the viewer's accounts, others' accounts, API keys. */
@@ -228,9 +230,20 @@ export function aiChoiceModels(
   );
 }
 
-/** The "Esforço" select for a row: the plan's levels or the API's; none for Lodi's "A do workspace". */
-export const aiChoiceEfforts = (row: AiChoiceRow): readonly EffortLevel[] =>
-  row.type === "workspace" ? [] : effortLevelsOf(row.brain);
+/**
+ * The "Esforço" select for a row: the levels its model takes (`effortLevelsOf`), `model` as the choice stores it (null:
+ * the brain's default, an alias resolved through `options`); none for Lodi's "A do workspace".
+ */
+export function aiChoiceEfforts(
+  row: AiChoiceRow,
+  model: string | null | undefined,
+  options: readonly BrainOption[],
+): readonly EffortLevel[] {
+  if (row.type === "workspace") return [];
+  const option = options.find((o) => o.kind === row.brain);
+  const value = model ?? option?.defaultModel;
+  return effortLevelsOf(row.brain, option?.models.find((m) => m.value === value)?.modelId ?? value);
+}
 
 /** The choice a row makes, keeping the model and effort when the brain stays. */
 export function aiChoiceOf(row: AiChoiceRow, current: AiChoice | null): AiChoice {
@@ -255,7 +268,21 @@ export function aiChoiceBrainInput(choice: AiChoice, scope?: BrainScope): AgentB
     ...(choice.brain !== "model" ? { account: choice.account ?? null } : {}),
     ...(choice.model !== undefined ? { model: choice.model } : {}),
     ...(choice.effort !== undefined ? { effort: choice.effort } : {}),
+    ...(choice.moveAccount ? { moveAccount: true } : {}),
   };
+}
+
+/**
+ * A pick that asks first, in a line under the select with one button: someone else's plan (its use counts on their
+ * plan), or a login made for one agent that another agent thinks with (`takesFrom`: it moves here).
+ */
+export function aiChoiceAsks(row: AiChoiceRow, agentId: string): { owner?: string; takesFrom?: string } | null {
+  const a = row.type === "plan" ? row.account : undefined;
+  if (!a) return null;
+  const others = a.shared === true ? [] : a.usedBy.filter((_, i) => a.usedByIds?.[i] !== agentId);
+  const owner = !a.mine && a.ownerName ? firstName(a.ownerName) : undefined;
+  if (!owner && others.length === 0) return null;
+  return { ...(owner ? { owner } : {}), ...(others[0] ? { takesFrom: others[0] } : {}) };
 }
 
 /** The setup "Usar em outros agentes" applies for a choice (`POST …/agent-setup`). */

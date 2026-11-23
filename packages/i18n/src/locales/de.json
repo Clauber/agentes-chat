@@ -5877,6 +5877,7 @@
           "low": "Niedrig",
           "medium": "Mittel",
           "high": "Hoch",
+          "xhigh": "Sehr hoch",
           "max": "Maximal"
         },
         "effortsLower": {
@@ -5884,6 +5885,7 @@
           "low": "niedrig",
           "medium": "mittel",
           "high": "hoch",
+          "xhigh": "sehr hoch",
           "max": "maximal"
         },
         "effortText": {
@@ -5893,6 +5895,7 @@
           "mediumKey": "Denkt meistens genug nach.",
           "none": "Das Modell denkt so viel wie üblich. Wähle eine Stufe, um den Aufwand festzulegen.",
           "high": "Denkt bei schweren Aufgaben mehr nach. Langsamer und teurer.",
+          "xhigh": "Denkt bei den schwersten Aufgaben länger als bei hoch. Noch langsamer und teurer.",
           "max": "Denkt so viel wie möglich nach. Viel langsamer und teurer."
         },
         "speed": "Geschwindigkeit",
@@ -10768,6 +10771,8 @@
       "search": "Nach Name, KI, Abo oder Besitzer suchen",
       "noMatch": "Kein Konto gefunden.",
       "noModel": "Kein Modell gefunden.",
+      "asksOwner": "Nutzt das Abo von {{name}}.",
+      "asksMove": "{{agent}} nutzt es dann nicht mehr.",
       "groups": {
         "yours": "Deine",
         "others": "Vom Team",

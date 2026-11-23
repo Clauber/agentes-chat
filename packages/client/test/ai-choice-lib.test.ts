@@ -192,7 +192,9 @@ describe("what a row chooses and saves", () => {
       ["auto", false],
       ["claude-a", true],
     ]);
-    expect(aiChoiceEfforts(k)).toEqual(["low", "medium", "high"]);
+    // A model the catalog doesn't list takes up to high; Claude 5.5's row lists every level.
+    expect(aiChoiceEfforts(k, "claude-a", [])).toEqual(["low", "medium", "high"]);
+    expect(aiChoiceEfforts(k, "claude-opus-5-5", [])).toEqual(["low", "medium", "high", "xhigh", "max"]);
   });
 
   test("the current choice as each target's own view says it", () => {

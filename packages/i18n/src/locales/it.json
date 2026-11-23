@@ -6095,6 +6095,7 @@
           "low": "Basso",
           "medium": "Medio",
           "high": "Alto",
+          "xhigh": "Molto alto",
           "max": "Massimo"
         },
         "effortsLower": {
@@ -6102,6 +6103,7 @@
           "low": "basso",
           "medium": "medio",
           "high": "alto",
+          "xhigh": "molto alto",
           "max": "massimo"
         },
         "effortText": {
@@ -6111,6 +6113,7 @@
           "mediumKey": "Ragiona abbastanza quasi sempre.",
           "none": "Il modello ragiona quanto fa di solito. Scegli un livello per fissare l'impegno.",
           "high": "Ragiona di più sulle attività difficili. Più lento e costa di più.",
+          "xhigh": "Ragiona più che con alto sui compiti più difficili. Ancora più lento e costoso.",
           "max": "Ragiona il più possibile. Molto più lento e più caro."
         },
         "speed": "Velocità",
@@ -11196,6 +11199,8 @@
       "search": "Cerca per nome, IA, piano o proprietario",
       "noMatch": "Nessun account corrisponde.",
       "noModel": "Nessun modello corrisponde.",
+      "asksOwner": "Usa il piano di {{name}}.",
+      "asksMove": "{{agent}} smette di usarlo.",
       "groups": {
         "yours": "Tuoi",
         "others": "Del team",

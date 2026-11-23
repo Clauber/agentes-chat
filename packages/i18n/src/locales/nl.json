@@ -5898,6 +5898,7 @@
           "low": "Laag",
           "medium": "Gemiddeld",
           "high": "Hoog",
+          "xhigh": "Zeer hoog",
           "max": "Maximaal"
         },
         "effortsLower": {
@@ -5905,6 +5906,7 @@
           "low": "laag",
           "medium": "gemiddeld",
           "high": "hoog",
+          "xhigh": "zeer hoog",
           "max": "maximaal"
         },
         "effortText": {
@@ -5914,6 +5916,7 @@
           "mediumKey": "Denkt meestal genoeg na.",
           "none": "Het model denkt zoveel als het gewoonlijk doet. Kies een niveau om de inspanning vast te zetten.",
           "high": "Denkt meer na bij moeilijke taken. Trager en duurder.",
+          "xhigh": "Denkt bij de moeilijkste taken langer dan bij hoog. Nog trager en duurder.",
           "max": "Denkt zoveel mogelijk na. Veel trager en duurder."
         },
         "speed": "Snelheid",
@@ -10812,6 +10815,8 @@
       "search": "Zoek op naam, AI, abonnement of eigenaar",
       "noMatch": "Geen account gevonden.",
       "noModel": "Geen model gevonden.",
+      "asksOwner": "Gebruikt het abonnement van {{name}}.",
+      "asksMove": "{{agent}} gebruikt het dan niet meer.",
       "groups": {
         "yours": "Van jou",
         "others": "Van het team",

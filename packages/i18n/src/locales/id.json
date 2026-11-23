@@ -5666,6 +5666,7 @@
           "low": "Rendah",
           "medium": "Sedang",
           "high": "Tinggi",
+          "xhigh": "Sangat tinggi",
           "max": "Maksimum"
         },
         "effortsLower": {
@@ -5673,6 +5674,7 @@
           "low": "rendah",
           "medium": "sedang",
           "high": "tinggi",
+          "xhigh": "sangat tinggi",
           "max": "maksimum"
         },
         "effortText": {
@@ -5682,6 +5684,7 @@
           "mediumKey": "Berpikir cukup hampir setiap saat.",
           "none": "Model berpikir seperti biasanya. Pilih tingkat untuk menetapkan upaya.",
           "high": "Berpikir lebih banyak untuk tugas sulit. Lebih lambat dan lebih mahal.",
+          "xhigh": "Berpikir lebih lama dari tinggi untuk tugas tersulit. Lebih lambat dan lebih mahal lagi.",
           "max": "Berpikir semaksimal mungkin. Jauh lebih lambat dan lebih mahal."
         },
         "speed": "Kecepatan",
@@ -10381,6 +10384,8 @@
       "search": "Cari menurut nama, AI, paket, atau pemilik",
       "noMatch": "Tidak ada akun yang cocok.",
       "noModel": "Tidak ada model yang cocok.",
+      "asksOwner": "Memakai paket milik {{name}}.",
+      "asksMove": "{{agent}} berhenti memakainya.",
       "groups": {
         "yours": "Milikmu",
         "others": "Milik tim",

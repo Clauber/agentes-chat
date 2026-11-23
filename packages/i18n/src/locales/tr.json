@@ -5853,6 +5853,7 @@
           "low": "Düşük",
           "medium": "Orta",
           "high": "Yüksek",
+          "xhigh": "Çok yüksek",
           "max": "En yüksek"
         },
         "effortsLower": {
@@ -5860,6 +5861,7 @@
           "low": "düşük",
           "medium": "orta",
           "high": "yüksek",
+          "xhigh": "çok yüksek",
           "max": "en yüksek"
         },
         "effortText": {
@@ -5869,6 +5871,7 @@
           "mediumKey": "Çoğu zaman yeterince düşünür.",
           "none": "Model her zamanki kadar düşünür. Çabayı sabitlemek için bir seviye seçin.",
           "high": "Zor görevlerde daha çok düşünür. Daha yavaş ve daha pahalıdır.",
+          "xhigh": "En zor görevlerde yüksekten daha uzun düşünür. Daha da yavaş ve pahalı.",
           "max": "Olabildiğince çok düşünür. Çok daha yavaş ve daha pahalıdır."
         },
         "speed": "Hız",
@@ -10706,6 +10709,8 @@
       "search": "Ada, yapay zekâya, plana veya sahibine göre arayın",
       "noMatch": "Eşleşen hesap yok.",
       "noModel": "Eşleşen model yok.",
+      "asksOwner": "{{name}} adlı kişinin planını kullanır.",
+      "asksMove": "{{agent}} artık bunu kullanmaz.",
       "groups": {
         "yours": "Sizin",
         "others": "Ekibin",

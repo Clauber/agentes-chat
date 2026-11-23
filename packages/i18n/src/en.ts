@@ -6341,9 +6341,17 @@ export const en = {
           low: "Low",
           medium: "Medium",
           high: "High",
+          xhigh: "Extra high",
           max: "Maximum",
         },
-        effortsLower: { auto: "automatic", low: "low", medium: "medium", high: "high", max: "maximum" },
+        effortsLower: {
+          auto: "automatic",
+          low: "low",
+          medium: "medium",
+          high: "high",
+          xhigh: "extra high",
+          max: "maximum",
+        },
         effortText: {
           auto: "The Automatic model picks each task's effort. Pick a model to set the effort yourself.",
           low: "Answers fast. Good for simple questions.",
@@ -6352,6 +6360,7 @@ export const en = {
           mediumKey: "Thinks enough most of the time.",
           none: "The model thinks as much as it usually does. Pick a level to set the effort.",
           high: "Thinks more on hard tasks. Slower and costs more.",
+          xhigh: "Thinks longer than high on the hardest tasks. Slower and costs more again.",
           max: "Thinks as much as possible. Much slower and pricier.",
         },
         speed: "Speed",
@@ -11198,6 +11207,10 @@ export const en = {
       search: "Search by name, AI, plan or owner",
       noMatch: "No account matches.",
       noModel: "No model matches.",
+      /** Under the select, before a pick that spends someone else's plan saves: `name` is its owner's first name. */
+      asksOwner: "This uses {{name}}'s plan.",
+      /** Before a pick takes a login another agent thinks with: `agent` is that agent. */
+      asksMove: "{{agent}} stops using it.",
       groups: {
         yours: "Yours",
         others: "The team's",

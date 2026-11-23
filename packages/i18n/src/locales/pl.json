@@ -6311,6 +6311,7 @@
           "low": "Niski",
           "medium": "Średni",
           "high": "Wysoki",
+          "xhigh": "Bardzo wysoki",
           "max": "Maksymalny"
         },
         "effortsLower": {
@@ -6318,6 +6319,7 @@
           "low": "niski",
           "medium": "średni",
           "high": "wysoki",
+          "xhigh": "bardzo wysoki",
           "max": "maksymalny"
         },
         "effortText": {
@@ -6327,6 +6329,7 @@
           "mediumKey": "Zwykle myśli wystarczająco.",
           "none": "Model myśli tyle, ile zwykle. Wybierz poziom, aby ustalić wysiłek.",
           "high": "Myśli więcej przy trudnych zadaniach. Wolniej i drożej.",
+          "xhigh": "Przy najtrudniejszych zadaniach myśli dłużej niż przy wysokim. Jeszcze wolniej i drożej.",
           "max": "Myśli tyle, ile się da. Dużo wolniej i drożej."
         },
         "speed": "Szybkość",
@@ -11561,6 +11564,8 @@
       "search": "Szukaj po nazwie, AI, planie lub właścicielu",
       "noMatch": "Brak pasującego konta.",
       "noModel": "Brak pasującego modelu.",
+      "asksOwner": "Korzysta z planu użytkownika {{name}}.",
+      "asksMove": "{{agent}} przestaje z niego korzystać.",
       "groups": {
         "yours": "Twoje",
         "others": "Zespołu",

@@ -6062,6 +6062,7 @@
           "low": "Bajo",
           "medium": "Medio",
           "high": "Alto",
+          "xhigh": "Muy alto",
           "max": "Máximo"
         },
         "effortsLower": {
@@ -6069,6 +6070,7 @@
           "low": "bajo",
           "medium": "medio",
           "high": "alto",
+          "xhigh": "muy alto",
           "max": "máximo"
         },
         "effortText": {
@@ -6078,6 +6080,7 @@
           "mediumKey": "Piensa lo suficiente casi siempre.",
           "none": "El modelo piensa lo que suele pensar. Elige un nivel para fijar el esfuerzo.",
           "high": "Piensa más en las tareas difíciles. Más lento y más caro.",
+          "xhigh": "Piensa más que en alto en las tareas más difíciles. Aún más lento y caro.",
           "max": "Piensa todo lo posible. Mucho más lento y caro."
         },
         "speed": "Velocidad",
@@ -11120,6 +11123,8 @@
       "search": "Buscar por nombre, IA, plan o dueño",
       "noMatch": "Ninguna cuenta coincide.",
       "noModel": "Ningún modelo coincide.",
+      "asksOwner": "Usa el plan de {{name}}.",
+      "asksMove": "{{agent}} deja de usarla.",
       "groups": {
         "yours": "Tuyas",
         "others": "Del equipo",

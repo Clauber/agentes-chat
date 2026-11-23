@@ -11,6 +11,7 @@ import {
   effortOf,
   effortTextOf,
   isAdvancedDefault,
+  shownEffort,
   viewSpeedFits,
 } from "../src/lib/brain-advanced";
 import { autoContextLine } from "../src/lib/context-limits";
@@ -184,17 +185,24 @@ describe("Velocidade (ADR 0149)", () => {
     expect(advancedParts(t, "pt-BR", { kind: "claude_code", autoModel: false, now: medium })).toEqual([]);
   });
 
-  test("a key offers the levels the API takes: none is the provider's default, a stored max or xhigh is high", () => {
-    expect(effortLevelsOf("model")).toEqual(["low", "medium", "high"]);
-    expect(effortLevelsOf("claude_code")).toEqual(["low", "medium", "high", "max"]);
+  test("each model offers the levels its catalog row lists, else up to high; a stored level shows as stored", () => {
+    expect(effortLevelsOf("model", "claude-sonnet-5-5")).toEqual(["low", "medium", "high", "xhigh", "max"]);
+    expect(effortLevelsOf("claude_code", "claude-opus-5-5[1m]")).toEqual(["low", "medium", "high", "xhigh", "max"]);
+    expect(effortLevelsOf("model", "gpt-6.2-sol")).toEqual(["low", "medium", "high"]);
+    expect(effortLevelsOf("claude_code", "some-plan-model")).toEqual(["low", "medium", "high"]);
+    expect(effortLevelsOf("codex", "gpt-6.2-sol")).toEqual(["low", "medium", "high"]);
+    expect(effortLevelsOf("antigravity", "gemini-4-argon-high")).toEqual([]);
+    expect(effortLevelsOf("cursor", "claude-opus-5-5")).toEqual([]);
+    expect(shownEffort("max", ["low", "medium", "high"])).toBe("high");
+    expect(shownEffort("xhigh", ["low", "medium", "high", "xhigh", "max"])).toBe("xhigh");
     expect([null, "auto", "low", "medium", "high", "xhigh", "max"].map((e) => effortOf("model", e))).toEqual([
       null,
       null,
       "low",
       "medium",
       "high",
-      "high",
-      "high",
+      "xhigh",
+      "max",
     ]);
     expect([null, "auto", "max"].map((e) => effortOf("codex", e))).toEqual(["medium", "medium", "max"]);
     expect(([null, "medium", "high"] as const).map((e) => effortTextOf("model", e))).toEqual([
