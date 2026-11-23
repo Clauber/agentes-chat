@@ -10,8 +10,6 @@ import {
   planLine,
   planWindows,
   prefersReducedMotion,
-  Radio,
-  RadioGroup,
   Segmented,
   Switch,
   windowAmount,
@@ -257,24 +255,24 @@ const PICKS_SEARCHED = 10;
 
 /**
  * Choices as rows, the same rows as the accounts' without a mark (the border marks the one picked, no radio dot):
- * grouped under their maker where there are several, a long list under a search.
+ * grouped under their maker where there are several, a long list under a search. A row acts once pressed (`onPick`),
+ * so the rows are buttons, not radios.
  */
 export function PickList({
   options,
   value,
-  onChange,
+  onPick,
   label,
   searchLabel,
 }: {
   options: readonly PickOption[];
   value: string;
-  onChange: (value: string) => void;
+  onPick: (value: string) => void;
   label: string;
   /** The search's words, for a long list. */
   searchLabel?: string;
 }) {
   const { t } = useTranslation();
-  const dom = useId();
   const [query, setQuery] = useState("");
   const long = options.length > PICKS_SEARCHED && searchLabel !== undefined;
   // Each word on its own, so a maker's name and the model's ("nvidia free") find it in any order.
@@ -287,20 +285,22 @@ export function PickList({
     : options;
   const grouped = new Set(options.map((o) => o.group ?? "")).size > 1;
   const row = (o: PickOption) => (
-    <label
+    <button
       key={o.value}
-      htmlFor={`${dom}-${o.value}`}
+      type="button"
       className="arrival-have__row bd-pick"
       data-state={o.value === value ? "checked" : "unchecked"}
       data-disabled={o.disabled ? "" : undefined}
+      aria-pressed={o.value === value}
+      disabled={o.disabled}
+      onClick={() => onPick(o.value)}
     >
-      <Radio value={o.value} id={`${dom}-${o.value}`} disabled={o.disabled} />
       <span className="arrival-have__text">
         <span className="arrival-have__title">{o.label}</span>
         {o.description && <span className="arrival-have__line">{o.description}</span>}
         {o.hint && <span className="arrival-have__line bd-pick__hint">{o.hint}</span>}
       </span>
-    </label>
+    </button>
   );
   const groups: { name: string; rows: PickOption[] }[] = [];
   for (const o of shown) {
@@ -321,7 +321,8 @@ export function PickList({
       ))
     );
   return (
-    <RadioGroup className="arrival-have" aria-label={label} value={value} onValueChange={onChange}>
+    // biome-ignore lint/a11y/useSemanticElements: pressable rows, not a native fieldset
+    <div className="arrival-have" role="group" aria-label={label}>
       {long ? (
         <>
           <label className="arrival-have__search">
@@ -339,7 +340,7 @@ export function PickList({
       ) : (
         list
       )}
-    </RadioGroup>
+    </div>
   );
 }
 

@@ -5,16 +5,18 @@ import {
   type AiChoiceRow,
   type AiChoiceTarget,
   accountShortName,
+  aiChoiceAsks,
   aiChoiceOf,
   reasonText,
 } from "@agenteschat/client/lib/ai-choice";
-import { type EffortLevel, effortOf } from "@agenteschat/client/lib/brain-advanced";
+import { type EffortLevel, effortOf, shownEffort } from "@agenteschat/client/lib/brain-advanced";
 import { errorText } from "@agenteschat/client/lib/errors";
 import { firstName } from "@agenteschat/client/lib/format";
 import { planMeterText } from "@agenteschat/client/lib/plan-usage";
 import { planModelById, planName } from "@agenteschat/client/lib/plans";
 import { AUTO, isAuto, providerLabel } from "@agenteschat/client/lib/providers";
 import {
+  Button,
   cx,
   Field,
   Icon,
@@ -25,6 +27,7 @@ import {
   SearchSelect,
   Select,
   type SelectOption,
+  SettingNote,
 } from "@agenteschat/ui";
 import type { TFunction } from "i18next";
 import { type ReactNode, useEffect, useId, useState } from "react";
@@ -139,8 +142,9 @@ type RowOption = SelectOption & { row: AiChoiceRow };
 
 /**
  * The selects of a choice, drawn from its state. `value`/`onChange`: the caller keeps the choice (a new agent, several
- * agents) and nothing saves here; else each change saves at once. `onAccount`: an account picked, for a caller with its
- * own way to switch (an agent's "Quem pensa": who else moves with it, signing in, undoing).
+ * agents) and nothing saves here; else each change saves at once, said with Desfazer, and an account that asks first
+ * (`aiChoiceAsks`) waits for its one button under the select. `onAccount`: an account picked, for a caller with its own
+ * way to switch (an agent's "Quem pensa": who else moves with it, signing in, undoing).
  */
 export function AiChoiceFields({
   state,
@@ -169,22 +173,36 @@ export function AiChoiceFields({
   const toast = useToast();
   const id = useId();
   const [pending, setPending] = useState<AiChoice | null>(null);
+  const [ask, setAsk] = useState<AiChoiceRow | null>(null);
   const currentKey = JSON.stringify(state.current);
   // What the server says now replaces what was just picked, once it has it.
   // biome-ignore lint/correctness/useExhaustiveDependencies: only when what is saved changes
-  useEffect(() => setPending(null), [currentKey]);
+  useEffect(() => {
+    setPending(null);
+    setAsk(null);
+  }, [currentKey]);
   const shown = value ?? pending ?? state.current;
   const row = rowOfChoice(state.rows, shown) ?? (shown ? undefined : state.selected) ?? undefined;
   const locked = disabled || !state.canEdit || state.saving;
 
+  const failed = (e: unknown) => toast.show(errorText(t, e), "error");
   const commit = (next: AiChoice, at: AiChoiceRow) => {
     if (onChange) return onChange(next, at);
+    const before = state.current;
     setPending(next);
+    setAsk(null);
     state.save(next).then(
-      () => onSaved?.(next),
+      () => {
+        onSaved?.(next);
+        if (!before) return;
+        toast.show(t("common.saved"), "success", {
+          label: t("agentPage.work.brain.v2.undo"),
+          run: () => void state.save(before).then(() => toast.show(t("agentPage.work.brain.v2.undone")), failed),
+        });
+      },
       (e: unknown) => {
         setPending(null);
-        toast.show(errorText(t, e), "error");
+        failed(e);
       },
     );
   };
@@ -198,10 +216,14 @@ export function AiChoiceFields({
     disabled: !r.usable,
     row: r,
   }));
+  const agentId = state.target.kind === "agent" || state.target.kind === "lodi" ? state.target.agentId : "";
+  const asksOf = (r: AiChoiceRow) => (onChange ? null : aiChoiceAsks(r, agentId));
+  const asking = ask ? asksOf(ask) : null;
   const pickAccount = (key: string) => {
     const next = state.rows.find((r) => r.key === key);
-    if (!next || next.key === row?.key) return;
+    if (!next || next.key === row?.key) return setAsk(null);
     if (onAccount) return onAccount(next);
+    if (asksOf(next)) return setAsk(next);
     commit(aiChoiceOf(next, shown ?? null), next);
   };
 
@@ -233,9 +255,10 @@ export function AiChoiceFields({
     commit({ ...shown, model: v, ...(effort !== undefined ? { effort } : {}) }, row);
   };
 
-  const levels = row ? state.efforts(row) : [];
+  const levels = row ? state.efforts(row, isAuto(model) ? null : (shown?.model ?? null)) : [];
   const autoModel = isAuto(model);
-  const effort = row ? effortOf(row.brain, shown?.effort) : null;
+  const stored = row ? effortOf(row.brain, shown?.effort) : null;
+  const effort = stored && shownEffort(stored, levels);
   const effortOptions: SelectOption<string>[] = autoModel
     ? [{ value: AUTO, label: t("brain.auto.label") }]
     : [
@@ -295,6 +318,25 @@ export function AiChoiceFields({
           />
         </Field>
       )}
+      {ask && asking && (
+        <SettingNote
+          icon={asking.owner ? "mail" : "info"}
+          live
+          action={
+            <Button
+              variant="primary"
+              disabled={locked}
+              onClick={() =>
+                commit({ ...aiChoiceOf(ask, shown ?? null), ...(asking.takesFrom ? { moveAccount: true } : {}) }, ask)
+              }
+            >
+              {t("connectAi.use", { label: rowName(t, ask) })}
+            </Button>
+          }
+        >
+          {askText(t, asking)}
+        </SettingNote>
+      )}
       {(showModel || showEffort) && (
         <div className={cx("aa-pair", !(showModel && showEffort) && "aa-pair--one")}>
           {showModel && (
@@ -335,6 +377,15 @@ export function AiChoiceFields({
     </div>
   );
 }
+
+/** Why a pick asks first: whose plan it spends, and the agent it moves from. */
+export const askText = (t: TFunction, a: { owner?: string; takesFrom?: string }) =>
+  [
+    a.owner ? t("aiHub.choice.asksOwner", { name: a.owner }) : null,
+    a.takesFrom ? t("aiHub.choice.asksMove", { agent: a.takesFrom }) : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
 /** Typed words against a row: its name, maker, plan, whose it is, its key's end. */
 const matchesRow = (t: TFunction, row: AiChoiceRow, query: string) =>

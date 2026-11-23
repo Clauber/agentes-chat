@@ -254,7 +254,7 @@ describe("the other places a plan is chosen", () => {
     expect(buttonNamed(d, PAY)).not.toBeNull();
     // Only the key in use: no plan to sign in to or switch to while the hold lasts, so nothing to switch to.
     expect(brainRows(d).map((r) => [r.group, r.title])).toEqual([["Em uso", "Chave padrão do workspace"]]);
-    expect(mainButton(d)?.disabled).toBe(true);
+    expect(mainButton(d)).toBeNull();
   });
 
   test("Lodi's settings: why and the way on in place of the plan row", async () => {

@@ -41,7 +41,7 @@ import { CliMissing } from "@/components/ai/CliMissing";
 import { PlanHold } from "@/components/ai/plan-hold";
 import { UseOnAgentsDialog } from "@/components/ai/UseOnAgents";
 import { AudienceCard } from "@/components/arrival/AudienceCard";
-import { HaveList, HaveRow, sortHave } from "@/components/arrival/ConnectHave";
+import { HaveList, HaveRow } from "@/components/arrival/ConnectHave";
 import { TeamScene, useDawn } from "@/components/arrival/TeamScene";
 import { useConnectAi } from "@/components/connect-ai-context";
 import { ToolOffWayOut } from "@/components/devices/ToolOneClick";
@@ -149,19 +149,24 @@ function BrainFlow({
   const screen: Screen = trail[trail.length - 1] ?? "glance";
   const [dir, setDir] = useState<"fwd" | "back">("fwd");
   const go = (next: Screen) => {
+    setAsk(undefined);
     setDir("fwd");
     setTrail((tr) => [...tr, next]);
   };
   const back = () => {
+    setAsk(undefined);
     setDir("back");
     setTrail((tr) => (tr.length > 1 ? tr.slice(0, -1) : tr));
   };
   const home = () => {
+    setAsk(undefined);
     setDir("back");
     setTrail(["glance"]);
   };
 
   const [picked, setPicked] = useState<string>();
+  /** A row picked that asks first (`asksFirst`): its line and one button under the list or the select. */
+  const [ask, setAsk] = useState<BrainRow>();
   const choice = useAiChoice(org.id, { kind: "agent", agentId: agent.id });
   const [aim, setAim] = useState<BrainRow>();
   const [teamToo, setTeamToo] = useState(true);
@@ -205,13 +210,11 @@ function BrainFlow({
   );
 
   // ── switching ──
-  const selectable = s.rows.filter((r) => !r.off);
-  // The one with most room comes picked; what is in use or can't be picked never is.
-  const selected = s.rows.find((r) => r.id === picked) ?? (picked === s.currentRow?.id ? s.currentRow : undefined);
-  const switchSel = picked !== undefined ? selected : sortHave(selectable)[0];
-  const limitSel = s.offers.find((r) => r.id === picked) ?? s.offers[0];
-  // Picking a full account is allowed: the agent then waits for its plan to renew, said under the list.
-  const switchFull = switchSel?.usage != null && !switchSel.current && planState(switchSel.usage).state === "limited";
+  const switchSel = s.rows.find((r) => r.id === picked);
+  const limitSel = s.offers.find((r) => r.id === picked);
+  // A full account waits for its plan to renew: said, like someone else's plan or another agent's login, before it saves.
+  const full = (r: BrainRow) => r.usage != null && !r.current && planState(r.usage).state === "limited";
+  const asksFirst = (r: BrainRow) => r.lends || r.act === "move" || full(r);
 
   /** This agent onto `row`, in the right order: its computer, then who thinks. */
   const saveRow = async (row: BrainRow): Promise<AgentBrain | null> => {
@@ -320,6 +323,7 @@ function BrainFlow({
             );
       setSwitched({ row, before, others, line, missed, onlyOwnerAfter: result?.onlyOwner ?? view.onlyOwner });
       setPicked(undefined);
+      setAsk(undefined);
       setDir("fwd");
       setTrail(["glance", "done"]);
       // Off the plan it still answers only its owner: one click lets back in whoever it answered before. "Só algumas
@@ -399,6 +403,18 @@ function BrainFlow({
     }
     void switchTo(row, false);
   };
+  /** A row picked in a list: it saves at once, or asks first in a line under the list (`asksFirst`). */
+  const pick = (id: string) => {
+    const row = [...s.rows, ...s.offers].find((r) => r.id === id);
+    if (!row || row.current || row.off || (row.signIn === true && !view.computer) || busy) return;
+    pickRow(row);
+  };
+  const pickRow = (row: BrainRow) => {
+    setPicked(row.id);
+    if (asksFirst(row)) return setAsk(row);
+    setAsk(undefined);
+    confirm(row);
+  };
   const connectOther =
     view.canUsePlans && connect && !s.hold
       ? () => {
@@ -466,19 +482,29 @@ function BrainFlow({
     }
   };
   const machineValue = machinePick ?? work.machineId;
-  const machineChosen = s.runsOn.find((x) => x.machineId === machineValue);
-  const saveMachine = async () => {
-    if (!machineChosen) return;
+  /** Another computer picked: saved at once, with Desfazer. */
+  const saveMachine = async (machineId: string) => {
+    const chosen = s.runsOn.find((x) => x.machineId === machineId);
+    const was = work.machineId;
+    if (!chosen || machineId === was || busy) return;
+    setMachinePick(machineId);
     setBusy(true);
     try {
-      await setTarget.mutateAsync({ agentId: agent.id, machineId: machineChosen.machineId });
+      await setTarget.mutateAsync({ agentId: agent.id, machineId });
       refresh();
-      toast.show(t("agentPage.work.saved.computer", { ...g, computer: s.nameOf(machineChosen.name) }));
-      setMachinePick(undefined);
+      toast.show(t("agentPage.work.saved.computer", { ...g, computer: s.nameOf(chosen.name) }), "success", {
+        label: t("agentPage.work.brain.v2.undo"),
+        run: () =>
+          void setTarget.mutateAsync({ agentId: agent.id, machineId: was === NO_COMPUTER ? null : was }).then(() => {
+            refresh();
+            toast.show(t("agentPage.work.brain.v2.undone"));
+          }, failed),
+      });
       home();
     } catch (e) {
       failed(e);
     } finally {
+      setMachinePick(undefined);
       setBusy(false);
     }
   };
@@ -518,8 +544,8 @@ function BrainFlow({
           (r.keyId === row.apiKey?.id ||
             (row.apiKey?.isDefault === true && (r.keyId === undefined || r.keyId === DEFAULT_KEY))),
     );
-    if (match?.current) return;
-    if (match) return confirm(match);
+    if (match?.current) return setAsk(undefined);
+    if (match) return pickRow(match);
     setBusy(true);
     choice
       .save(choice.choose(row))
@@ -607,6 +633,50 @@ function BrainFlow({
                     ? t("agentPage.work.brain.v2.doneTitle")
                     : t("agentPage.work.brain.v2.title", g);
 
+  /** A row in a button or a sentence: an unnamed account by its maker ("Trocar para Claude"), else its title. */
+  const rowSaid = (r: BrainRow) => (r.account ? accountInLine(t, r.account) : r.title);
+  /** The line a pick that asks first leaves under its list: why, and its one button. */
+  const askLine = ask && (
+    <SettingNote
+      icon={ask.lends ? "mail" : full(ask) ? "clock" : "info"}
+      live
+      action={
+        <Button variant="primary" disabled={busy} loading={busy} onClick={() => confirm(ask)}>
+          {t("agentPage.work.brain.v2.switchTo", { label: rowSaid(ask) })}
+        </Button>
+      }
+    >
+      {[
+        ask.lends ? t("connectAi.chat.told", { name: ask.ownerName ?? "" }) : null,
+        ask.act === "move"
+          ? t("aiHub.choice.asksMove", {
+              agent: namesText(
+                t,
+                (ask.account?.usedBy ?? []).filter((n) => n !== agent.name),
+                2,
+              ),
+            })
+          : null,
+        full(ask) ? t("agentPage.work.brain.v2.fullWait", g) : null,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      {full(ask) && (
+        <>
+          {" "}
+          <Link
+            to="/org/$orgId/settings/$section"
+            params={{ orgId: org.id, section: "usage" }}
+            className="ac-link"
+            onClick={onClose}
+          >
+            {t("agentPage.work.brain.v2.seeUsage")}
+          </Link>
+        </>
+      )}
+    </SettingNote>
+  );
+
   const body = (): ReactNode => {
     if (screen === "glance")
       return (
@@ -616,6 +686,7 @@ function BrainFlow({
             <SettingNote icon="clock">{t("connectAi.key.closed")}</SettingNote>
           )}
           <AiChoiceFields state={choice} onAccount={pickAccount} disabled={busy || !can("brain")} />
+          {askLine}
           {arrived && (
             <SettingNote icon="check" live>
               {t("agentPage.work.brain.add.done", { account: accountInLine(t, arrived), computer: s.computerName })}
@@ -669,8 +740,9 @@ function BrainFlow({
           {s.hold && <PlanHold hold={s.hold} />}
           <HaveList
             items={s.rows}
-            value={switchSel?.id}
-            onChange={setPicked}
+            value={ask?.id ?? s.currentRow?.id}
+            onChange={pick}
+            onPick={pick}
             all={screen === "all"}
             onAll={() => go("all")}
             disabled={busy}
@@ -678,19 +750,7 @@ function BrainFlow({
             label={title}
             byAi
           />
-          {switchFull && (
-            <SettingNote icon="clock" live>
-              {t("agentPage.work.brain.v2.fullWait", g)}{" "}
-              <Link
-                to="/org/$orgId/settings/$section"
-                params={{ orgId: org.id, section: "usage" }}
-                className="ac-link"
-                onClick={onClose}
-              >
-                {t("agentPage.work.brain.v2.seeUsage")}
-              </Link>
-            </SettingNote>
-          )}
+          {askLine}
           {lockedHere && (
             <SettingNote icon="lock">
               {t("connectAi.accountsLocked", { name: pairer ?? "", computer: s.computerName })}
@@ -757,12 +817,14 @@ function BrainFlow({
             <HaveList
               items={[]}
               pinned={{ label: t("connectAi.chat.best"), items: s.offers }}
-              value={limitSel?.id}
-              onChange={setPicked}
+              value={ask?.id}
+              onChange={pick}
+              onPick={pick}
               disabled={busy}
               label={title}
             />
           )}
+          {askLine}
           {can("brain") && (
             <button
               type="button"
@@ -860,7 +922,7 @@ function BrainFlow({
             description: x.online ? t("agentPage.work.computer.online") : t("agentPage.work.computer.offline"),
           }))}
           value={machineValue}
-          onChange={setMachinePick}
+          onPick={(id) => void saveMachine(id)}
           label={title}
         />
       );
@@ -916,8 +978,6 @@ function BrainFlow({
     return null;
   };
 
-  /** A row in a button or a sentence: an unnamed account by its maker ("Trocar para Claude"), else its title. */
-  const rowSaid = (r: BrainRow) => (r.account ? accountInLine(t, r.account) : r.title);
   /** The footer, always the same: a quiet note at its start, the second action, the main one at its end. */
   const footer = (o: { note?: ReactNode; second?: ReactNode; main?: ReactNode }) => (
     <DialogFooter
@@ -928,11 +988,6 @@ function BrainFlow({
       {o.second}
       {o.main}
     </DialogFooter>
-  );
-  const cancel = (
-    <Button variant="ghost" disabled={busy} onClick={back}>
-      {t("common.cancel")}
-    </Button>
   );
   const finish = (
     <Button variant="primary" onClick={onClose}>
@@ -979,34 +1034,9 @@ function BrainFlow({
         ),
       });
     }
-    if (screen === "switch" || screen === "all") {
-      const row = switchSel;
-      return footer({
-        note: row?.lends ? mailNote(row.ownerName) : undefined,
-        second: cancel,
-        main: (
-          <Button
-            variant="primary"
-            disabled={!row || row.current || row.off || (row.signIn === true && !view.computer) || busy}
-            loading={busy}
-            onClick={() => row && confirm(row)}
-          >
-            {!row
-              ? // Nothing to switch to (the one in use alone): the screen's own words, never "Switch to" and nothing.
-                t("agentPage.work.brain.v2.switch")
-              : row.act === "again"
-                ? t(isPlanId(row.choice) ? "aiAccounts.page.newKey" : "agentPage.work.brain.signInAgain")
-                : row.act === "also"
-                  ? t("connectAi.signInFor", g)
-                  : t("agentPage.work.brain.v2.switchTo", { label: rowSaid(row) })}
-          </Button>
-        ),
-      });
-    }
     if (screen === "team")
       return footer({
         note: aim?.lends ? mailNote(aim.ownerName) : undefined,
-        second: cancel,
         main: (
           <Button
             variant="primary"
@@ -1021,15 +1051,7 @@ function BrainFlow({
         ),
       });
     if (screen === "limit")
-      return footer({
-        note: limitSel?.lends ? mailNote(limitSel.ownerName) : undefined,
-        second: <Button onClick={onClose}>{t("agentPage.work.brain.v2.wait")}</Button>,
-        main: limitSel && can("brain") && (
-          <Button variant="primary" disabled={busy} loading={busy} onClick={() => confirm(limitSel)}>
-            {t("connectAi.use", { label: rowSaid(limitSel) })}
-          </Button>
-        ),
-      });
+      return footer({ main: <Button onClick={onClose}>{t("agentPage.work.brain.v2.wait")}</Button> });
     if (screen === "more") {
       const now: Advanced = {
         effort: m.effort,
@@ -1061,20 +1083,6 @@ function BrainFlow({
         ),
       });
     }
-    if (screen === "computer")
-      return footer({
-        second: cancel,
-        main: (
-          <Button
-            variant="primary"
-            disabled={!machineChosen || machineValue === work.machineId || busy}
-            loading={busy}
-            onClick={() => void saveMachine()}
-          >
-            {t("agentPage.work.computer.useMachine", { computer: machineChosen ? s.nameOf(machineChosen.name) : "" })}
-          </Button>
-        ),
-      });
     if (screen === "done")
       return footer({
         second: (

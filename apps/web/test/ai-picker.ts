@@ -135,8 +135,13 @@ export async function pickRow(d: HTMLElement, which: string | RegExp | ((row: Br
   await clicked(row.querySelector('[role="radio"]') ?? row);
 }
 
-/** The footer's main button ("Trocar para …", "Usar …", "Concluído"), to read or press with `confirmScreen`. */
-export const mainButton = (d: HTMLElement) => d.querySelector<HTMLButtonElement>(".ac-dialog__foot .ac-btn--primary");
+/**
+ * The screen's main button, to read or press with `confirmScreen`: a pick that asks first has its one button under the
+ * list ("Trocar para …"); else the footer's ("Trocar os 2 agentes", "Concluído").
+ */
+export const mainButton = (d: HTMLElement) =>
+  d.querySelector<HTMLButtonElement>(".ac-setnote-line .ac-btn--primary") ??
+  d.querySelector<HTMLButtonElement>(".ac-dialog__foot .ac-btn--primary");
 
 /** Presses the footer's main button: the screen saves its change (or, on the first and last screens, closes). */
 export async function confirmScreen(d: HTMLElement) {

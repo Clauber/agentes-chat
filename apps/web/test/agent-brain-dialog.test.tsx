@@ -72,9 +72,8 @@ describe("Quem pensa (its dialog)", () => {
     const { state } = await open();
     const d = await brainDialog();
     await toScreen(d, "Trocar de conta");
+    // A pick saves at once.
     await pickRow(d, notInUse("Claude"));
-    expect(mainButton(d)?.textContent).toBe("Trocar para Claude");
-    await confirmScreen(d);
     await settle(6);
     expect(callOrder(state)).toEqual(["sandbox.setTarget", "agents.setBrain"]);
     expect(state.calls.find((c) => c.method === "sandbox.setTarget")?.args.slice(1)).toEqual([ADA_ID, "machine_1"]);
@@ -179,8 +178,6 @@ describe("Quem pensa: the account on the computer and the effort (ADR 0041)", ()
   async function addLogin(d: HTMLElement, title: string, region = "Adicionar conta do Claude") {
     await toScreen(d, "Trocar de conta");
     await pickRow(d, notInUse(title));
-    expect(mainButton(d)?.textContent).toBe("Fazer login para a Ada");
-    await confirmScreen(d);
     await settle(6);
     return within(d).getByRole("region", { name: region });
   }
@@ -623,7 +620,7 @@ describe("Quem pensa: the account on the computer and the effort (ADR 0041)", ()
     expect(shownText(await brainDialog())).toContain("O MacBook está offline");
   });
 
-  test("past three ways to think, the three with most room come first, the one with most room picked; Ver as N contas lists every one under a search", async () => {
+  test("past three ways to think, the three with most room come first, nothing picked until pressed; Ver as N contas lists every one under a search", async () => {
     const used = (usedPercent: number) => ({
       windows: [{ kind: "five_hour" as const, usedPercent }],
       source: "probe" as const,
@@ -655,10 +652,11 @@ describe("Quem pensa: the account on the computer and the effort (ADR 0041)", ()
       ["Trabalho", "70%"],
     ]);
     // How full each one is is read with its row, below 80% too: only the bar is hidden from a screen reader.
-    expect(within(d).getByRole("radio", { name: /Pessoal.*40\s?%/ })).toBeTruthy();
+    expect(within(d).getByRole("button", { name: /Pessoal.*40\s?%/ })).toBeTruthy();
     for (const pct of d.querySelectorAll(".arrival-have__pct")) expect(pct.closest("[aria-hidden]")).toBeNull();
-    expect(best[0]?.checked).toBe(true);
-    expect(mainButton(d)?.textContent).toBe("Trocar para Folga");
+    // No row comes picked and no footer waits: a row saves once pressed.
+    expect(best.some((r) => r.checked)).toBe(false);
+    expect(d.querySelector(".ac-dialog__foot")).toBeNull();
     await toScreen(d, "Ver as");
     expect(brainScreen(d)).toBe("Todas as contas");
     expect(brainRows(d).some((r) => r.title === "Reserva")).toBe(true);
@@ -670,13 +668,12 @@ describe("Quem pensa: the account on the computer and the effort (ADR 0041)", ()
     await settle(2);
     expect(brainRows(d).map((r) => r.title)).toEqual(["Reserva"]);
     await pickRow(d, "Reserva");
-    await confirmScreen(d);
     await settle(6);
     expect(brainCalls(state)).toEqual([{ brain: "claude_code", account: "acct_d" }]);
     expect(brainScreen(d)).toBe("Pronto");
   });
 
-  test("an account at its limit says until when in the list; picked, one line says the agent waits, with Ver uso, and the switch still goes", async () => {
+  test("an account at its limit says until when in the list; picked, it asks first: one line says the agent waits, with Ver uso, and its one button switches", async () => {
     const until = new Date(Date.now() + 25 * 86_400_000).toISOString();
     const at = new Date().toISOString();
     const { state } = await onMac({
@@ -701,11 +698,13 @@ describe("Quem pensa: the account on the computer and the effort (ADR 0041)", ()
     });
     const d = await brainDialog();
     await toScreen(d, "Trocar de conta");
-    const full = within(d).getByRole("radio", { name: /Cheia/ }).closest("label") as HTMLElement;
+    const full = [...d.querySelectorAll(".arrival-have__row")].find((r) =>
+      r.textContent?.includes("Cheia"),
+    ) as HTMLElement;
     expect(full.textContent).toContain("No limite até");
-    // The one with room comes picked: nothing waits, nothing to say.
     expect(within(d).queryByText(/espera até o plano renovar/)).toBeNull();
     await pickRow(d, notInUse("Cheia"));
+    expect(brainCalls(state)).toEqual([]);
     const line = within(d).getByText(/Nesta conta a Ada espera até o plano renovar\./);
     const link = within(line.closest("p") as HTMLElement).getByRole("link", { name: "Ver uso" });
     expect(link.getAttribute("href")).toBe(`/org/${ORG_ID}/settings/usage`);

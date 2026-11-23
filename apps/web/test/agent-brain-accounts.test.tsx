@@ -123,8 +123,6 @@ describe("Quem pensa: the account on the computer and the effort (ADR 0041)", ()
       "walt@pessoal.com · Max · Também usada por Theo",
     ]);
     await pickRow(d, "Pessoal");
-    expect(mainButton(d)?.textContent).toBe("Trocar para Pessoal");
-    await click(mainButton(d) as HTMLElement);
     await settle(6);
     expect(within(d).queryByRole("region", { name: "Adicionar conta do Claude" })).toBeNull();
     expect(brainCalls(state).at(-1)).toMatchObject({ account: "acct_all" });
@@ -149,7 +147,6 @@ describe("Quem pensa: the account on the computer and the effort (ADR 0041)", ()
     const d = await brainDialog();
     await toScreen(d, "Trocar de conta");
     await pickRow(d, "Pessoal");
-    await click(mainButton(d) as HTMLElement);
     expect(within(d).getByRole("region", { name: "Adicionar conta do Claude" })).toBeTruthy();
     await signIn(d, "Entrar com Claude");
     expect(loginArgs(state)).toEqual([ORG_ID, "machine_1", "claude_code", { email: "walt@pessoal.com" }]);
@@ -172,8 +169,6 @@ describe("Quem pensa: the account on the computer and the effort (ADR 0041)", ()
       "walt@pessoal.com · Plus · Também usada por Theo",
     ]);
     await pickRow(d, "Pessoal");
-    expect(mainButton(d)?.textContent).toBe("Fazer login para a Ada");
-    await click(mainButton(d) as HTMLElement);
     expect(within(d).getByRole("region", { name: /^Adicionar conta/ })).toBeTruthy();
     expect(brainCalls(state)).toEqual([]);
   });
@@ -217,8 +212,8 @@ describe("Quem pensa: the account on the computer and the effort (ADR 0041)", ()
     ]);
     expect(within(d).getByRole("button", { name: "Esperar" })).toBeTruthy();
     expect(within(d).queryByRole("button", { name: /^Conectar outra IA/ })).toBeNull();
-    expect(mainButton(d)?.textContent).toBe("Usar walt@reserva.com");
-    await click(mainButton(d) as HTMLElement);
+    // No row comes picked: the one with room saves once pressed.
+    await pickRow(d, "walt@reserva.com");
     await settle(6);
     expect(brainCalls(state).at(-1)).toEqual({ brain: "claude_code", account: "acct_roomy" });
     expect(brainScreen(d)).toBe("Pronto");
@@ -347,8 +342,6 @@ describe("Quem pensa: the account on the computer and the effort (ADR 0041)", ()
     const d = await brainDialog();
     await toScreen(d, "Trocar de conta");
     await pickRow(d, (r) => r.mark === "claude" && r.group !== "Em uso");
-    expect(mainButton(d)?.textContent).toBe("Trocar para A conta que os seus agentes dividem");
-    await click(mainButton(d) as HTMLElement);
     await settle(6);
     expect(brainCalls(state).at(-1)).toEqual({ brain: "claude_code", account: null });
     expect(d.textContent).toContain("A Ada agora pensa com A conta que os seus agentes dividem.");
@@ -426,7 +419,6 @@ describe("Quem pensa: the account on the computer and the effort (ADR 0041)", ()
     expect(openai.map((r) => r.title).sort()).toEqual(["A conta que os seus agentes dividem", "Pessoal"]);
     expect(brainRows(d).some((r) => r.mark === "claude" && r.group !== "Em uso")).toBe(false);
     await pickRow(d, (r) => r.mark === "openai" && r.title === "A conta que os seus agentes dividem");
-    await click(mainButton(d) as HTMLElement);
     await settle(6);
     // From the API another plan starts on its own default model.
     expect(brainCalls(state).at(-1)).toEqual({ brain: "codex", model: null, account: null });
@@ -441,7 +433,6 @@ describe("Quem pensa: the account on the computer and the effort (ADR 0041)", ()
         .map((r) => r.title),
     ).toEqual(["Pessoal"]);
     await pickRow(d, "Pessoal");
-    await click(mainButton(d) as HTMLElement);
     await settle(6);
     expect(brainCalls(second.state).at(-1)).toMatchObject({ brain: "codex", account: "acct_plus" });
   });
@@ -498,8 +489,6 @@ describe("Quem pensa: a plan with a login per agent, and plans on the Cloud", ()
     const rows = brainRows(d).filter((r) => r.title === "GLM Coding");
     expect(rows.map((r) => [r.lines, r.mark])).toEqual([[["Também usada por Theo e Lia"], "zai"]]);
     await pickRow(d, "GLM Coding");
-    expect(mainButton(d)?.textContent).toBe("Fazer login para a Ada");
-    await click(mainButton(d) as HTMLElement);
     const block = within(d).getByRole("region", { name: "Conectar GLM Coding" });
     fireEvent.change(within(block).getByLabelText("Chave do GLM Coding"), {
       target: { value: "0123456789abcdef0123456789abcdef.AbCdEfGhIjKlMnOp" },
@@ -553,7 +542,6 @@ describe("Usar em outros agentes (ADR 0094)", () => {
     const d = await brainDialog();
     await toScreen(d, "Trocar de conta");
     await pickRow(d, (r) => r.mark === "claude" && r.group !== "Em uso");
-    await click(mainButton(d) as HTMLElement);
     await settle(6);
     await done(d);
     await settle(4);
@@ -602,7 +590,6 @@ describe("Usar em outros agentes (ADR 0094)", () => {
     let d = await brainDialog();
     await toScreen(d, "Trocar de conta");
     await pickRow(d, "Claude do time");
-    await click(mainButton(d) as HTMLElement);
     await settle(6);
     await done(d);
     await settle(4);

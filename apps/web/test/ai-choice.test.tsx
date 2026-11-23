@@ -70,7 +70,7 @@ const MARINA = account("acct_marina", "Pessoal da Marina", {
   serves: "owner",
 });
 
-async function agentPage(accounts: Row[]) {
+async function agentPage(accounts: Row[], others = false) {
   const state = seedState();
   const api = createFakeApi(state);
   fakeMachinesOf.get(api)?.setAiAccounts({ accounts, computers: [MAC] });
@@ -84,6 +84,7 @@ async function agentPage(accounts: Row[]) {
       computer: { machineId: "machine_1", name: "MacBook", online: true },
       canUsePlans: true,
       canEdit: true,
+      ...(others ? { canUseOthersPlans: true } : {}),
     });
   await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}`, { api });
   await settle(8);
@@ -155,6 +156,44 @@ describe("Quem pensa: the one picker", () => {
         .map((c) => c.args[2])
         .at(-1),
     ).toMatchObject({ model: "auto", effort: "auto" });
+  });
+
+  test("Esforço offers the levels the model's catalog row lists; a pick saves at once and Desfazer puts back the one before", async () => {
+    const { state } = await agentPage([WORK]);
+    const d = await brainDialog();
+    const effort = within(d.querySelector(".aa-pair") as HTMLElement).getByRole("combobox", { name: "Esforço" });
+    // Sonnet 5.5, the plan's default: every level Claude's API takes, Muito alto included.
+    const levels = await options(effort);
+    expect(levels.map((o) => o.textContent)).toEqual(["Baixo", "Médio", "Alto", "Muito alto", "Máximo"]);
+    await click(levels.find((o) => o.textContent === "Muito alto") as Element);
+    await settle(6);
+    const sent = () => state.calls.filter((c) => c.method === "agents.setBrain").map((c) => c.args[2]);
+    expect(sent().at(-1)).toMatchObject({ brain: "claude_code", effort: "xhigh" });
+    await click(screen().getByRole("button", { name: "Desfazer" }));
+    await settle(6);
+    expect(sent().at(-1)).toMatchObject({ brain: "claude_code", account: "acct_work", effort: "medium" });
+  });
+
+  test("someone else's plan asks first, in one line under Conta with one button; nothing saves until it is pressed", async () => {
+    const BIA = account("acct_bia", "Max da Bia", { ownerId: "u-bia", ownerName: "Bia Souza", mine: false });
+    const { state } = await agentPage([WORK, BIA], true);
+    const d = await brainDialog();
+    const rows = await options(within(d).getByRole("combobox", { name: "Conta" }));
+    await click(rows.find((o) => name(o) === "Max da Bia") as Element);
+    await settle(4);
+    expect(state.calls.some((c) => c.method === "agents.setBrain")).toBe(false);
+    const line = d.querySelector(".ac-setnote-line") as HTMLElement;
+    expect(line.textContent).toContain("Bia recebe um aviso por e-mail.");
+    // No footer pair to confirm with: the line's one button.
+    expect(within(d).queryByRole("button", { name: "Cancelar" })).toBeNull();
+    await click(within(line).getByRole("button", { name: "Trocar para Max da Bia" }));
+    await settle(6);
+    expect(
+      state.calls
+        .filter((c) => c.method === "agents.setBrain")
+        .map((c) => c.args[2])
+        .at(-1),
+    ).toMatchObject({ brain: "claude_code", account: "acct_bia" });
   });
 
   test("a long name ends in an ellipsis on one line, whole in its tooltip", async () => {

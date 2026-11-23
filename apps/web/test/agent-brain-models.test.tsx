@@ -5,17 +5,7 @@ import { setupDom } from "@agenteschat/ui/testing/dom";
 setupDom();
 
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
-import {
-  brainDialog,
-  brainLines,
-  brainRows,
-  brainScreen,
-  confirmScreen,
-  done,
-  mainButton,
-  pickRow,
-  toScreen,
-} from "./ai-picker";
+import { brainDialog, brainLines, brainRows, brainScreen, done, pickRow, toScreen } from "./ai-picker";
 import { ADA_ID, createFakeApi, type FakeState, fakeAgentBrain, fakeMachinesOf, ORG_ID, seedState } from "./fake-api";
 
 import { renderApp, screen, settle } from "./render";
@@ -194,7 +184,6 @@ describe("Quem pensa: a coding plan's models", () => {
     ]);
     // One more key of the same plan: the model it has stays.
     await pickRow(d, (r) => r.group !== "Em uso" && r.title === "Plano 2");
-    await confirmScreen(d);
     await settle(6);
     expect(brainCalls(state).at(-1)).toEqual({ brain: "claude_code", account: "acct_oc2" });
     // Claude: another plan, on its own default model.
@@ -202,7 +191,6 @@ describe("Quem pensa: a coding plan's models", () => {
     const again = await brainDialog();
     await toScreen(again, "Trocar de conta");
     await pickRow(again, (r) => r.group !== "Em uso" && r.title.startsWith("Pessoal"));
-    await confirmScreen(again);
     await settle(6);
     expect(brainCalls(state).at(-1)).toEqual({ brain: "claude_code", model: null, account: "acct_claude" });
   });
@@ -215,8 +203,6 @@ describe("Quem pensa: a coding plan's models", () => {
     const d = await brainDialog();
     await toScreen(d, "Trocar de conta");
     await pickRow(d, (r) => r.group !== "Em uso" && r.mark === "opencode");
-    expect(mainButton(d)?.textContent).toBe("Trocar para Plano");
-    await confirmScreen(d);
     await settle(6);
     expect(brainCalls(state).at(-1)).toMatchObject({ brain: "claude_code", account: "acct_oc" });
     expect(brainCalls(state).at(-1)).not.toHaveProperty("moveAccount");
@@ -249,7 +235,6 @@ describe("Quem pensa: a coding plan's models", () => {
       ["Conta deste MacBook", "De João", "openai", false],
       ["Chave padrão do workspace", "Chave do workspace", "claude", false],
     ]);
-    expect(mainButton(d)?.disabled).toBe(false);
     expect(d.textContent).not.toContain("Só João troca");
   });
 });

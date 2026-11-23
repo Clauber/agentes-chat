@@ -6,7 +6,7 @@ import { setupDom } from "@agenteschat/ui/testing/dom";
 setupDom();
 
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
-import { brainDialog, brainRows, brainScreen, mainButton, pickRow, toScreen } from "./ai-picker";
+import { brainDialog, brainRows, brainScreen, pickRow, toScreen } from "./ai-picker";
 import { ADA_ID, ATLAS_ID, createFakeApi, fakeAgentBrain, fakeMachinesOf, ORG_ID, seedState } from "./fake-api";
 import { shownText } from "./hint";
 import { renderApp, settle } from "./render";
@@ -81,15 +81,14 @@ describe("an admin on someone else's agent", () => {
     expect(shownText(d)).toContain("Só contas de João");
     await toScreen(d, "Trocar de conta");
     // The one in use; by AI, João's other account, his to give: saying whose it is, not to be picked; the workspace's
-    // key, the admin's to pick, picked.
+    // key, the admin's to pick. Only the one in use shows picked: a row saves once pressed.
     const rows = brainRows(d);
     expect(rows.map((r) => [r.group, r.title, r.checked, r.off])).toEqual([
-      ["Em uso", "Claude Max", false, false],
+      ["Em uso", "Claude Max", true, false],
       ["Claude", "Claude Pro · Max", false, true],
-      ["Chaves de API", "Chave padrão do workspace", true, false],
+      ["Chaves de API", "Chave padrão do workspace", false, false],
     ]);
     expect(rows[1]?.lines).toEqual(["De João"]);
-    expect(mainButton(d)?.textContent).toBe("Trocar para Chave padrão do workspace");
     // No sign-in here and no other AI to connect: those are the owner's (ADR 0160, addendum).
     expect(within(d).queryByRole("button", { name: /^Conectar outra IA/ })).toBeNull();
     expect(within(d).queryByRole("button", { name: /^Entrar/ })).toBeNull();
@@ -117,7 +116,6 @@ describe("Todos nesta conta", () => {
     const d = await brainDialog("Quem pensa pela Ada");
     await toScreen(d, "Trocar de conta");
     await pickRow(d, "next@acme.com");
-    await click(within(d).getByRole("button", { name: "Trocar para next@acme.com" }));
     // The account thinks for both: whom the switch is for, everyone by default.
     expect(brainScreen(d)).toBe("Trocar a conta do time");
     const cards = within(d).getByRole("group", { name: "Para quem é" });
